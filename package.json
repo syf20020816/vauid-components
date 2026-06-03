@@ -1,0 +1,48 @@
+{
+  "name": "vauid-components",
+  "private": true,
+  "author": {
+    "email": "syf20020816@outlook.com",
+    "name": "盛逸飞",
+    "url": "https://github.com/syf20020816"
+  },
+  "version": "0.0.0",
+  "type": "module",
+  "description": "components for vauid, used for audio and video",
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "audio",
+    "video",
+    "components",
+    "frontend",
+    "react-components"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.12.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^10.3.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.6.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.59.2",
+    "vite": "^8.0.12",
+    "vitest": "^4.1.8"
+  }
+}
