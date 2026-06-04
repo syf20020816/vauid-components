@@ -1,3 +1,5 @@
+import { FnReturn, Nullable } from "../_std";
+
 /**
  * # 实体类别
  * 这个枚举定义了实体的类别，帮助布局引擎和渲染层区分不同类别的实体，以便应用不同的布局策略和渲染方式。
@@ -64,6 +66,19 @@ export const Area = {
 export type Area = (typeof Area)[keyof typeof Area];
 
 /**
+ * # 布局类型
+ * 布局引擎支持网格和焦点两种基本布局类型，业务层可以根据实际需求选择合适的布局类型来展示实体。
+ */
+export const LayoutType = {
+  /** 网格布局，所有实体在同一网格区展示，适合参与者列表等场景 */
+  Grid: "grid",
+  /** 焦点布局，主实体在主区展示，其他实体在缩略区展示，适合发言者聚焦等场景 */
+  Focus: "focus",
+} as const;
+
+export type LayoutType = (typeof LayoutType)[keyof typeof LayoutType];
+
+/**
  * 布局引擎依赖的最小实体抽象。
  *
  * 这个接口只要求一个稳定 id，确保布局库可以脱离 LiveKit 独立存在。
@@ -85,27 +100,58 @@ export interface LayoutEntity<Payload = unknown> {
 }
 
 /**
- * 布局引擎输出的节点信息。每个节点对应一个布局实体和它在布局舞台上的位置尺寸等元信息。
+ * # 布局节点信息
+ * 
+ * 布局引擎输出的节点信息。每个节点对应一个布局实体和它在布局舞台上的位置尺寸等元信息
  *
- * 这个接口是布局引擎和渲染层的契约，渲染层可以根据这些信息来决定如何渲染每个节点。
+ * 这个接口是布局引擎和渲染层的契约，渲染层可以根据这些信息来决定如何渲染每个节点
  */
 export interface LayoutNode<Entity extends LayoutEntity = LayoutEntity> {
-  // 当前布局节点对应的布局实体，外部渲染层可以基于它找到对应的 Tile 宿主。
+  // 当前布局节点对应的布局实体，外部渲染层可以基于它找到对应的 Tile 宿主
   entity: Entity;
-  // 节点左上角在布局舞台中的 x 坐标。
+  // 节点左上角在布局舞台中的 x 坐标
   x: number;
-  // 节点左上角在布局舞台中的 y 坐标。
+  // 节点左上角在布局舞台中的 y 坐标
   y: number;
-  // 节点目标宽度。
+  // 节点目标宽度
   width: number;
-  // 节点目标高度。
+  // 节点目标高度
   height: number;
-  // 节点所属区域，用于外部渲染层区分主区、缩略区和普通网格区。
+  // 节点所属区域，用于外部渲染层区分主区、缩略区和普通网格区
   area: Area;
-  // 当前节点归属的页码。focus 布局下主节点和 rail 节点会共享同一页码。
+  // 当前节点归属的页码。focus 布局下主节点和 rail 节点会共享同一页码
   page: number;
-  // 是否为当前焦点节点。外部可以用它决定是否高亮、置顶或绑定特殊交互。
+  // 是否为当前焦点节点。外部可以用它决定是否高亮、置顶或绑定特殊交互
   isFocus: boolean;
-  // 渲染层级，便于后续做 transform 过渡时保持主节点始终覆盖缩略区。
+  // 渲染层级，便于后续做 transform 过渡时保持主节点始终覆盖缩略区
   zIndex: number;
+}
+
+/**
+ * # 布局状态
+ * 布局引擎输出的整体布局状态，包括当前所有布局节点的信息、分页信息、布局类型和尺寸信息等。
+ * 
+ * **这个接口是布局引擎和渲染层的契约，渲染层可以根据这些信息来决定如何渲染整个布局舞台，以及提供分页切换等交互功能**
+ */
+export interface LayoutState<Entity extends LayoutEntity = LayoutEntity> {
+  /** 布局节点列表 */
+  nodes: LayoutNode<Entity>[];
+  /** 当前页码 */
+  currentPage: number;
+  /** 总页数 */
+  totalPages: number;
+  /** 布局类型 */
+  layoutType: LayoutType;
+  /** 布局宽度 */
+  width: number;
+  /** 布局高度 */
+  height: number;
+  /** 当前焦点实体 */
+  focusEntity: Nullable<Entity>;
+  /** 设置页码 */
+  setPage: (page: number) => FnReturn<void>;
+  /** 下一页 */
+  nextPage: () => FnReturn<void>;
+  /** 上一页 */
+  prevPage: () => FnReturn<void>;
 }
