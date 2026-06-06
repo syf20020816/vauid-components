@@ -17,13 +17,13 @@ const RATIOS = {
 const LAYOUT_GAP = 4;
 
 /**
- * # LayoutComputer
+ * # LayoutCompute
  * 负责根据当前的 entities、focusEntity、分页状态、设备类型等信息，计算出每个实体的布局位置和大小。
  * 计算出的布局会存储在 this.layoutNodes 中，供后续渲染使用。
  *
  * 这个类只做纯布局计算
  */
-export class LayoutComputer<Entity extends LayoutEntity = LayoutEntity> {
+export class LayoutCompute<Entity extends LayoutEntity = LayoutEntity> {
   // 所有的布局实体。
   protected entities: Entity[];
   // 当前被选中的布局实体，如果有选中（切换）则会转为 focus 布局。
@@ -138,7 +138,7 @@ export class LayoutComputer<Entity extends LayoutEntity = LayoutEntity> {
         y: rowIndex * (cellHeight + LAYOUT_GAP),
         width: cellWidth,
         height: cellHeight,
-        area: "grid",
+        area: Area.Grid,
         page: this.page,
         isFocus: false,
         zIndex: 1,
@@ -267,7 +267,7 @@ export class LayoutComputer<Entity extends LayoutEntity = LayoutEntity> {
       y: index * (railItemHeight + LAYOUT_GAP),
       width: railWidth,
       height: railItemHeight,
-      area: "rail" as const,
+      area: Area.Rail,
       page: this.page,
       isFocus: false,
       zIndex: 1,
@@ -280,7 +280,7 @@ export class LayoutComputer<Entity extends LayoutEntity = LayoutEntity> {
         y: 0,
         width: mainWidth,
         height: this.height,
-        area: "main",
+        area: Area.Main,
         page: this.page,
         isFocus: true,
         zIndex: 2,
@@ -321,7 +321,7 @@ export class LayoutComputer<Entity extends LayoutEntity = LayoutEntity> {
         y: 0,
         width: this.width,
         height: mainHeight,
-        area: "main",
+        area: Area.Main,
         page: this.page,
         isFocus: true,
         zIndex: 2,
