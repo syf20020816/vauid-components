@@ -1,5 +1,13 @@
+//! 布局计算方式
+
 import { Nullable } from "../../_std";
-import { LayoutEntity, LayoutNode, LayoutType, Area } from "../types";
+import {
+  LayoutEntity,
+  LayoutNode,
+  LayoutType,
+  Area,
+  LayoutNodes,
+} from "../types";
 
 const Z_INDEX = {
   Main: 2,
@@ -15,6 +23,33 @@ const RATIOS = {
 };
 
 const LAYOUT_GAP = 4;
+
+export interface ComputeInitConfig<Entity extends LayoutEntity = LayoutEntity> {
+  height: number;
+  width: number;
+  focusEntity?: Nullable<Entity>;
+  fullScreen?: boolean;
+  deviceType?: "mobile" | "desktop";
+  layoutType?: LayoutType;
+  pageSize?: number;
+  page?: number;
+  minRailWidth?: number;
+  maxRailWidth?: number;
+  fixedSize?: boolean;
+  aspectRatio?: { w: number; h: number };
+}
+
+export interface ComputeInitFromEntity<
+  Entity extends LayoutEntity = LayoutEntity,
+> extends ComputeInitConfig<Entity> {
+  entities: Entity[];
+}
+
+export interface ComputeInitFromNode<
+  Entity extends LayoutEntity = LayoutEntity,
+> extends ComputeInitConfig<Entity> {
+  layoutNodes: LayoutNodes<Entity>;
+}
 
 /**
  * # LayoutCompute
@@ -34,7 +69,8 @@ export class LayoutCompute<Entity extends LayoutEntity = LayoutEntity> {
   height: number = 0;
   width: number = 0;
   // 计算出的布局节点
-  private layoutNodes: LayoutNode<Entity>[] = [];
+  // 使用 Map 存储布局节点，key 可以是实体的 id 或其他唯一标识，value 是对应的 LayoutNode 信息
+  private layoutNodes: LayoutNodes<Entity> = new Map();
   // 当前布局类型，默认为 grid
   layoutType: LayoutType = "grid";
   // 设备类型, 不同设备类型可能会有不同的布局策略，比如移动端可能更倾向于单列布局，桌面端则可以使用多列布局
@@ -43,7 +79,7 @@ export class LayoutCompute<Entity extends LayoutEntity = LayoutEntity> {
   // 当前页码
   page: number = 1;
   // 每页显示的实体数量
-  pageSize: number = 2;
+  pageSize: number = 4;
   // 侧边栏宽度限制
   minRailWidth: number = 180;
   maxRailWidth: number = 320;
@@ -53,17 +89,84 @@ export class LayoutCompute<Entity extends LayoutEntity = LayoutEntity> {
   private aspectRatio: { h: number; w: number } = { w: 16, h: 9 };
 
   // --- 构造方法 ---------------------------------------------------------------------------------
-  constructor(entities: Entity[], height: number, width: number) {
+  constructor(entities: Entity[], others: ComputeInitConfig<Entity>) {
+    const {
+      height,
+      width,
+      focusEntity,
+      fullScreen,
+      deviceType,
+      layoutType,
+      pageSize,
+      page,
+      minRailWidth,
+      maxRailWidth,
+      fixedSize,
+      aspectRatio,
+    } = others;
     this.entities = entities;
     this.height = height;
     this.width = width;
     // 自动计算容器宽高比，后续在 fixedSize 模式下会用到这个值来推导单元尺寸，保证在不同容器尺寸下单元的大小都在一个合理的范围内。
     this.fixAspectRatio();
+    if (focusEntity) {
+      this.focusEntity = focusEntity;
+    }
+    if (fullScreen !== undefined) {
+      this.fullScreen = fullScreen;
+    }
+    if (deviceType) {
+      this.deviceType = deviceType;
+    }
+    if (layoutType) {
+      this.layoutType = layoutType;
+    }
+    if (pageSize) {
+      this.pageSize = pageSize;
+    }
+    if (page) {
+      this.page = page;
+    }
+    if (minRailWidth) {
+      this.minRailWidth = minRailWidth;
+    }
+    if (maxRailWidth) {
+      this.maxRailWidth = maxRailWidth;
+    }
+    if (fixedSize !== undefined) {
+      this.fixedSize = fixedSize;
+    }
+    if (aspectRatio) {
+      this.aspectRatio = aspectRatio;
+    }
+  }
+
+  static fromEntities<Entity extends LayoutEntity>(
+    entities: Entity[],
+    others: ComputeInitConfig<Entity>,
+  ): LayoutCompute<Entity> {
+    const instance = new this(entities, others);
+    return instance;
+  }
+  /**
+   * ## 从布局节点创建一个新的 LayoutCompute 实例
+   * 这个静态方法提供了一种便捷的方式，可以直接从一组已经计算好的布局节点来创建一个新的 LayoutCompute 实例，
+   * 避免了外部需要重复设置实体、尺寸等信息。主要用于在某些场景下，我们已经有了一份布局结果（比如从缓存中读取或者从服务器获取），
+   * 想要基于这份结果来创建一个新的计算实例，进行后续的调整或重新计算。
+   * @returns LayoutCompute 实例
+   */
+  static fromNodes<Entity extends LayoutEntity>(
+    nodes: LayoutNodes<Entity>,
+    others: ComputeInitConfig<Entity>,
+  ): LayoutCompute<Entity> {
+    const instance = new this([], others) as LayoutCompute<Entity>;
+    instance.setLayoutNodes(nodes);
+    return instance;
   }
 
   // --- 计算方法 ---------------------------------------------------------------------------------
   /**
-   * 根据当前状态生成一份最新布局结果。
+   * ## 根据当前状态生成一份最新布局结果。
    *
    * 计算顺序如下：
    * 1. 先校验容器尺寸和实体集合是否有效。
@@ -73,11 +176,11 @@ export class LayoutCompute<Entity extends LayoutEntity = LayoutEntity> {
    *
    * 返回值会同时写入内部缓存，渲染层可通过 getLayoutNodes() 重复读取。
    */
-  computeLayout() {
+  computeLayout(): LayoutNodes<Entity> {
     const activeFocusEntity = this.resolveFocusEntity();
     // 如果尺寸无效或者没有实体，则直接返回空布局。
     if (this.width <= 0 || this.height <= 0 || this.entities.length === 0) {
-      this.layoutNodes = [];
+      this.layoutNodes.clear();
       return this.layoutNodes;
     }
     // 如果是 全屏 模式，那么默认只会有一个布局节点，即 focusEntity（如果有的话，否则使用第一个实体），并且这个节点会占满整个容器。
@@ -86,21 +189,19 @@ export class LayoutCompute<Entity extends LayoutEntity = LayoutEntity> {
         activeFocusEntity ??
         this.getEntitiesForCurrentPage(this.entities, 1)[0] ??
         this.entities[0];
-      this.layoutNodes = fullScreenEntity
-        ? [
-            {
-              entity: fullScreenEntity,
-              x: 0,
-              y: 0,
-              width: this.width,
-              height: this.height,
-              area: Area.Main,
-              page: 1,
-              isFocus: true,
-              zIndex: Z_INDEX.Main,
-            },
-          ]
-        : [];
+      if (fullScreenEntity) {
+        this.layoutNodes.set(fullScreenEntity.id, {
+          entity: fullScreenEntity,
+          x: 0,
+          y: 0,
+          width: this.width,
+          height: this.height,
+          area: Area.Main,
+          page: 1,
+          isFocus: true,
+          zIndex: Z_INDEX.Main,
+        });
+      }
       return this.layoutNodes;
     }
 
@@ -119,7 +220,7 @@ export class LayoutCompute<Entity extends LayoutEntity = LayoutEntity> {
    * 仅对当前页的实体进行排布，每个节点都会被映射到统一大小的网格单元中。
    * 网格的行列数会根据设备类型和容器比例做一个尽量接近方阵的估算。
    */
-  private computeGridLayout(): LayoutNode<Entity>[] {
+  private computeGridLayout(): LayoutNodes<Entity> {
     const pageEntities = this.getEntitiesForCurrentPage(
       this.entities,
       this.pageSize,
@@ -128,11 +229,12 @@ export class LayoutCompute<Entity extends LayoutEntity = LayoutEntity> {
     const cellWidth = this.resolveCellSize(this.width, columns);
     const cellHeight = this.resolveCellSize(this.height, rows);
 
-    return pageEntities.map((entity, index) => {
+    const layoutMap = new Map<string, LayoutNode<Entity>>();
+    pageEntities.forEach((entity, index) => {
       const columnIndex = index % columns;
       const rowIndex = Math.floor(index / columns);
 
-      return {
+      layoutMap.set(entity.id, {
         entity,
         x: columnIndex * (cellWidth + LAYOUT_GAP),
         y: rowIndex * (cellHeight + LAYOUT_GAP),
@@ -142,8 +244,9 @@ export class LayoutCompute<Entity extends LayoutEntity = LayoutEntity> {
         page: this.page,
         isFocus: false,
         zIndex: 1,
-      };
+      });
     });
+    return layoutMap;
   }
 
   /**
@@ -187,7 +290,7 @@ export class LayoutCompute<Entity extends LayoutEntity = LayoutEntity> {
    * 3. desktop 采用左 rail 右 main。
    * 4. mobile 采用上 main 下 rail。
    */
-  private computeFocusLayout(focusEntity: Entity): LayoutNode<Entity>[] {
+  private computeFocusLayout(focusEntity: Entity): LayoutNodes<Entity> {
     const restEntities = this.entities.filter(
       (entity) => !this.isSameEntity(entity, focusEntity),
     );
@@ -197,19 +300,22 @@ export class LayoutCompute<Entity extends LayoutEntity = LayoutEntity> {
     );
 
     if (visibleRailEntities.length === 0) {
-      return [
-        {
-          entity: focusEntity,
-          x: 0,
-          y: 0,
-          width: this.width,
-          height: this.height,
-          area: Area.Main,
-          page: 1,
-          isFocus: true,
-          zIndex: Z_INDEX.Main,
-        },
-      ];
+      return new Map([
+        [
+          focusEntity.id,
+          {
+            entity: focusEntity,
+            x: 0,
+            y: 0,
+            width: this.width,
+            height: this.height,
+            area: Area.Main,
+            page: 1,
+            isFocus: true,
+            zIndex: Z_INDEX.Main,
+          },
+        ],
+      ]);
     }
 
     return this.deviceType === "mobile"
@@ -250,7 +356,7 @@ export class LayoutCompute<Entity extends LayoutEntity = LayoutEntity> {
   private computeDesktopFocusLayout(
     focusEntity: Entity,
     railEntities: Entity[],
-  ): LayoutNode<Entity>[] {
+  ): LayoutNodes<Entity> {
     // 侧边栏宽度根据总宽度和预设占比计算，同时设置最小值和最大值限制，避免过窄或过宽。这里设置
     const railWidth = Math.min(
       Math.max(this.width * RATIOS.DESKTOP_FOCUS_RAIL, this.minRailWidth),
@@ -261,32 +367,35 @@ export class LayoutCompute<Entity extends LayoutEntity = LayoutEntity> {
       this.height,
       railEntities.length,
     );
-    const railNodes = railEntities.map((entity, index) => ({
-      entity,
-      x: 0,
-      y: index * (railItemHeight + LAYOUT_GAP),
-      width: railWidth,
-      height: railItemHeight,
-      area: Area.Rail,
-      page: this.page,
-      isFocus: false,
-      zIndex: 1,
-    }));
 
-    return [
-      {
-        entity: focusEntity,
-        x: railWidth + LAYOUT_GAP,
-        y: 0,
-        width: mainWidth,
-        height: this.height,
-        area: Area.Main,
+    const result = new Map<string, LayoutNode<Entity>>();
+    result.set(focusEntity.id, {
+      entity: focusEntity,
+      x: railWidth + LAYOUT_GAP,
+      y: 0,
+      width: mainWidth,
+      height: this.height,
+      area: Area.Main,
+      page: this.page,
+      isFocus: true,
+      zIndex: 2,
+    });
+
+    railEntities.forEach((entity, index) => {
+      result.set(entity.id, {
+        entity,
+        x: 0,
+        y: index * (railItemHeight + LAYOUT_GAP),
+        width: railWidth,
+        height: railItemHeight,
+        area: Area.Rail,
         page: this.page,
-        isFocus: true,
-        zIndex: 2,
-      },
-      ...railNodes,
-    ];
+        isFocus: false,
+        zIndex: 1,
+      });
+    });
+
+    return result;
   }
 
   /**
@@ -298,36 +407,38 @@ export class LayoutCompute<Entity extends LayoutEntity = LayoutEntity> {
   private computeMobileFocusLayout(
     focusEntity: Entity,
     railEntities: Entity[],
-  ): LayoutNode<Entity>[] {
+  ): LayoutNodes<Entity> {
     const mainHeight = Math.max(this.height * RATIOS.MOBILE_FOCUS_MAIN, 0);
     const railHeight = Math.max(this.height - mainHeight - LAYOUT_GAP, 0);
     const railItemWidth = this.resolveCellSize(this.width, railEntities.length);
-    const railNodes = railEntities.map((entity, index) => ({
-      entity,
-      x: index * (railItemWidth + LAYOUT_GAP),
-      y: mainHeight + LAYOUT_GAP,
-      width: railItemWidth,
-      height: railHeight,
-      area: "rail" as const,
+    const result = new Map<string, LayoutNode<Entity>>();
+    result.set(focusEntity.id, {
+      entity: focusEntity,
+      x: 0,
+      y: 0,
+      width: this.width,
+      height: mainHeight,
+      area: Area.Main,
       page: this.page,
-      isFocus: false,
-      zIndex: 1,
-    }));
+      isFocus: true,
+      zIndex: 2,
+    });
 
-    return [
-      {
-        entity: focusEntity,
-        x: 0,
-        y: 0,
-        width: this.width,
-        height: mainHeight,
-        area: Area.Main,
+    railEntities.forEach((entity, index) => {
+      result.set(entity.id, {
+        entity,
+        x: index * (railItemWidth + LAYOUT_GAP),
+        y: mainHeight + LAYOUT_GAP,
+        width: railItemWidth,
+        height: railHeight,
+        area: Area.Rail,
         page: this.page,
-        isFocus: true,
-        zIndex: 2,
-      },
-      ...railNodes,
-    ];
+        isFocus: false,
+        zIndex: 1,
+      });
+    });
+
+    return result;
   }
 
   /**
@@ -421,14 +532,14 @@ export class LayoutCompute<Entity extends LayoutEntity = LayoutEntity> {
     this.maxRailWidth = width;
   }
 
-  getLayoutNodes(): LayoutNode<Entity>[] {
+  getLayoutNodes(): LayoutNodes<Entity> {
     return this.layoutNodes;
   }
 
   getHeight(): number {
     return this.height;
   }
-  
+
   getWidth(): number {
     return this.width;
   }
@@ -479,6 +590,11 @@ export class LayoutCompute<Entity extends LayoutEntity = LayoutEntity> {
 
   getFocusEntity(): Nullable<Entity> {
     return this.focusEntity;
+  }
+
+  protected setLayoutNodes(layoutNodes: LayoutNodes<Entity>) {
+    this.layoutNodes = layoutNodes;
+    this.entities = Array.from(layoutNodes.values()).map((node) => node.entity);
   }
   // --- 辅助方法 ---------------------------------------------------------------------------------
 

@@ -101,7 +101,7 @@ export interface LayoutEntity<Payload = unknown> {
 
 /**
  * # 布局节点信息
- * 
+ *
  * 布局引擎输出的节点信息。每个节点对应一个布局实体和它在布局舞台上的位置尺寸等元信息
  *
  * 这个接口是布局引擎和渲染层的契约，渲染层可以根据这些信息来决定如何渲染每个节点
@@ -130,7 +130,7 @@ export interface LayoutNode<Entity extends LayoutEntity = LayoutEntity> {
 /**
  * # 布局状态
  * 布局引擎输出的整体布局状态，包括当前所有布局节点的信息、分页信息、布局类型和尺寸信息等。
- * 
+ *
  * **这个接口是布局引擎和渲染层的契约，渲染层可以根据这些信息来决定如何渲染整个布局舞台，以及提供分页切换等交互功能**
  */
 export interface LayoutState<Entity extends LayoutEntity = LayoutEntity> {
@@ -155,3 +155,8 @@ export interface LayoutState<Entity extends LayoutEntity = LayoutEntity> {
   /** 上一页 */
   prevPage: () => FnReturn<void>;
 }
+
+export type LayoutNodes<Entity extends LayoutEntity = LayoutEntity> = Map<
+  string,
+  LayoutNode<Entity>
+>;
