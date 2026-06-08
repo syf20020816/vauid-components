@@ -1,7 +1,9 @@
-import { FnReturn, Nullable } from "../../_std";
-import { LayoutEntity, LayoutNodes } from "../types";
-import { LayoutCompute, ComputeInitConfig } from "./compute";
-
+import type { FnReturn, Nullable } from "../../_std";
+import type { ComputeRequest, LayoutEntity, LayoutNodes } from "../types";
+import type {  ComputeInitConfig } from "./compute";
+import {LayoutCompute} from "./compute";
+import { LayoutSizeWatcher } from "./watcher/size";
+import { Errors } from "./error";
 
 /**
  * # FromServer - 来自服务器的初始化数据
@@ -13,16 +15,50 @@ interface FromServer {
   serverUrl?: string;
 }
 
+export const LifeTime = {
+  /** 引擎初始化时触发 */
+  onInit: "onInit",
+  /** 引擎运行时触发 */
+  onRun: "onRun",
+  /** 引擎中监听容器尺寸变化触发 */
+  onResize: "onResize",
+  /** 引擎中监听实体更新触发, 包括实体的增加/删除/更新 */
+  onUpdate: "onUpdate",
+  /** 引擎销毁时触发 */
+  onDestroy: "onDestroy",
+};
+
+export type LifeTime = (typeof LifeTime)[keyof typeof LifeTime];
+
+/** 事件类型映射 - 每个生命周期事件对应不同的参数签名 */
+export interface LifeTimeEventMap {
+  [LifeTime.onInit]: () => FnReturn<void>;
+  [LifeTime.onRun]: () => FnReturn<void>;
+  [LifeTime.onResize]: (width: number, height: number) => FnReturn<void>;
+  [LifeTime.onUpdate]: (
+    entities: LayoutNodes<LayoutEntity>,
+    type: ComputeRequest,
+  ) => FnReturn<void>;
+  [LifeTime.onDestroy]: () => FnReturn<void>;
+}
+
+export type LifeTimeEvent<T extends LifeTime = LifeTime> = LifeTimeEventMap[T];
 
 /**
  * # Engine - 布局计算引擎
  * 计算引擎 (Engine): 负责布局计算的核心逻辑，提供接口供外部调用，并管理整个流程
  * ## Usage
  * ```typescript
- * const engineRef = new Engine();
- * const {tracks} = useTracks(); // 假设这是一个获取当前房间中所有媒体轨道的 hook
+ * const engine = new Engine();
+ * const container = document.getElementById('layout-container')!;
  * const entities = tracks.map(//...); // 将媒体轨道转换为布局实体
- * const containerRef = useRef<HTMLDivElement>(null);
+ *
+ * engine.init(entities, container, { /* ... *\/ });
+ * engine.on(ComputeRequest.Resize, () => { /* ... *\/ });
+ * engine.run();
+ *
+ * // 清理
+ * engine.destroy();
  * ```
  * ## 流程
  * 1. 接收布局计算请求
@@ -40,61 +76,91 @@ interface FromServer {
  * 这样可以保持 Engine 的简洁和专注，同时也方便 Compute 的独立测试和优化**
  */
 export class Engine {
-  /** 监视器，存储各类计算请求的回调函数 */
-  // Map<ComputeRequest, EngineCallback>
-  private watcher: Nullable<LayoutWatcher> = null;
+  /** 尺寸监视器 */
+  private sizeWatcher: Nullable<LayoutSizeWatcher> = null;
   /** 布局计算实例 */
   private compute: Nullable<LayoutCompute> = null;
   /** 布局缓存 */
   //   private cache: Nullable<LayoutCache> = null;
-  /** 外部容器引用，用于获取容器尺寸，对容器进行监听，等 */
-  container?: HTMLDivElement = undefined;
+  /** 生命周期回调映射 */
+  private lifeTime: Map<LifeTime, LifeTimeEvent> = new Map();
 
   constructor() {}
+
   /**
    * ## 初始化计算引擎
    * 接收来自服务器的初始化数据 (可选)，如果提供了服务器数据，可以用来预设一些状态或者配置
    * 并且在当前用户如果不在第一页时，如果通过这种方式初始化是不会触发计算的，不需要额外的调整尺寸请求来触发计算
    */
-  init<Entity extends LayoutEntity>(
+  async init<Entity extends LayoutEntity>(
     entities: Entity[],
-    container: HTMLDivElement,
-    others: ComputeInitConfig<Entity>,
+    container: HTMLElement,
+    others?: ComputeInitConfig<Entity>,
     _fromServer?: FromServer,
   ) {
     console.warn("服务器分发暂未实现: ", _fromServer);
-    const { height, width } = container.getBoundingClientRect();
+
+    this.initSizeWatcher(container);
+    const { height, width } = this.getSize();
     this.compute = new LayoutCompute(entities, { ...others, height, width });
-    this.container = container;
+    this.compute.computeLayout();
+    await this.onInit()?.();
   }
 
-  initFromNodes<Entity extends LayoutEntity>(
+  async initFromNodes<Entity extends LayoutEntity>(
     nodes: LayoutNodes<Entity>,
-    container: HTMLDivElement,
-    others: ComputeInitConfig<Entity>,
+    container: HTMLElement,
+    others?: ComputeInitConfig<Entity>,
     _fromServer?: FromServer,
   ) {
     console.warn("服务器分发暂未实现: ", _fromServer);
-    const { height, width } = container.getBoundingClientRect();
+
+    this.initSizeWatcher(container);
+    const { height, width } = this.getSize();
     this.compute = LayoutCompute.fromNodes(nodes, { ...others, height, width });
-    this.container = container;
+    this.compute.computeLayout();
+    await this.onInit()?.();
+  }
+
+  private initSizeWatcher(container: HTMLElement) {
+    this.sizeWatcher = new LayoutSizeWatcher(container);
+    // 设置变更回调
+    this.sizeWatcher.set(() => {
+      // 触发compute计算
+      console.warn("触发计算引擎计算");
+      this.compute?.computeLayout();
+    });
+  }
+
+  private onInit() {
+    return this.lifeTime.get(LifeTime.onInit) as
+      | (() => FnReturn<void>)
+      | undefined;
   }
 
   /**
-   * ## 监听请求
-   * @param request 请求类型，见 ComputeRequest
+   * ## 启动引擎监视
+   * 开始监听容器尺寸变化等事件
+   */
+  watch() {
+    if (!this.sizeWatcher) {
+      throw new Error(Errors.SizeWatcherNotInitialized);
+    }
+    this.sizeWatcher.watch();
+  }
+
+  /**
+   * ## 生命周期回调
+   * @param time 请求类型，见 LifeTime
    * @param callback 回调函数，当收到对应请求时会调用这个函数，函数的返回值可以是 void 或者 Promise<void>，允许异步处理
    */
-  on(request: ComputeRequest, callback: EngineCallback) {
-    if (!this.watchers) {
-      this.watchers = new Map();
-    }
-    this.watchers.set(request, callback);
+  on<T extends LifeTime>(lifeTime: T, callback: LifeTimeEvent<T>) {
+    this.lifeTime.set(lifeTime, callback as LifeTimeEvent);
   }
 
   /** ## 取消监听请求 */
-  off(request: ComputeRequest) {
-    this.watchers?.delete(request);
+  off(time: LifeTime) {
+    this.lifeTime?.delete(time);
   }
 
   /**
@@ -103,6 +169,28 @@ export class Engine {
    */
   run() {
     this.workflow();
+  }
+
+  /**
+   * ## 获取当前容器尺寸
+   */
+  getSize() {
+    return this.sizeWatcher?.getSize() ?? { height: 0, width: 0 };
+  }
+
+  /**
+   * ## 销毁引擎
+   * 清理所有资源，停止监视器
+   */
+  destroy() {
+    this.sizeWatcher?.unwatch();
+    this.sizeWatcher = null;
+    this.compute = null;
+    this.lifeTime.clear();
+  }
+
+  getNodes() {
+    return this.compute?.getLayoutNodes() || new Map();
   }
 
   /**

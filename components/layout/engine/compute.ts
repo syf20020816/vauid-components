@@ -1,13 +1,13 @@
 //! 布局计算方式
 
-import { Nullable } from "../../_std";
-import {
+import type { Nullable } from "../../_std";
+import type {
   LayoutEntity,
   LayoutNode,
   LayoutType,
-  Area,
   LayoutNodes,
 } from "../types";
+import { Area } from "../types";
 
 const Z_INDEX = {
   Main: 2,
