@@ -1,9 +1,10 @@
 import type { FnReturn, Nullable } from "../../_std";
 import type { ComputeRequest, LayoutEntity, LayoutNodes } from "../types";
-import type {  ComputeInitConfig } from "./compute";
-import {LayoutCompute} from "./compute";
+import type { ComputeInitConfig } from "./compute";
+import { LayoutCompute } from "./compute";
 import { LayoutSizeWatcher } from "./watcher/size";
 import { Errors } from "./error";
+import { LayoutCache } from "./cache";
 
 /**
  * # FromServer - 来自服务器的初始化数据
@@ -81,7 +82,7 @@ export class Engine {
   /** 布局计算实例 */
   private compute: Nullable<LayoutCompute> = null;
   /** 布局缓存 */
-  //   private cache: Nullable<LayoutCache> = null;
+  private cache: Nullable<LayoutCache> = null;
   /** 生命周期回调映射 */
   private lifeTime: Map<LifeTime, LifeTimeEvent> = new Map();
 
@@ -126,15 +127,27 @@ export class Engine {
     this.sizeWatcher = new LayoutSizeWatcher(container);
     // 设置变更回调
     this.sizeWatcher.set(() => {
-      // 触发compute计算
+      const { height, width } = this.getSize();
+      // 更新 compute 实例的尺寸
+      this.compute?.setWidth(width);
+      this.compute?.setHeight(height);
+      // 触发 compute 计算
       console.warn("触发计算引擎计算");
       this.compute?.computeLayout();
+      const onResize = this.onResize?.();
+      onResize?.(width, height);
     });
   }
 
   private onInit() {
     return this.lifeTime.get(LifeTime.onInit) as
       | (() => FnReturn<void>)
+      | undefined;
+  }
+
+  private onResize() {
+    return this.lifeTime.get(LifeTime.onResize) as
+      | ((width: number, height: number) => FnReturn<void>)
       | undefined;
   }
 

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useEngine } from "../hooks/useEngine";
 import type { LayoutEntity } from "../types";
 
@@ -24,10 +24,24 @@ export const Page = () => {
     entities: defaultEntities,
   });
 
+  useEffect(() => {
+    nodes.forEach((node) => {
+      console.error("node", node);
+    });
+  }, [nodes]);
+
   return (
     <div
       ref={containerRef}
-      style={{ width: "100vw", height: "100vh", margin: 0, padding: 0, display: "flex" , gap: 6, flexDirection: "column"}}
+      style={{
+        width: "100vw",
+        height: "100vh",
+        margin: 0,
+        padding: 0,
+        display: "flex",
+        gap: 6,
+        flexDirection: "column",
+      }}
     >
       {Array.from(nodes.entries()).map(([id, node]) => (
         <div

@@ -20,7 +20,7 @@ export class LayoutSizeWatcher {
   /** 防抖定时器 */
   private resizeTimer: Nullable<ReturnType<typeof setTimeout>> = null;
   /** 防抖延迟 (ms) */
-  private resizeDebounceMs: number = 100;
+  private resizeDebounceMs: number = 20;
 
   private state: WatcherState = {
     height: 0,
@@ -29,7 +29,7 @@ export class LayoutSizeWatcher {
 
   constructor(container: HTMLElement, options?: { resizeDebounceMs?: number }) {
     this.container = container;
-    this.resizeDebounceMs = options?.resizeDebounceMs ?? 100;
+    this.resizeDebounceMs = options?.resizeDebounceMs ?? 20;
     this.updateSize(); // 立即更新尺寸，确保初始尺寸正确
   }
 
