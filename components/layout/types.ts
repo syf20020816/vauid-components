@@ -6,7 +6,7 @@ import type { FnReturn, Nullable } from "../_std";
  * 例如，参与者类别的实体通常会被优先放在主区，而自定义类别的实体可能会被放在缩略区或特殊区域。
  * 这个分类并不严格，业务层可以根据实际需求灵活使用和扩展，但建议至少区分参与者相关的实体和其他自定义实体，以便布局引擎做出更合理的布局决策。
  */
-export const Category = {
+export const Categories = {
   /**
    * 代表一个参与者的实体，通常对应一个 Tile 宿主
    * - Video
@@ -27,13 +27,13 @@ export const Category = {
   Floating: "floating",
 } as const;
 
-export type Category = (typeof Category)[keyof typeof Category];
+export type Category = (typeof Categories)[keyof typeof Categories];
 
 /**
  * # 实体来源
  * 这个枚举定义了实体的来源类型，帮助布局引擎和渲染层区分不同来源的实体，以便应用不同的布局策略和渲染方式。
  */
-export const Source = {
+export const Sources = {
   /** 摄像头视频流 */
   Camera: "camera",
   /** 麦克风音频流 */
@@ -44,7 +44,7 @@ export const Source = {
   Custom: "custom",
 } as const;
 
-export type Source = (typeof Source)[keyof typeof Source];
+export type Source = (typeof Sources)[keyof typeof Sources];
 
 /**
  * # 实体区域
@@ -54,7 +54,7 @@ export type Source = (typeof Source)[keyof typeof Source];
  * - 缩略区适合放置次要内容或预览，例如其他参与者的小窗、工具栏等。
  * 这个分类并不严格，业务层可以根据实际需求灵活使用和扩展，但建议至少区分主区和非主区，以便布局引擎做出更合理的布局决策。
  */
-export const Area = {
+export const Areas = {
   /** 网格区，布局引擎默认的实体分布区域，适合展示多个同等重要的实体 */
   Grid: "grid",
   /** 主区，布局引擎优先展示的重要实体区域，用于聚焦显示关键内容 */
@@ -63,20 +63,29 @@ export const Area = {
   Rail: "rail",
 };
 
-export type Area = (typeof Area)[keyof typeof Area];
+export type Area = (typeof Areas)[keyof typeof Areas];
 
 /**
  * # 布局类型
  * 布局引擎支持网格和焦点两种基本布局类型，业务层可以根据实际需求选择合适的布局类型来展示实体。
  */
-export const LayoutType = {
+export const LayoutTypes = {
   /** 网格布局，所有实体在同一网格区展示，适合参与者列表等场景 */
   Grid: "grid",
   /** 焦点布局，主实体在主区展示，其他实体在缩略区展示，适合发言者聚焦等场景 */
   Focus: "focus",
 } as const;
 
-export type LayoutType = (typeof LayoutType)[keyof typeof LayoutType];
+export type LayoutType = (typeof LayoutTypes)[keyof typeof LayoutTypes];
+
+export const DeviceTypes = {
+  /** 移动端 */
+  Mobile: "mobile",
+  /** 桌面端 */
+  Desktop: "desktop",
+} as const;
+
+export type DeviceType = (typeof DeviceTypes)[keyof typeof DeviceTypes];
 
 /**
  * 布局引擎依赖的最小实体抽象。
@@ -164,29 +173,54 @@ export type LayoutNodes<Entity extends LayoutEntity = LayoutEntity> = Map<
 export type EngineCallback = () => FnReturn<void>;
 
 /**
- * ## 计算请求类型
- * **计算为增量方式，只有在必要时才会触发重新计算**
+ * ## NodeUpdate - 节点变化类型
+ * 当节点更新时，但这不一定会让布局引擎触发重新计算
+ * ### 物理属性更新
+ * 1. 位置
+ * 2. 尺寸
  */
-export const ComputeRequest = {
-  /** 初始化计算请求 */
-  Init: "init",
-  /** 当外层尺寸变化时触发的计算请求 */
-  Resize: "resize",
-  /**
-   * 当实体更新时，但这不一定会让布局引擎触发重新计算
-   * ### 实体更新
-   * 1. 对实体的增加
-   * 2. 对实体的删除
-   * ### 何时不会触发重新计算
-   * - 当前页中实体已满，有新实体加入/删除但依然不在当前页中
-   * - 实体的更新不影响当前布局策略，例如一个非主区实体的标签更新，但它依然在非主区展示
-   * - 实体的更新只是一些元信息的变化，例如 label 更新，但它并不影响布局引擎对实体的判断和分布
-   * ### 何时会触发重新计算
-   * - 当前页中实体未满，有新实体加入/删除导致需要调整当前页中的实体分布
-   * - 实体的更新影响了当前布局策略，例如一个非主区实体被更新为主区，或者一个主区实体被更新为非主区
-   */
-  EntityUpdate: "entity-update",
+export const NodeUpdates = {
+  /** 节点增加 */
+  Add: "add",
+  /** 节点删除 */
+  Remove: "remove",
+  /** 节点非物理属性更新 */
+  NonPhysicalUpdate: "non-physical-update",
+  /** 节点物理属性更新 */
+  PhysicalUpdate: "physical-update",
 };
 
-export type ComputeRequest =
-  (typeof ComputeRequest)[keyof typeof ComputeRequest];
+export type NodeUpdate = (typeof NodeUpdates)[keyof typeof NodeUpdates];
+
+
+export const LifeTimes = {
+  /** 引擎初始化时触发 */
+  onInit: "onInit",
+  /** 引擎运行时触发 */
+  onRun: "onRun",
+  /** 引擎中监听容器尺寸变化触发 */
+  onResize: "onResize",
+  /** 引擎中任何 state 出现更新时触发 */
+  onUpdate: "onUpdate",
+  /** 引擎中监听实体更新触发, 包括实体的增加/删除/更新 */
+  onEntityUpdate: "onEntityUpdate",
+  /** 引擎销毁时触发 */
+  onDestroy: "onDestroy",
+};
+
+export type LifeTime = (typeof LifeTimes)[keyof typeof LifeTimes];
+
+/** 事件类型映射 - 每个生命周期事件对应不同的参数签名 */
+export interface LifeTimeEventMap {
+  [LifeTimes.onInit]: () => FnReturn<void>;
+  [LifeTimes.onRun]: () => FnReturn<void>;
+  [LifeTimes.onResize]: (width: number, height: number) => FnReturn<void>;
+  [LifeTimes.onUpdate]: () => FnReturn<void>;
+  [LifeTimes.onEntityUpdate]: (
+    entities: LayoutNodes<LayoutEntity>,
+    type: NodeUpdate,
+  ) => FnReturn<void>;
+  [LifeTimes.onDestroy]: () => FnReturn<void>;
+}
+
+export type LifeTimeEvent<T extends LifeTime = LifeTime> = LifeTimeEventMap[T];

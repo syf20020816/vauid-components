@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
-import { LifeTime, Engine } from "../engine";
+import { LifeTimes } from "../types";
+import { Engine } from "../engine";
 import type { LayoutEntity, LayoutNodes } from "../types";
 import type { Nullable } from "../../_std";
 
@@ -32,13 +33,19 @@ export const useEngine = ({ container, entities }: UseEngineProps) => {
     engineRef.current = engine;
 
     // 注册尺寸变化回调
-    engine.on(LifeTime.onResize, () => {
+    engine.on(LifeTimes.onResize, () => {
       setSize(engine.getSize());
       setNodes(engine.getNodes());
     });
 
-    // 初始化引擎并获取初始 nodes
+    // 注册状态更新回调
+    engine.on(LifeTimes.onUpdate, () => {
+      setNodes(engine.getNodes());
+    });
+
+    // 初始化引擎
     engine.init(entities, container.current).then(() => {
+      setSize(engine.getSize());
       setNodes(engine.getNodes());
     });
 
