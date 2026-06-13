@@ -6,6 +6,29 @@ import type { FnReturn, Nullable } from "../_std";
  * 例如，参与者类别的实体通常会被优先放在主区，而自定义类别的实体可能会被放在缩略区或特殊区域。
  * 这个分类并不严格，业务层可以根据实际需求灵活使用和扩展，但建议至少区分参与者相关的实体和其他自定义实体，以便布局引擎做出更合理的布局决策。
  */
+/** 通用 CSS 属性类型定义，不依赖任何框架 */
+export interface LayoutStyleProperties {
+  position?: string;
+  top?: number | string;
+  left?: number | string;
+  width?: number | string;
+  height?: number | string;
+  transform?: string;
+  transformOrigin?: string;
+  opacity?: number;
+  zIndex?: number;
+  pointerEvents?: string;
+  transition?: string;
+  willChange?: string;
+}
+
+export interface StyleOptions {
+  /** 是否启用翻转动画 */
+  enableFlip?: boolean;
+  transitionDuration?: number;
+  transitionEasing?: string;
+}
+
 export const Categories = {
   /**
    * 代表一个参与者的实体，通常对应一个 Tile 宿主
@@ -134,6 +157,12 @@ export interface LayoutNode<Entity extends LayoutEntity = LayoutEntity> {
   isFocus: boolean;
   // 渲染层级，便于后续做 transform 过渡时保持主节点始终覆盖缩略区
   zIndex: number;
+  /**
+   * 节点对应的样式表，用于渲染层根据样式表渲染节点
+   * 最终样式表需要应用到实体上!!!
+   */
+  styleSheet?: LayoutStyleProperties;
+  hidden: boolean;
 }
 
 /**
@@ -191,7 +220,6 @@ export const NodeUpdates = {
 };
 
 export type NodeUpdate = (typeof NodeUpdates)[keyof typeof NodeUpdates];
-
 
 export const LifeTimes = {
   /** 引擎初始化时触发 */

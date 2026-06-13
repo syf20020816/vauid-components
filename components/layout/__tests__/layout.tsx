@@ -2,6 +2,8 @@ import { useRef } from "react";
 import { useEngine } from "../hooks/useEngine";
 import type { LayoutEntity } from "../types";
 
+const BG_COLORS = ["#333", "#4a90d9", "#f97373ff"];
+
 const defaultEntities: LayoutEntity[] = [
   {
     id: "1",
@@ -23,15 +25,14 @@ export const Page = () => {
     container: containerRef,
     entities: defaultEntities,
   });
-
-  // useEffect(() => {
-  //   nodes.forEach((node) => {
-  //     console.error("node", node);
-  //   });
-  // }, [nodes]);
+  // const styleSheet = new EntityStyleSheet();
 
   const setFocus = (id: string) => {
-    engine.current?.focus(id);
+    if (id === "") {
+      engine.current?.unFocus();
+    } else {
+      engine.current?.focus(id);
+    }
   };
 
   return (
@@ -48,20 +49,27 @@ export const Page = () => {
         style={{
           width: "100%",
           height: "calc(100vh - 60px)",
-          display: "flex",
-          gap: 6,
-          flexDirection: "column",
+          position: "relative",
         }}
       >
-        {Array.from(nodes.entries()).map(([id, node]) => (
+        {Array.from(nodes.entries()).map(([id, node], index) => (
           <div
             key={id}
-            style={{
-              width: node.width,
-              height: node.height,
-              backgroundColor: "#d26c6cff",
-            }}
-          />
+            data-layout-entity-id={node.entity.id}
+            data-layout-area={node.area}
+            data-layout-visible={!node.hidden}
+            style={
+              {
+                ...node.styleSheet,
+                // ...styleSheet.build(node, {}),
+                background: node.isFocus ? "#d94a83" : BG_COLORS[index],
+                borderRadius: 0,
+                color: "#fff",
+              } as React.CSSProperties
+            }
+          >
+            {node.entity.label}
+          </div>
         ))}
       </div>
       <div
@@ -70,10 +78,12 @@ export const Page = () => {
           height: "60px",
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "space-evenly",
         }}
       >
         <button onClick={() => setFocus("1")}>设置focus为1号Track</button>
+        <button onClick={() => setFocus("2")}>设置focus为2号Track</button>
+        <button onClick={() => setFocus("")}>取消focus</button>
       </div>
     </div>
   );

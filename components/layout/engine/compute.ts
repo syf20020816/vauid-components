@@ -7,6 +7,7 @@ import type {
   LayoutType,
   LayoutNodes,
   DeviceType,
+  LayoutStyleProperties,
 } from "../types";
 import { Areas, DeviceTypes, LayoutTypes } from "../types";
 
@@ -63,21 +64,30 @@ export class LayoutCompute {
    */
   static compute<Entity extends LayoutEntity>(
     config: ComputeConfig<Entity>,
+    styleBuildFn?: (node: LayoutNode<Entity>) => LayoutStyleProperties,
   ): LayoutNodes<Entity> {
     const activeFocusEntity = this.resolveFocusEntity(config);
     // 如果尺寸无效或者没有实体，则直接返回空布局。
-    if (config.width <= 0 || config.height <= 0 || config.entities.length === 0) {
+    if (
+      config.width <= 0 ||
+      config.height <= 0 ||
+      config.entities.length === 0
+    ) {
       return new Map();
     }
     // 如果是 全屏 模式，那么默认只会有一个布局节点，即 focusEntity（如果有的话，否则使用第一个实体），并且这个节点会占满整个容器。
     if (config.fullScreen) {
       const fullScreenEntity =
         activeFocusEntity ??
-        this.getEntitiesForCurrentPage(config.entities, config.pageSize, config.page)[0] ??
+        this.getEntitiesForCurrentPage(
+          config.entities,
+          config.pageSize,
+          config.page,
+        )[0] ??
         config.entities[0];
       if (fullScreenEntity) {
         const nodes = new Map<string, LayoutNode<Entity>>();
-        nodes.set(fullScreenEntity.id, {
+        const node: LayoutNode<Entity> = {
           entity: fullScreenEntity,
           x: 0,
           y: 0,
@@ -87,15 +97,18 @@ export class LayoutCompute {
           page: 1,
           isFocus: true,
           zIndex: Z_INDEX.Main,
-        });
+          hidden: false,
+        };
+        node.styleSheet = styleBuildFn?.(node);
+        nodes.set(fullScreenEntity.id, node);
         return nodes;
       }
       return new Map();
     }
 
     return this.isFocus(config.layoutType) && activeFocusEntity
-      ? this.computeFocusLayout(config, activeFocusEntity)
-      : this.computeGridLayout(config);
+      ? this.computeFocusLayout(config, activeFocusEntity, styleBuildFn)
+      : this.computeGridLayout(config, styleBuildFn);
   }
 
   /**
@@ -103,12 +116,14 @@ export class LayoutCompute {
    */
   private static computeGridLayout<Entity extends LayoutEntity>(
     config: ComputeConfig<Entity>,
+    styleBuildFn?: (node: LayoutNode<Entity>) => LayoutStyleProperties,
   ): LayoutNodes<Entity> {
     const pageEntities = this.getEntitiesForCurrentPage(
       config.entities,
       config.pageSize,
       config.page,
     );
+    const pageEntityIds = new Set(pageEntities.map((e) => e.id));
     const { columns, rows } = this.resolveGridDimensions(
       pageEntities.length,
       config.width,
@@ -133,11 +148,31 @@ export class LayoutCompute {
     );
 
     const layoutMap = new Map<string, LayoutNode<Entity>>();
-    pageEntities.forEach((entity, index) => {
-      const columnIndex = index % columns;
-      const rowIndex = Math.floor(index / columns);
+    config.entities.forEach((entity) => {
+      const isCurrentPage = pageEntityIds.has(entity.id);
+      if (!isCurrentPage) {
+        const node: LayoutNode<Entity> = {
+          entity,
+          x: 0,
+          y: 0,
+          width: 0,
+          height: 0,
+          area: Areas.Grid,
+          page: config.page,
+          isFocus: false,
+          zIndex: 1,
+          hidden: true,
+        };
+        node.styleSheet = styleBuildFn?.(node);
+        layoutMap.set(entity.id, node);
+        return;
+      }
 
-      layoutMap.set(entity.id, {
+      const pageEntityIndex = pageEntities.findIndex((e) => e.id === entity.id);
+      const columnIndex = pageEntityIndex % columns;
+      const rowIndex = Math.floor(pageEntityIndex / columns);
+
+      const node: LayoutNode<Entity> = {
         entity,
         x: columnIndex * (cellWidth + LAYOUT_GAP),
         y: rowIndex * (cellHeight + LAYOUT_GAP),
@@ -147,7 +182,10 @@ export class LayoutCompute {
         page: config.page,
         isFocus: false,
         zIndex: 1,
-      });
+        hidden: false,
+      };
+      node.styleSheet = styleBuildFn?.(node);
+      layoutMap.set(entity.id, node);
     });
     return layoutMap;
   }
@@ -192,6 +230,7 @@ export class LayoutCompute {
   private static computeFocusLayout<Entity extends LayoutEntity>(
     config: ComputeConfig<Entity>,
     focusEntity: Entity,
+    styleBuildFn?: (node: LayoutNode<Entity>) => LayoutStyleProperties,
   ): LayoutNodes<Entity> {
     const restEntities = config.entities.filter(
       (entity) => !this.isSameEntity(entity, focusEntity),
@@ -204,7 +243,7 @@ export class LayoutCompute {
 
     if (visibleRailEntities.length === 0) {
       const nodes = new Map<string, LayoutNode<Entity>>();
-      nodes.set(focusEntity.id, {
+      const node: LayoutNode<Entity> = {
         entity: focusEntity,
         x: 0,
         y: 0,
@@ -214,13 +253,21 @@ export class LayoutCompute {
         page: 1,
         isFocus: true,
         zIndex: Z_INDEX.Main,
-      });
+        hidden: false,
+      };
+      node.styleSheet = styleBuildFn?.(node);
+      nodes.set(focusEntity.id, node);
       return nodes;
     }
 
     return config.deviceType === DeviceTypes.Mobile
-      ? this.computeMobileFocusLayout(config, focusEntity, visibleRailEntities)
-      : this.computeDesktopFocusLayout(config, focusEntity, visibleRailEntities);
+      ? this.computeMobileFocusLayout(config, focusEntity, visibleRailEntities, styleBuildFn)
+      : this.computeDesktopFocusLayout(
+          config,
+          focusEntity,
+          visibleRailEntities,
+          styleBuildFn,
+        );
   }
 
   /**
@@ -265,6 +312,7 @@ export class LayoutCompute {
     config: ComputeConfig<Entity>,
     focusEntity: Entity,
     railEntities: Entity[],
+    styleBuildFn?: (node: LayoutNode<Entity>) => LayoutStyleProperties,
   ): LayoutNodes<Entity> {
     const railWidth = Math.min(
       Math.max(config.width * RATIOS.DESKTOP_FOCUS_RAIL, config.minRailWidth),
@@ -281,7 +329,7 @@ export class LayoutCompute {
     );
 
     const result = new Map<string, LayoutNode<Entity>>();
-    result.set(focusEntity.id, {
+    const focusNode: LayoutNode<Entity> = {
       entity: focusEntity,
       x: railWidth + LAYOUT_GAP,
       y: 0,
@@ -291,10 +339,13 @@ export class LayoutCompute {
       page: config.page,
       isFocus: true,
       zIndex: 2,
-    });
+      hidden: false,
+    };
+    focusNode.styleSheet = styleBuildFn?.(focusNode);
+    result.set(focusEntity.id, focusNode);
 
     railEntities.forEach((entity, index) => {
-      result.set(entity.id, {
+      const node: LayoutNode<Entity> = {
         entity,
         x: 0,
         y: index * (railItemHeight + LAYOUT_GAP),
@@ -304,7 +355,10 @@ export class LayoutCompute {
         page: config.page,
         isFocus: false,
         zIndex: 1,
-      });
+        hidden: false,
+      };
+      node.styleSheet = styleBuildFn?.(node);
+      result.set(entity.id, node);
     });
 
     return result;
@@ -317,6 +371,7 @@ export class LayoutCompute {
     config: ComputeConfig<Entity>,
     focusEntity: Entity,
     railEntities: Entity[],
+    styleBuildFn?: (node: LayoutNode<Entity>) => LayoutStyleProperties,
   ): LayoutNodes<Entity> {
     const mainHeight = Math.max(config.height * RATIOS.MOBILE_FOCUS_MAIN, 0);
     const railHeight = Math.max(config.height - mainHeight - LAYOUT_GAP, 0);
@@ -330,7 +385,7 @@ export class LayoutCompute {
     );
 
     const result = new Map<string, LayoutNode<Entity>>();
-    result.set(focusEntity.id, {
+    const focusNode: LayoutNode<Entity> = {
       entity: focusEntity,
       x: 0,
       y: 0,
@@ -340,10 +395,13 @@ export class LayoutCompute {
       page: config.page,
       isFocus: true,
       zIndex: 2,
-    });
+      hidden: false,
+    };
+    focusNode.styleSheet = styleBuildFn?.(focusNode);
+    result.set(focusEntity.id, focusNode);
 
     railEntities.forEach((entity, index) => {
-      result.set(entity.id, {
+      const node: LayoutNode<Entity> = {
         entity,
         x: index * (railItemWidth + LAYOUT_GAP),
         y: mainHeight + LAYOUT_GAP,
@@ -353,7 +411,10 @@ export class LayoutCompute {
         page: config.page,
         isFocus: false,
         zIndex: 1,
-      });
+        hidden: false,
+      };
+      node.styleSheet = styleBuildFn?.(node);
+      result.set(entity.id, node);
     });
 
     return result;
@@ -395,9 +456,8 @@ export class LayoutCompute {
     }
 
     const pagedEntityCount = focusEntity
-      ? entities.filter(
-          (entity) => !this.isSameEntity(entity, focusEntity),
-        ).length
+      ? entities.filter((entity) => !this.isSameEntity(entity, focusEntity))
+          .length
       : entities.length;
 
     return Math.max(1, Math.ceil(pagedEntityCount / pageSize));
@@ -428,7 +488,10 @@ export class LayoutCompute {
   }
 
   /** 判断两个实体是否可以视为同一个布局节点。 */
-  private static isSameEntity<Entity extends LayoutEntity>(leftEntity: Entity, rightEntity: Entity): boolean {
+  private static isSameEntity<Entity extends LayoutEntity>(
+    leftEntity: Entity,
+    rightEntity: Entity,
+  ): boolean {
     const sameId = leftEntity.id === rightEntity.id;
     const sameSource = leftEntity?.source === rightEntity?.source;
     const sameCategory = leftEntity?.category === rightEntity?.category;

@@ -18,6 +18,7 @@ import { LayoutSizeWatcher } from "./watcher/size";
 import { LayoutNodeWatcher } from "./watcher/node";
 import { Errors } from "./error";
 import { LayoutCache } from "./cache";
+import { EntityStyleSheet } from "./stylesheet";
 
 /**
  * # FromServer - 来自服务器的初始化数据
@@ -113,6 +114,8 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   private cache: Nullable<LayoutCache<Entity>> = null;
   /** 生命周期回调映射 */
   private lifeTime: Map<LifeTime, LifeTimeEvent> = new Map();
+  /** 样式表实例 */
+  private styleSheet: Nullable<EntityStyleSheet> = new EntityStyleSheet();
 
   constructor() {}
 
@@ -202,7 +205,10 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
    */
   private computeAndCache(): LayoutNodes<Entity> {
     const config = this.buildComputeConfig();
-    const nodes = LayoutCompute.compute(config);
+    const nodes = LayoutCompute.compute(config, (node) => {
+      return this.styleSheet.build(node);
+    });
+
     this.layoutNodes = nodes;
     this.nodeWatcher?.detectChanges(nodes);
     return nodes;
@@ -250,16 +256,23 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
    * ## 应用配置到状态
    */
   private applyConfig(others: Partial<ComputeConfig<Entity>>) {
-    if (others.focusEntity !== undefined) this.state.focusEntity = others.focusEntity;
-    if (others.fullScreen !== undefined) this.state.fullScreen = others.fullScreen;
-    if (others.deviceType !== undefined) this.state.deviceType = others.deviceType;
-    if (others.layoutType !== undefined) this.state.layoutType = others.layoutType;
+    if (others.focusEntity !== undefined)
+      this.state.focusEntity = others.focusEntity;
+    if (others.fullScreen !== undefined)
+      this.state.fullScreen = others.fullScreen;
+    if (others.deviceType !== undefined)
+      this.state.deviceType = others.deviceType;
+    if (others.layoutType !== undefined)
+      this.state.layoutType = others.layoutType;
     if (others.pageSize !== undefined) this.state.pageSize = others.pageSize;
     if (others.page !== undefined) this.state.page = others.page;
-    if (others.minRailWidth !== undefined) this.state.minRailWidth = others.minRailWidth;
-    if (others.maxRailWidth !== undefined) this.state.maxRailWidth = others.maxRailWidth;
+    if (others.minRailWidth !== undefined)
+      this.state.minRailWidth = others.minRailWidth;
+    if (others.maxRailWidth !== undefined)
+      this.state.maxRailWidth = others.maxRailWidth;
     if (others.fixedSize !== undefined) this.state.fixedSize = others.fixedSize;
-    if (others.aspectRatio !== undefined) this.state.aspectRatio = others.aspectRatio;
+    if (others.aspectRatio !== undefined)
+      this.state.aspectRatio = others.aspectRatio;
   }
 
   // --- 生命周期回调 ---------------------------------------------------------------------------------
@@ -359,7 +372,10 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   updateEntity(id: string, data: Partial<Entity>) {
     const index = this.state.entities.findIndex((e) => e.id === id);
     if (index !== -1) {
-      this.state.entities[index] = { ...this.state.entities[index], ...data } as Entity;
+      this.state.entities[index] = {
+        ...this.state.entities[index],
+        ...data,
+      } as Entity;
       this.computeAndCache();
       this.onUpdate();
       this.onEntityUpdate(NodeUpdates.NonPhysicalUpdate);
@@ -453,10 +469,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
 
   private onEntityUpdate(type: NodeUpdate) {
     const callback = this.lifeTime.get(LifeTimes.onEntityUpdate) as
-      | ((
-          entities: LayoutNodes<Entity>,
-          type: NodeUpdate,
-        ) => FnReturn<void>)
+      | ((entities: LayoutNodes<Entity>, type: NodeUpdate) => FnReturn<void>)
       | undefined;
     callback?.(this.layoutNodes, type);
   }
