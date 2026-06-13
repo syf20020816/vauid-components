@@ -49,10 +49,8 @@ interface EngineState<Entity extends LayoutEntity = LayoutEntity> {
   pageSize?: number;
   /** 当前页码 */
   page?: number;
-  /** 最小轨道宽度 */
-  minRailWidth?: number;
-  /** 最大轨道宽度 */
-  maxRailWidth?: number;
+  /** 轨道宽度 */
+  railWidth?: number;
   /** 是否固定尺寸 */
   fixedSize?: boolean;
   /** 纵横比 */
@@ -95,8 +93,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     layoutType: LayoutTypes.Grid,
     pageSize: 6,
     page: 1,
-    minRailWidth: 120,
-    maxRailWidth: 240,
+    railWidth: 180,
     fixedSize: true,
     aspectRatio: { w: 16, h: 9 },
   };
@@ -229,8 +226,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
       layoutType,
       pageSize,
       page,
-      minRailWidth,
-      maxRailWidth,
+      railWidth,
       fixedSize,
       aspectRatio,
     } = this.state;
@@ -245,8 +241,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
       layoutType: layoutType ?? LayoutTypes.Grid,
       pageSize: pageSize ?? 6,
       page: page ?? 1,
-      minRailWidth: minRailWidth ?? 120,
-      maxRailWidth: maxRailWidth ?? 240,
+      railWidth: railWidth ??180,
       fixedSize: fixedSize ?? true,
       aspectRatio: aspectRatio ?? { w: 16, h: 9 },
     };
@@ -266,10 +261,8 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
       this.state.layoutType = others.layoutType;
     if (others.pageSize !== undefined) this.state.pageSize = others.pageSize;
     if (others.page !== undefined) this.state.page = others.page;
-    if (others.minRailWidth !== undefined)
-      this.state.minRailWidth = others.minRailWidth;
-    if (others.maxRailWidth !== undefined)
-      this.state.maxRailWidth = others.maxRailWidth;
+    if (others.railWidth !== undefined)
+      this.state.railWidth = others.railWidth;
     if (others.fixedSize !== undefined) this.state.fixedSize = others.fixedSize;
     if (others.aspectRatio !== undefined)
       this.state.aspectRatio = others.aspectRatio;
@@ -415,6 +408,18 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     this.onUpdate();
   }
 
+  addEntity(entity: Entity) {
+    this.state.entities.push(entity);
+    this.computeAndCache();
+    this.onUpdate();
+    this.onEntityUpdate(NodeUpdates.Add);
+  }
+
+  delEntity(id: string) {
+    this.removeEntity(id);
+    this.onEntityUpdate(NodeUpdates.Remove);
+  }
+
   nextPage() {
     const totalPages = LayoutCompute.totalPages(
       this.state.entities,
@@ -456,6 +461,12 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
       this.computeAndCache();
       this.onUpdate();
     }
+  }
+
+  setFixed(fixed: boolean) {
+    this.state.fixedSize = fixed;
+    this.computeAndCache();
+    this.onUpdate();
   }
 
   // --- 生命周期回调 ---------------------------------------------------------------------------------

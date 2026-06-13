@@ -40,8 +40,7 @@ export interface ComputeConfig<Entity extends LayoutEntity = LayoutEntity> {
   layoutType: LayoutType;
   pageSize: number;
   page: number;
-  minRailWidth: number;
-  maxRailWidth: number;
+  railWidth: number;
   fixedSize: boolean;
   aspectRatio: { w: number; h: number };
 }
@@ -66,7 +65,13 @@ export class LayoutCompute {
     config: ComputeConfig<Entity>,
     styleBuildFn?: (node: LayoutNode<Entity>) => LayoutStyleProperties,
   ): LayoutNodes<Entity> {
-    const activeFocusEntity = this.resolveFocusEntity(config);
+    // 当 fixedSize 为 true 时，根据容器尺寸修正宽高比
+    const effectiveAspectRatio = config.fixedSize
+      ? this.fixAspectRatio(config.width, config.height)
+      : config.aspectRatio;
+
+    const effectiveConfig = { ...config, aspectRatio: effectiveAspectRatio };
+    const activeFocusEntity = this.resolveFocusEntity(effectiveConfig);
     // 如果尺寸无效或者没有实体，则直接返回空布局。
     if (
       config.width <= 0 ||
@@ -107,8 +112,8 @@ export class LayoutCompute {
     }
 
     return this.isFocus(config.layoutType) && activeFocusEntity
-      ? this.computeFocusLayout(config, activeFocusEntity, styleBuildFn)
-      : this.computeGridLayout(config, styleBuildFn);
+      ? this.computeFocusLayout(effectiveConfig, activeFocusEntity, styleBuildFn)
+      : this.computeGridLayout(effectiveConfig, styleBuildFn);
   }
 
   /**
@@ -130,22 +135,42 @@ export class LayoutCompute {
       config.height,
       config.deviceType,
     );
-    const cellWidth = this.resolveCellSize(
-      config.width,
-      columns,
-      "width",
-      config.height,
-      config.aspectRatio,
-      config.fixedSize,
-    );
-    const cellHeight = this.resolveCellSize(
-      config.height,
-      rows,
-      "height",
-      config.width,
-      config.aspectRatio,
-      config.fixedSize,
-    );
+    // 计算每个单元格的可用宽高
+    const availableCellWidth =
+      columns <= 1
+        ? config.width
+        : (config.width - LAYOUT_GAP * (columns - 1)) / columns;
+    const availableCellHeight =
+      rows <= 1
+        ? config.height
+        : (config.height - LAYOUT_GAP * (rows - 1)) / rows;
+
+    let cellWidth: number;
+    let cellHeight: number;
+
+    if (config.fixedSize) {
+      // 从可用宽度推导理想高度
+      const idealHeightFromWidth =
+        (availableCellWidth * config.aspectRatio.h) / config.aspectRatio.w;
+      // 从可用高度推导理想宽度
+      const idealWidthFromHeight =
+        (availableCellHeight * config.aspectRatio.w) / config.aspectRatio.h;
+
+      // 选择更合适的方案：优先保证不超出容器
+      if (idealHeightFromWidth <= availableCellHeight) {
+        // 高度能放下，用宽度推导高度
+        cellWidth = availableCellWidth;
+        cellHeight = idealHeightFromWidth;
+      } else {
+        // 高度放不下，用高度推导宽度
+        cellWidth = idealWidthFromHeight;
+        cellHeight = availableCellHeight;
+      }
+    } else {
+      // 不固定宽高比，直接均分
+      cellWidth = availableCellWidth;
+      cellHeight = availableCellHeight;
+    }
 
     const layoutMap = new Map<string, LayoutNode<Entity>>();
     config.entities.forEach((entity) => {
@@ -235,9 +260,11 @@ export class LayoutCompute {
     const restEntities = config.entities.filter(
       (entity) => !this.isSameEntity(entity, focusEntity),
     );
+    // pageSize 包含 focus 实体，所以 rail 中每页显示 pageSize - 1 个
+    const railPageSize = Math.max(1, config.pageSize - 1);
     const visibleRailEntities = this.getEntitiesForCurrentPage(
       restEntities,
-      config.pageSize,
+      railPageSize,
       config.page,
     );
 
@@ -268,6 +295,52 @@ export class LayoutCompute {
           visibleRailEntities,
           styleBuildFn,
         );
+  }
+
+  /**
+   * ## 修正宽高比
+   * 如果直接使用 height 和 width 做长宽比可能出现: 1020.23 : 710.1 这种值，但实际上我们更关心的是一个相对稳定的宽高比，比如 16:9 或 4:3，
+   * 这样在 fixedSize 模式下推导单元尺寸时才不会出现过大或过小的情况。这个方法会根据当前的设备类型和容器尺寸，修正 aspectRatio 的值，使其更接近一个合理的宽高比。
+   * @param currentW 当前原始宽度（可带小数）
+   * @param currentH 当前原始高度（可带小数）
+   * @returns 修正后的标准宽高比 { w: number, h: number }
+   */
+  private static fixAspectRatio(
+    currentW: number,
+    currentH: number,
+  ): { w: number; h: number } {
+    // 1. 安全判断：避免 0 或负数
+    if (currentW <= 0 || currentH <= 0) {
+      return { w: 16, h: 9 }; // 默认 fallback
+    }
+
+    // 2. 计算当前真实比例（宽/高）
+    const currentRatio = currentW / currentH;
+
+    // 3. 定义常用标准宽高比（你可以自由增删）
+    const standardRatios = [
+      { w: 16, h: 9, ratio: 16 / 9 },
+      { w: 4, h: 3, ratio: 4 / 3 },
+      { w: 3, h: 2, ratio: 3 / 2 },
+      { w: 1, h: 1, ratio: 1 / 1 },
+      { w: 2, h: 3, ratio: 2 / 3 },
+      { w: 9, h: 16, ratio: 9 / 16 },
+    ];
+
+    // 4. 找到与当前比例最接近的标准比例
+    let closest = standardRatios[0];
+    let minDiff = Math.abs(currentRatio - closest.ratio);
+
+    for (const item of standardRatios) {
+      const diff = Math.abs(currentRatio - item.ratio);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = item;
+      }
+    }
+
+    // 5. 返回修正后的干净比例
+    return { w: closest.w, h: closest.h };
   }
 
   /**
@@ -314,26 +387,34 @@ export class LayoutCompute {
     railEntities: Entity[],
     styleBuildFn?: (node: LayoutNode<Entity>) => LayoutStyleProperties,
   ): LayoutNodes<Entity> {
-    const railWidth = Math.min(
-      Math.max(config.width * RATIOS.DESKTOP_FOCUS_RAIL, config.minRailWidth),
-      config.maxRailWidth,
-    );
-    const mainWidth = Math.max(config.width - railWidth - LAYOUT_GAP, 0);
-    const railItemHeight = this.resolveCellSize(
-      config.height,
-      railEntities.length,
-      "height",
-      config.width,
-      config.aspectRatio,
-      config.fixedSize,
-    );
+    // 1. rail 项目高度 = (容器高度 - gap) / (pageSize - 1)
+    const railItemCount = config.pageSize - 1;
+    const railItemHeight =
+      railItemCount <= 1
+        ? config.height
+        : (config.height - LAYOUT_GAP * (railItemCount - 1)) / railItemCount;
+
+    // 2. 根据 fixedSize 决定 rail 宽高
+    let effectiveRailWidth: number;
+    let effectiveRailItemHeight = railItemHeight;
+
+    if (config.fixedSize) {
+      // 固定宽高比：高度固定为容器高度/pageSize，从高度推导宽度
+      effectiveRailItemHeight = railItemHeight;
+      effectiveRailWidth = (railItemHeight * config.aspectRatio.w) / config.aspectRatio.h;
+    } else {
+      // 不固定宽高比，使用配置的 railWidth
+      effectiveRailWidth = config.railWidth;
+    }
+
+    const effectiveMainWidth = Math.max(config.width - effectiveRailWidth - LAYOUT_GAP, 0);
 
     const result = new Map<string, LayoutNode<Entity>>();
     const focusNode: LayoutNode<Entity> = {
       entity: focusEntity,
-      x: railWidth + LAYOUT_GAP,
+      x: effectiveRailWidth + LAYOUT_GAP,
       y: 0,
-      width: mainWidth,
+      width: effectiveMainWidth,
       height: config.height,
       area: Areas.Main,
       page: config.page,
@@ -348,9 +429,9 @@ export class LayoutCompute {
       const node: LayoutNode<Entity> = {
         entity,
         x: 0,
-        y: index * (railItemHeight + LAYOUT_GAP),
-        width: railWidth,
-        height: railItemHeight,
+        y: index * (effectiveRailItemHeight + LAYOUT_GAP),
+        width: effectiveRailWidth,
+        height: effectiveRailItemHeight,
         area: Areas.Rail,
         page: config.page,
         isFocus: false,
