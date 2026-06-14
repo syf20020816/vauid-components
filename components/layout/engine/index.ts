@@ -58,6 +58,8 @@ interface EngineState<Entity extends LayoutEntity = LayoutEntity> {
   gridFixedSize?: boolean;
   /** 纵横比 */
   aspectRatio?: { w: number; h: number };
+  /** 是否开启智能末尾填补算法，默认 true */
+  smart?: boolean;
 }
 
 /**
@@ -100,10 +102,13 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     fixedSize: true,
     gridFixedSize: false,
     aspectRatio: { w: 16, h: 9 },
+    smart: true,
   };
 
   /** 计算出的布局节点 */
   private layoutNodes: LayoutNodes<Entity> = new Map();
+  /** 智能填补：记录被删除实体的索引，用于在计算前调整实体顺序 */
+  private deletedEntityIndex: number | null = null;
   private animationOptions: AnimationOptions = {
     type: "enableFlip",
     animationOpen: true,
@@ -240,6 +245,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
       fixedSize,
       gridFixedSize,
       aspectRatio,
+      smart,
     } = this.state;
 
     return {
@@ -256,6 +262,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
       fixedSize: fixedSize ?? true,
       gridFixedSize: gridFixedSize ?? false,
       aspectRatio: aspectRatio ?? { w: 16, h: 9 },
+      smart: smart ?? true,
     };
   }
 
@@ -341,6 +348,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     if (others.gridFixedSize !== undefined) this.state.gridFixedSize = others.gridFixedSize;
     if (others.aspectRatio !== undefined)
       this.state.aspectRatio = others.aspectRatio;
+    if (others.smart !== undefined) this.state.smart = others.smart;
   }
 
   // --- 生命周期回调 ---------------------------------------------------------------------------------
@@ -358,6 +366,77 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   }
 
   // --- 引擎控制 ---------------------------------------------------------------------------------
+
+  /**
+   * ## 智能末尾填补
+   * 在计算前调整实体顺序：把末尾实体移到被删除实体的位置
+   */
+  private applySmartFillBeforeCompute() {
+    if (this.deletedEntityIndex === null) return;
+
+    const entities = this.state.entities;
+    const pageSize = this.state.pageSize ?? 6;
+    const currentPage = this.state.page ?? 1;
+    const isFocus = this.state.focusEntity !== null;
+    const railPageSize = isFocus ? Math.max(1, pageSize - 1) : pageSize;
+
+    // 在 focus 布局下，需要排除 focus 实体来计算 rail 分页
+    const effectiveEntities = isFocus
+      ? entities.filter((e) => e.id !== this.state.focusEntity!.id)
+      : entities;
+
+    // 判断是否有下一页
+    const totalPages = LayoutCompute.totalPages(
+      effectiveEntities,
+      railPageSize,
+      currentPage,
+      this.state.fullScreen ?? false,
+      isFocus ? this.state.focusEntity : null,
+    );
+    const hasNextPage = currentPage < totalPages;
+
+    // 获取当前页实体
+    const currentPageEntities = LayoutCompute.getEntitiesForCurrentPage(
+      effectiveEntities,
+      railPageSize,
+      currentPage,
+    );
+
+    // 判断当前页是否满
+    const isCurrentPageFull = currentPageEntities.length >= railPageSize;
+
+    // 确定填补实体：当前页满且有下页时用末页最后一个，否则用当前页最后一个
+    let fillerEntity: Entity | undefined;
+
+    if (isCurrentPageFull && hasNextPage) {
+      // 用末页最后一个实体填补
+      const lastPageEntities = LayoutCompute.getEntitiesForCurrentPage(
+        effectiveEntities,
+        railPageSize,
+        totalPages,
+      );
+      fillerEntity = lastPageEntities[lastPageEntities.length - 1];
+    } else if (currentPageEntities.length > 0) {
+      // 用当前页最后一个实体填补
+      fillerEntity = currentPageEntities[currentPageEntities.length - 1];
+    }
+
+    if (fillerEntity) {
+      // 找到填补实体在全局 entities 中的索引
+      const fillerEntityGlobalIndex = entities.findIndex((e) => e.id === fillerEntity.id);
+
+      if (fillerEntityGlobalIndex >= 0) {
+        // 从原位置移除
+        const [filler] = entities.splice(fillerEntityGlobalIndex, 1);
+        // 插入到被删除实体的位置
+        const insertIndex = Math.min(this.deletedEntityIndex, entities.length);
+        entities.splice(insertIndex, 0, filler);
+      }
+    }
+
+    // 清除记录
+    this.deletedEntityIndex = null;
+  }
 
   /**
    * ## 启动引擎监视
@@ -432,6 +511,12 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
 
   removeEntity(id: string) {
     const wasFocus = this.state.focusEntity?.id === id;
+
+    // 智能填补：记录被删除实体的索引
+    if (this.state.smart) {
+      this.deletedEntityIndex = this.state.entities.findIndex((e) => e.id === id);
+    }
+
     this.state.entities = this.state.entities.filter((e) => e.id !== id);
 
     // 如果删除的是当前 focus 实体，清除 focus 状态
@@ -450,6 +535,11 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     );
     if ((this.state.page ?? 1) > totalPages) {
       this.state.page = Math.max(1, totalPages);
+    }
+
+    // 智能填补：在计算前调整实体顺序
+    if (this.state.smart && this.deletedEntityIndex !== null) {
+      this.applySmartFillBeforeCompute();
     }
 
     this.computeAndCache();

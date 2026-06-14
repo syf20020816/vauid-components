@@ -45,6 +45,8 @@ export interface ComputeConfig<Entity extends LayoutEntity = LayoutEntity> {
   /** grid 布局是否固定宽高比，默认 false（均分容器） */
   gridFixedSize: boolean;
   aspectRatio: { w: number; h: number };
+  /** 是否开启智能末尾填补算法，默认 true */
+  smart: boolean;
 }
 
 /**
@@ -674,7 +676,7 @@ export class LayoutCompute {
   /**
    * 根据当前 page 对传入的实体集合做分页切片。
    */
-  private static getEntitiesForCurrentPage<Entity extends LayoutEntity>(
+  static getEntitiesForCurrentPage<Entity extends LayoutEntity>(
     entities: Entity[],
     pageSize: number,
     page: number,

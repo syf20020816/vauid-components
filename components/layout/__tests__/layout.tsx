@@ -145,6 +145,15 @@ export const Page = () => {
         >
           默认动画
         </button>
+        <button onClick={() => {
+          engine.current?.setPageSize(4);
+          engine.current.setDeviceType("mobile");
+        }}>
+          切换移动端
+        </button>
+        <button onClick={() => engine.current.setDeviceType("desktop")}>
+          切换PC端
+        </button>
       </div>
     </div>
   );
