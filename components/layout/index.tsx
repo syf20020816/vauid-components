@@ -25,11 +25,13 @@ export const Layout = forwardRef(
     ref: React.ForwardedRef<HTMLDivElement>,
   ) => {
     const [bgIndex] = useState<Map<string, number>>(() => new Map());
+    
 
     return (
       <div
         ref={ref}
         {...props}
+        className={`vauid-layout ${props.className}`}
         style={{
           width: "100%",
           height: "100%",

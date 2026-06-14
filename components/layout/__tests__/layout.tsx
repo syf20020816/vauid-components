@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useEngine } from "../hooks/useEngine";
 import type { LayoutEntity, LayoutNode } from "../types";
 import { Layout } from "../index";
@@ -36,6 +36,16 @@ const defaultEntities: LayoutEntity[] = [
 
 export const Page = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  // 实际代码编写时不需要手动管理idCounter，正常情况下ID不会重复
+  const initialMaxId = useMemo(
+    () =>
+      defaultEntities.reduce(
+        (max, e) => Math.max(max, parseInt(e.id, 10) || 0),
+        0,
+      ),
+    [],
+  );
+  const idCounter = useRef(initialMaxId);
   const { nodes, engine } = useEngine({
     container: containerRef,
     entities: defaultEntities,
@@ -50,9 +60,10 @@ export const Page = () => {
   };
 
   const addTrack = () => {
+    idCounter.current += 1;
     engine.current?.addEntity({
-      id: `${nodes.size + 1}`,
-      label: `${nodes.size + 1}号Track`,
+      id: `${idCounter.current}`,
+      label: `${idCounter.current}号Track`,
     });
   };
 
@@ -120,9 +131,19 @@ export const Page = () => {
         <button onClick={() => delTrack()}>删除Track</button>
         <button onClick={() => engine.current?.prevPage()}>上一页</button>
         <button onClick={() => engine.current?.nextPage()}>下一页</button>
-        <button onClick={() => engine.current?.setFullScreen(true)}>全屏</button>
+        <button onClick={() => engine.current?.setFullScreen(true)}>
+          全屏
+        </button>
         <button onClick={() => engine.current?.setFullScreen(false)}>
           退出全屏
+        </button>
+        <button onClick={() => engine.current?.setAnimationOptions("normal")}>
+          正常动画
+        </button>
+        <button
+          onClick={() => engine.current?.setAnimationOptions("enableFlip")}
+        >
+          默认动画
         </button>
       </div>
     </div>

@@ -27,6 +27,25 @@ export interface StyleOptions {
   enableFlip?: boolean;
   transitionDuration?: number;
   transitionEasing?: string;
+  /** 是否启用动画，默认 true */
+  animationOpen?: boolean;
+  /** 自定义动画字符串，例如 "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)" */
+  animation?: string;
+}
+
+export type AnimationType = "enableFlip" | "normal" | "define";
+
+export interface AnimationOptions {
+  /** 动画类型 */
+  type?: AnimationType;
+  /** 是否启用动画 */
+  animationOpen?: boolean;
+  /** 翻转动画时长 */
+  transitionDuration?: number;
+  /** 翻转动画缓动 */
+  transitionEasing?: string;
+  /** 自定义动画字符串（type 为 "define" 时使用） */
+  animation?: string;
 }
 
 export const Categories = {

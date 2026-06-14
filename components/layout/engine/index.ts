@@ -19,6 +19,7 @@ import { LayoutNodeWatcher } from "./watcher/node";
 import { Errors } from "./error";
 import { LayoutCache } from "./cache";
 import { EntityStyleSheet } from "./stylesheet";
+import type { AnimationOptions, AnimationType, StyleOptions } from "../types";
 
 /**
  * # FromServer - 来自服务器的初始化数据
@@ -53,6 +54,8 @@ interface EngineState<Entity extends LayoutEntity = LayoutEntity> {
   railWidth?: number;
   /** 是否固定尺寸 */
   fixedSize?: boolean;
+  /** grid 布局是否固定宽高比，默认 false（均分容器） */
+  gridFixedSize?: boolean;
   /** 纵横比 */
   aspectRatio?: { w: number; h: number };
 }
@@ -95,12 +98,18 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     page: 1,
     railWidth: 180,
     fixedSize: true,
+    gridFixedSize: false,
     aspectRatio: { w: 16, h: 9 },
   };
 
   /** 计算出的布局节点 */
   private layoutNodes: LayoutNodes<Entity> = new Map();
-
+  private animationOptions: AnimationOptions = {
+    type: "enableFlip",
+    animationOpen: true,
+    transitionDuration: 200,
+    transitionEasing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+  };
   /** 尺寸监视器 */
   private sizeWatcher: Nullable<LayoutSizeWatcher> = null;
   /** 节点监视器 */
@@ -202,8 +211,9 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
    */
   private computeAndCache(): LayoutNodes<Entity> {
     const config = this.buildComputeConfig();
+    const styleOption = this.buildStyleOptions();
     const nodes = LayoutCompute.compute(config, (node) => {
-      return this.styleSheet.build(node);
+      return this.styleSheet.build(node, styleOption);
     });
 
     this.layoutNodes = nodes;
@@ -228,6 +238,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
       page,
       railWidth,
       fixedSize,
+      gridFixedSize,
       aspectRatio,
     } = this.state;
 
@@ -241,10 +252,73 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
       layoutType: layoutType ?? LayoutTypes.Grid,
       pageSize: pageSize ?? 6,
       page: page ?? 1,
-      railWidth: railWidth ??180,
+      railWidth: railWidth ?? 180,
       fixedSize: fixedSize ?? true,
+      gridFixedSize: gridFixedSize ?? false,
       aspectRatio: aspectRatio ?? { w: 16, h: 9 },
     };
+  }
+
+  /**
+   * ## 构建样式选项
+   * 根据动画配置生成 StyleOptions
+   */
+  private buildStyleOptions(): StyleOptions {
+    const { type, animationOpen, transitionDuration, transitionEasing, animation } = this.animationOptions;
+
+    if (type === "normal") {
+      return {
+        enableFlip: false,
+        animationOpen,
+        transitionDuration,
+        transitionEasing,
+      };
+    }
+
+    if (type === "define") {
+      return {
+        enableFlip: false,
+        animationOpen,
+        animation,
+      };
+    }
+
+    // default: enableFlip
+    return {
+      enableFlip: true,
+      animationOpen,
+      transitionDuration,
+      transitionEasing,
+    };
+  }
+
+  /**
+   * ## 设置动画选项
+   */
+  setAnimationOptions(type: AnimationType, define?: AnimationOptions) {
+    if (type === "define" && define) {
+      this.animationOptions = {
+        type: "define",
+        animationOpen: define.animationOpen ?? true,
+        animation: define.animation,
+      };
+    } else {
+      this.animationOptions = {
+        type,
+        animationOpen: true,
+        transitionDuration: 200,
+        transitionEasing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+      };
+    }
+    this.computeAndCache();
+    this.onUpdate();
+  }
+
+  /**
+   * ## 获取动画选项
+   */
+  getAnimationOptions(): Readonly<AnimationOptions> {
+    return { ...this.animationOptions };
   }
 
   /**
@@ -264,6 +338,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     if (others.railWidth !== undefined)
       this.state.railWidth = others.railWidth;
     if (others.fixedSize !== undefined) this.state.fixedSize = others.fixedSize;
+    if (others.gridFixedSize !== undefined) this.state.gridFixedSize = others.gridFixedSize;
     if (others.aspectRatio !== undefined)
       this.state.aspectRatio = others.aspectRatio;
   }
@@ -356,7 +431,27 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   }
 
   removeEntity(id: string) {
+    const wasFocus = this.state.focusEntity?.id === id;
     this.state.entities = this.state.entities.filter((e) => e.id !== id);
+
+    // 如果删除的是当前 focus 实体，清除 focus 状态
+    if (wasFocus) {
+      this.state.focusEntity = null;
+      this.state.layoutType = LayoutTypes.Grid;
+    }
+
+    // 检查并调整页码，防止页码越界
+    const totalPages = LayoutCompute.totalPages(
+      this.state.entities,
+      this.state.pageSize ?? 6,
+      this.state.page ?? 1,
+      this.state.fullScreen ?? false,
+      wasFocus ? null : (this.state.focusEntity ?? null),
+    );
+    if ((this.state.page ?? 1) > totalPages) {
+      this.state.page = Math.max(1, totalPages);
+    }
+
     this.computeAndCache();
     this.onUpdate();
     this.onEntityUpdate(NodeUpdates.Remove);
@@ -409,6 +504,11 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   }
 
   addEntity(entity: Entity) {
+    // 检查重复 ID，如果已存在则跳过
+    if (this.state.entities.some((e) => e.id === entity.id)) {
+      console.warn(`[LayoutEngine] Entity with id "${entity.id}" already exists, skipping.`);
+      return;
+    }
     this.state.entities.push(entity);
     this.computeAndCache();
     this.onUpdate();

@@ -42,6 +42,8 @@ export interface ComputeConfig<Entity extends LayoutEntity = LayoutEntity> {
   page: number;
   railWidth: number;
   fixedSize: boolean;
+  /** grid 布局是否固定宽高比，默认 false（均分容器） */
+  gridFixedSize: boolean;
   aspectRatio: { w: number; h: number };
 }
 
@@ -136,6 +138,7 @@ export class LayoutCompute {
       config.height,
       config.deviceType,
       config.aspectRatio,
+      config.gridFixedSize,
     );
     // 计算每个单元格的可用宽高
     const availableCellWidth =
@@ -149,13 +152,15 @@ export class LayoutCompute {
 
     let cellWidth: number;
     let cellHeight: number;
+    let offsetX = 0;
+    let offsetY = 0;
 
-    // 只有1个实体时，直接占满容器，不应用宽高比限制
+    // 只有1个实体时，直接占满容器
     if (pageEntities.length <= 1) {
       cellWidth = config.width;
       cellHeight = config.height;
-    } else if (config.fixedSize) {
-      // 从可用宽度推导理想高度
+    } else if (config.gridFixedSize) {
+      // 固定宽高比：从可用宽度推导理想高度
       const idealHeightFromWidth =
         (availableCellWidth * config.aspectRatio.h) / config.aspectRatio.w;
       // 从可用高度推导理想宽度
@@ -164,16 +169,20 @@ export class LayoutCompute {
 
       // 选择更合适的方案：优先保证不超出容器
       if (idealHeightFromWidth <= availableCellHeight) {
-        // 高度能放下，用宽度推导高度
         cellWidth = availableCellWidth;
         cellHeight = idealHeightFromWidth;
       } else {
-        // 高度放不下，用高度推导宽度
         cellWidth = idealWidthFromHeight;
         cellHeight = availableCellHeight;
       }
+
+      // 计算剩余空间并居中偏移
+      const totalGridWidth = cellWidth * columns + LAYOUT_GAP * (columns - 1);
+      const totalGridHeight = cellHeight * rows + LAYOUT_GAP * (rows - 1);
+      offsetX = (config.width - totalGridWidth) / 2;
+      offsetY = (config.height - totalGridHeight) / 2;
     } else {
-      // 不固定宽高比，直接均分
+      // 不固定宽高比，直接均分，无空隙
       cellWidth = availableCellWidth;
       cellHeight = availableCellHeight;
     }
@@ -205,8 +214,8 @@ export class LayoutCompute {
 
       const node: LayoutNode<Entity> = {
         entity,
-        x: columnIndex * (cellWidth + LAYOUT_GAP),
-        y: rowIndex * (cellHeight + LAYOUT_GAP),
+        x: columnIndex * (cellWidth + LAYOUT_GAP) + offsetX,
+        y: rowIndex * (cellHeight + LAYOUT_GAP) + offsetY,
         width: cellWidth,
         height: cellHeight,
         area: Areas.Grid,
@@ -226,8 +235,8 @@ export class LayoutCompute {
    * 采用类似 flex 的策略：
    * 1. 实体数量为 1 时，占满整个容器（1列1行）
    * 2. 实体数量 > 1 时，列数必须是 pageSize 的约数
-   * 3. 对每个候选列数，计算实体在该排列下能达到的最大尺寸（保持宽高比）
-   * 4. 选择容器填充率最高的列数（最充分利用容器的方案）
+   * 3. 当 gridFixedSize 为 true 时，对每个候选列数计算填充率，选择最优方案
+   * 4. 当 gridFixedSize 为 false 时，选择行列数最接近的方案（更方正）
    */
   private static resolveGridDimensions(
     entityCount: number,
@@ -236,6 +245,7 @@ export class LayoutCompute {
     height: number,
     deviceType: DeviceType,
     aspectRatio: { w: number; h: number },
+    gridFixedSize: boolean,
   ) {
     if (entityCount <= 1) {
       return { columns: 1, rows: 1 };
@@ -264,6 +274,32 @@ export class LayoutCompute {
     // 候选列数：pageSize 的约数，且不超过实体数量
     const candidates = getDivisors(pageSize).filter(c => c <= entityCount);
 
+    if (!gridFixedSize) {
+      // 不固定宽高比时，选择行列数最接近的方案（更方正）
+      // 差值相同时根据容器宽高比决定：宽容器优先多列，高容器优先多行
+      const containerAspect = width / height;
+      let bestColumns = candidates[0];
+      let bestDiff = Infinity;
+      for (const cols of candidates) {
+        const rows = Math.ceil(entityCount / cols);
+        const diff = Math.abs(cols - rows);
+        if (diff < bestDiff) {
+          bestDiff = diff;
+          bestColumns = cols;
+        } else if (diff === bestDiff) {
+          // 容器宽高比 > 1（宽 > 高）时优先多列，否则优先多行
+          const preferMoreCols = containerAspect > 1;
+          if (preferMoreCols && cols > bestColumns) {
+            bestColumns = cols;
+          } else if (!preferMoreCols && cols < bestColumns) {
+            bestColumns = cols;
+          }
+        }
+      }
+      return { columns: bestColumns, rows: Math.ceil(entityCount / bestColumns) };
+    }
+
+    // gridFixedSize 为 true 时，选择容器填充率最高的方案
     let bestColumns = 1;
     let bestFillRate = -1;
 
@@ -308,10 +344,7 @@ export class LayoutCompute {
       }
     }
 
-    const columns = bestColumns;
-    const rows = Math.ceil(entityCount / columns);
-
-    return { columns, rows };
+    return { columns: bestColumns, rows: Math.ceil(entityCount / bestColumns) };
   }
 
   /**
@@ -332,6 +365,7 @@ export class LayoutCompute {
       railPageSize,
       config.page,
     );
+    const visibleRailEntityIds = new Set(visibleRailEntities.map((e) => e.id));
 
     if (visibleRailEntities.length === 0) {
       const nodes = new Map<string, LayoutNode<Entity>>();
@@ -349,15 +383,36 @@ export class LayoutCompute {
       };
       node.styleSheet = styleBuildFn?.(node);
       nodes.set(focusEntity.id, node);
+
+      // 为所有非 focus 实体创建隐藏节点
+      restEntities.forEach((entity) => {
+        const hiddenNode: LayoutNode<Entity> = {
+          entity,
+          x: 0,
+          y: 0,
+          width: 0,
+          height: 0,
+          area: Areas.Rail,
+          page: config.page,
+          isFocus: false,
+          zIndex: 1,
+          hidden: true,
+        };
+        hiddenNode.styleSheet = styleBuildFn?.(hiddenNode);
+        nodes.set(entity.id, hiddenNode);
+      });
+
       return nodes;
     }
 
+    // 使用 config.entities 而不是 restEntities，确保所有实体都有节点
     return config.deviceType === DeviceTypes.Mobile
-      ? this.computeMobileFocusLayout(config, focusEntity, visibleRailEntities, styleBuildFn)
+      ? this.computeMobileFocusLayout(config, focusEntity, visibleRailEntities, visibleRailEntityIds, styleBuildFn)
       : this.computeDesktopFocusLayout(
           config,
           focusEntity,
           visibleRailEntities,
+          visibleRailEntityIds,
           styleBuildFn,
         );
   }
@@ -450,6 +505,7 @@ export class LayoutCompute {
     config: ComputeConfig<Entity>,
     focusEntity: Entity,
     railEntities: Entity[],
+    visibleRailEntityIds: Set<string>,
     styleBuildFn?: (node: LayoutNode<Entity>) => LayoutStyleProperties,
   ): LayoutNodes<Entity> {
     // 1. rail 项目高度 = (容器高度 - gap) / (pageSize - 1)
@@ -507,6 +563,29 @@ export class LayoutCompute {
       result.set(entity.id, node);
     });
 
+    // 为 config.entities 中不可见的实体创建隐藏节点
+    config.entities.forEach((entity) => {
+      if (
+        !this.isSameEntity(entity, focusEntity) &&
+        !visibleRailEntityIds.has(entity.id)
+      ) {
+        const hiddenNode: LayoutNode<Entity> = {
+          entity,
+          x: 0,
+          y: 0,
+          width: 0,
+          height: 0,
+          area: Areas.Rail,
+          page: config.page,
+          isFocus: false,
+          zIndex: 1,
+          hidden: true,
+        };
+        hiddenNode.styleSheet = styleBuildFn?.(hiddenNode);
+        result.set(entity.id, hiddenNode);
+      }
+    });
+
     return result;
   }
 
@@ -517,6 +596,7 @@ export class LayoutCompute {
     config: ComputeConfig<Entity>,
     focusEntity: Entity,
     railEntities: Entity[],
+    visibleRailEntityIds: Set<string>,
     styleBuildFn?: (node: LayoutNode<Entity>) => LayoutStyleProperties,
   ): LayoutNodes<Entity> {
     const mainHeight = Math.max(config.height * RATIOS.MOBILE_FOCUS_MAIN, 0);
@@ -561,6 +641,29 @@ export class LayoutCompute {
       };
       node.styleSheet = styleBuildFn?.(node);
       result.set(entity.id, node);
+    });
+
+    // 为 config.entities 中不可见的实体创建隐藏节点
+    config.entities.forEach((entity) => {
+      if (
+        !this.isSameEntity(entity, focusEntity) &&
+        !visibleRailEntityIds.has(entity.id)
+      ) {
+        const hiddenNode: LayoutNode<Entity> = {
+          entity,
+          x: 0,
+          y: 0,
+          width: 0,
+          height: 0,
+          area: Areas.Rail,
+          page: config.page,
+          isFocus: false,
+          zIndex: 1,
+          hidden: true,
+        };
+        hiddenNode.styleSheet = styleBuildFn?.(hiddenNode);
+        result.set(entity.id, hiddenNode);
+      }
     });
 
     return result;

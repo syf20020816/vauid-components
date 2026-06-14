@@ -9,11 +9,14 @@ const LAYOUT_GAP = 8;
 export class EntityStyleSheet<Entity extends LayoutEntity = LayoutEntity> {
   build(node: LayoutNode<Entity>, options?: StyleOptions): LayoutStyleProperties {
     const { width, height, x, y, zIndex, hidden } = node;
-    const { enableFlip, transitionDuration, transitionEasing } = options ?? {
-      enableFlip: true,
-      transitionDuration: 200,
-      transitionEasing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
-    };
+    const {
+      enableFlip = true,
+      transitionDuration = 200,
+      transitionEasing = "cubic-bezier(0.2, 0.8, 0.2, 1)",
+      animationOpen = true,
+      animation,
+    } = options ?? {};
+
     // 是否可见当前页面
     const isVisible = !hidden;
     const hiddenOffsetX = Math.max(width + LAYOUT_GAP * 2, 64);
@@ -21,6 +24,26 @@ export class EntityStyleSheet<Entity extends LayoutEntity = LayoutEntity> {
     const translateX = x ?? hiddenOffsetX;
     const translateY = y ?? hiddenOffsetY;
     const scale = Number(isVisible);
+
+    // 构建 transition 字符串
+    let transition: string;
+    if (!animationOpen) {
+      transition = "none";
+    } else if (animation) {
+      // 用户自定义动画
+      transition = animation;
+    } else if (enableFlip) {
+      // 翻转模式：只过渡 opacity
+      transition = `opacity ${transitionDuration}ms ${transitionEasing}`;
+    } else {
+      // 正常模式：过渡所有属性
+      transition = [
+        `transform ${transitionDuration}ms ${transitionEasing}`,
+        `width ${transitionDuration}ms ${transitionEasing}`,
+        `height ${transitionDuration}ms ${transitionEasing}`,
+        `opacity ${transitionDuration}ms ${transitionEasing}`,
+      ].join(", ");
+    }
 
     return {
       position: "absolute",
@@ -33,14 +56,7 @@ export class EntityStyleSheet<Entity extends LayoutEntity = LayoutEntity> {
       opacity: Number(isVisible),
       zIndex: zIndex ?? 0,
       pointerEvents: isVisible ? "auto" : "none",
-      transition: enableFlip
-        ? `opacity ${transitionDuration}ms ${transitionEasing}`
-        : [
-            `transform ${transitionDuration}ms ${transitionEasing}`,
-            `width ${transitionDuration}ms ${transitionEasing}`,
-            `height ${transitionDuration}ms ${transitionEasing}`,
-            `opacity ${transitionDuration}ms ${transitionEasing}`,
-          ].join(", "),
+      transition,
       willChange: "transform, width, height, opacity",
     };
   }
