@@ -131,9 +131,11 @@ export class LayoutCompute {
     const pageEntityIds = new Set(pageEntities.map((e) => e.id));
     const { columns, rows } = this.resolveGridDimensions(
       pageEntities.length,
+      config.pageSize,
       config.width,
       config.height,
       config.deviceType,
+      config.aspectRatio,
     );
     // 计算每个单元格的可用宽高
     const availableCellWidth =
@@ -148,7 +150,11 @@ export class LayoutCompute {
     let cellWidth: number;
     let cellHeight: number;
 
-    if (config.fixedSize) {
+    // 只有1个实体时，直接占满容器，不应用宽高比限制
+    if (pageEntities.length <= 1) {
+      cellWidth = config.width;
+      cellHeight = config.height;
+    } else if (config.fixedSize) {
       // 从可用宽度推导理想高度
       const idealHeightFromWidth =
         (availableCellWidth * config.aspectRatio.h) / config.aspectRatio.w;
@@ -217,12 +223,19 @@ export class LayoutCompute {
 
   /**
    * 推导 grid 布局的行列数。
+   * 采用类似 flex 的策略：
+   * 1. 实体数量为 1 时，占满整个容器（1列1行）
+   * 2. 实体数量 > 1 时，列数必须是 pageSize 的约数
+   * 3. 对每个候选列数，计算实体在该排列下能达到的最大尺寸（保持宽高比）
+   * 4. 选择容器填充率最高的列数（最充分利用容器的方案）
    */
   private static resolveGridDimensions(
     entityCount: number,
+    pageSize: number,
     width: number,
     height: number,
     deviceType: DeviceType,
+    aspectRatio: { w: number; h: number },
   ) {
     if (entityCount <= 1) {
       return { columns: 1, rows: 1 };
@@ -239,12 +252,64 @@ export class LayoutCompute {
       }
     }
 
-    const containerAspect = width / Math.max(height, 1);
-    const columns = Math.max(
-      1,
-      Math.ceil(Math.sqrt(entityCount * containerAspect)),
-    );
-    const rows = Math.max(1, Math.ceil(entityCount / columns));
+    // 获取 pageSize 的所有约数（例如 pageSize=6 → [1, 2, 3, 6]）
+    const getDivisors = (n: number): number[] => {
+      const divs: number[] = [];
+      for (let i = 1; i <= n; i++) {
+        if (n % i === 0) divs.push(i);
+      }
+      return divs;
+    };
+
+    // 候选列数：pageSize 的约数，且不超过实体数量
+    const candidates = getDivisors(pageSize).filter(c => c <= entityCount);
+
+    let bestColumns = 1;
+    let bestFillRate = -1;
+
+    for (const cols of candidates) {
+      const rows = Math.ceil(entityCount / cols);
+
+      // 计算在该行列数下，每个单元格的可用空间
+      const availableCellWidth =
+        cols <= 1
+          ? width
+          : (width - LAYOUT_GAP * (cols - 1)) / cols;
+      const availableCellHeight =
+        rows <= 1
+          ? height
+          : (height - LAYOUT_GAP * (rows - 1)) / rows;
+
+      // 计算实体在该单元格中能达到的实际尺寸（保持 aspectRatio 比例）
+      const entityWidthFromW = availableCellWidth;
+      const entityHeightFromW = (entityWidthFromW * aspectRatio.h) / aspectRatio.w;
+
+      let actualEntityWidth: number;
+      let actualEntityHeight: number;
+
+      if (entityHeightFromW <= availableCellHeight) {
+        // 宽度推导的高度能放下
+        actualEntityWidth = entityWidthFromW;
+        actualEntityHeight = entityHeightFromW;
+      } else {
+        // 高度放不下，用高度推导宽度
+        actualEntityHeight = availableCellHeight;
+        actualEntityWidth = (actualEntityHeight * aspectRatio.w) / aspectRatio.h;
+      }
+
+      // 容器填充率 = 所有实体总面积 / 容器总面积
+      const totalEntityArea = actualEntityWidth * actualEntityHeight * entityCount;
+      const containerArea = width * height;
+      const fillRate = totalEntityArea / containerArea;
+
+      if (fillRate > bestFillRate) {
+        bestFillRate = fillRate;
+        bestColumns = cols;
+      }
+    }
+
+    const columns = bestColumns;
+    const rows = Math.ceil(entityCount / columns);
 
     return { columns, rows };
   }
@@ -541,7 +606,10 @@ export class LayoutCompute {
           .length
       : entities.length;
 
-    return Math.max(1, Math.ceil(pagedEntityCount / pageSize));
+    // focus 模式下 rail 每页显示 pageSize - 1 个
+    const railPageSize = focusEntity ? Math.max(1, pageSize - 1) : pageSize;
+
+    return Math.max(1, Math.ceil(pagedEntityCount / railPageSize));
   }
 
   // --- 辅助方法 ---------------------------------------------------------------------------------

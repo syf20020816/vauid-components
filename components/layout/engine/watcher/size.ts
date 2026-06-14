@@ -1,5 +1,7 @@
 import type { Nullable } from "../../../_std";
 
+const DEFAULT_RESIZE_DEBOUNCE_MS = 100;
+
 /**
  * # LayoutSizeWatcher - 布局尺寸监视器
  * 使用 ResizeObserver 监听容器尺寸变化，只负责监听和报告尺寸
@@ -17,7 +19,7 @@ export class LayoutSizeWatcher {
   onResize: Nullable<(width: number, height: number) => void> = null;
 
   constructor(options?: { resizeDebounceMs?: number }) {
-    this.resizeDebounceMs = options?.resizeDebounceMs ?? 20;
+    this.resizeDebounceMs = options?.resizeDebounceMs ?? DEFAULT_RESIZE_DEBOUNCE_MS;
   }
 
   /** 开始监听容器的行为 */

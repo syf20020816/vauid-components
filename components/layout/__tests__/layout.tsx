@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { useEngine } from "../hooks/useEngine";
-import type { LayoutEntity } from "../types";
+import type { LayoutEntity, LayoutNode } from "../types";
+import { Layout } from "../index";
 
 const BG_COLORS = [
   "#333",
@@ -11,6 +12,11 @@ const BG_COLORS = [
   "#6ed94aff",
   "#005abaff",
   "#6600ffff",
+  "#0000ff",
+  "#000000",
+  "#ee901cff",
+  "#ff0000ff",
+  "#006f00ff",
 ];
 
 const defaultEntities: LayoutEntity[] = [
@@ -34,7 +40,6 @@ export const Page = () => {
     container: containerRef,
     entities: defaultEntities,
   });
-  // const styleSheet = new EntityStyleSheet();
 
   const setFocus = (id: string) => {
     if (id === "") {
@@ -51,10 +56,14 @@ export const Page = () => {
     });
   };
 
-  const delTrack = () => {
-    const last = Array.from(nodes.entries()).pop();
-    if (last) {
-      engine.current?.delEntity(last[0]);
+  const delTrack = (id?: string) => {
+    if (id) {
+      engine.current?.delEntity(id);
+    } else {
+      const last = Array.from(nodes.entries()).pop();
+      if (last) {
+        engine.current?.delEntity(last[0]);
+      }
     }
   };
 
@@ -67,34 +76,36 @@ export const Page = () => {
         padding: 0,
       }}
     >
-      <div
+      <Layout
         ref={containerRef}
-        style={{
-          width: "100%",
-          height: "calc(100vh - 60px)",
-          position: "relative",
-        }}
-      >
-        {Array.from(nodes.entries()).map(([id, node], index) => (
-          <div
-            key={id}
-            data-layout-entity-id={node.entity.id}
-            data-layout-area={node.area}
-            data-layout-visible={!node.hidden}
-            style={
-              {
-                ...node.styleSheet,
-                // ...styleSheet.build(node, {}),
-                background: node.isFocus ? "#d0266aff" : BG_COLORS[index],
-                borderRadius: 0,
-                color: "#fff",
-              } as React.CSSProperties
-            }
-          >
+        nodes={nodes}
+        style={{ height: "calc(100vh - 60px)" }}
+        tileStyle={(node: LayoutNode, index: number) => ({
+          background: node.isFocus ? "#d0266aff" : BG_COLORS[index],
+          borderRadius: 0,
+          color: "#fff",
+        })}
+        renderTile={(node: LayoutNode) => (
+          <>
             {node.entity.label}
-          </div>
-        ))}
-      </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 6,
+                margin: "0 8px",
+              }}
+            >
+              <button onClick={() => setFocus(node.entity.id)}>
+                设置为focus
+              </button>
+              <button onClick={() => delTrack(node.entity.id)}>
+                设置删除Track
+              </button>
+            </div>
+          </>
+        )}
+      />
       <div
         style={{
           background: "#1f1f1f",
@@ -104,13 +115,15 @@ export const Page = () => {
           justifyContent: "space-evenly",
         }}
       >
-        <button onClick={() => setFocus("1")}>设置focus为1号Track</button>
-        <button onClick={() => setFocus("2")}>设置focus为2号Track</button>
         <button onClick={() => setFocus("")}>取消focus</button>
         <button onClick={() => addTrack()}>增加Track</button>
         <button onClick={() => delTrack()}>删除Track</button>
         <button onClick={() => engine.current?.prevPage()}>上一页</button>
         <button onClick={() => engine.current?.nextPage()}>下一页</button>
+        <button onClick={() => engine.current?.setFullScreen(true)}>全屏</button>
+        <button onClick={() => engine.current?.setFullScreen(false)}>
+          退出全屏
+        </button>
       </div>
     </div>
   );
