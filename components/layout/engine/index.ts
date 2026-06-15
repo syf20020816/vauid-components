@@ -20,6 +20,8 @@ import { Errors } from "./error";
 import { LayoutCache } from "./cache";
 import { EntityStyleSheet } from "./stylesheet";
 import type { AnimationOptions, AnimationType, StyleOptions } from "../types";
+import { LayoutWorkerProxy } from "./worker-proxy";
+import type { WorkerProxyOptions } from "./worker-proxy";
 
 /**
  * # FromServer - 来自服务器的初始化数据
@@ -127,6 +129,12 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   private lifeTime: Map<LifeTime, LifeTimeEvent> = new Map();
   /** 样式表实例 */
   private styleSheet: Nullable<EntityStyleSheet> = new EntityStyleSheet();
+  /** Web Worker 代理 */
+  private workerProxy: Nullable<LayoutWorkerProxy> = null;
+  /** Worker 配置 */
+  private workerOptions: Nullable<WorkerProxyOptions> = null;
+  /** 是否正在异步计算中 */
+  private isComputingAsync = false;
 
   constructor() {}
 
@@ -136,7 +144,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   async init(
     entities: Entity[],
     container: HTMLElement,
-    others?: Partial<ComputeConfig<Entity>>,
+    others?: Partial<ComputeConfig<Entity>> & { worker?: WorkerProxyOptions },
     _fromServer?: FromServer,
   ) {
     console.warn("服务器分发暂未实现: ", _fromServer);
@@ -144,11 +152,14 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     this.state.entities = entities;
     this.container = container;
     if (others) {
-      this.applyConfig(others);
+      const { worker, ...computeOthers } = others;
+      this.workerOptions = worker ?? null;
+      this.applyConfig(computeOthers);
     }
 
     this.initSizeWatcher(container);
     this.initNodeWatcher();
+    this.initWorkerProxy();
     const { height, width } = this.getSize();
     this.state.height = height;
     this.state.width = width;
@@ -212,6 +223,17 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   }
 
   /**
+   * ## 初始化 Worker 代理
+   */
+  private initWorkerProxy() {
+    if (!this.workerOptions) {
+      return;
+    }
+    this.workerProxy = new LayoutWorkerProxy(this.workerOptions);
+    this.workerProxy.init(this.workerOptions.workerUrl);
+  }
+
+  /**
    * ## 执行布局计算并缓存结果
    */
   private computeAndCache(): LayoutNodes<Entity> {
@@ -224,6 +246,38 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     this.layoutNodes = nodes;
     this.nodeWatcher?.detectChanges(nodes);
     return nodes;
+  }
+
+  /**
+   * ## 异步执行布局计算（使用 Worker）
+   * 如果 Worker 不可用，回退到同步计算
+   */
+  private async computeAndCacheAsync(): Promise<LayoutNodes<Entity>> {
+    if (!this.workerProxy?.isAvailable) {
+      return this.computeAndCache();
+    }
+
+    this.isComputingAsync = true;
+    const config = this.buildComputeConfig();
+    const styleOption = this.buildStyleOptions();
+
+    try {
+      const nodes = await this.workerProxy.compute(
+        config as import("./compute").ComputeConfig<import("../types").LayoutEntity>,
+        (node) => {
+          return this.styleSheet.build(
+            node as import("../types").LayoutNode<import("../types").LayoutEntity>,
+            styleOption,
+          );
+        },
+      );
+
+      this.layoutNodes = nodes as unknown as LayoutNodes<Entity>;
+      this.nodeWatcher?.detectChanges(nodes as unknown as LayoutNodes<Entity>);
+      return this.layoutNodes;
+    } finally {
+      this.isComputingAsync = false;
+    }
   }
 
   /**
@@ -485,6 +539,8 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   destroy() {
     this.sizeWatcher?.unwatch();
     this.sizeWatcher = null;
+    this.workerProxy?.destroy();
+    this.workerProxy = null;
     this.layoutNodes.clear();
     this.cache?.clear();
     this.lifeTime.clear();
@@ -498,6 +554,43 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
 
   getState(): Readonly<EngineState<Entity>> {
     return { ...this.state };
+  }
+
+  // --- Worker 控制 ------------------------------------------------------------------------------
+
+  /**
+   * ## 启用/禁用 Worker 计算
+   */
+  setWorkerEnabled(enabled: boolean, workerUrl?: string) {
+    if (enabled && !this.workerProxy) {
+      this.workerProxy = new LayoutWorkerProxy({ enabled: true, workerUrl });
+      this.workerProxy.init(workerUrl);
+    } else if (!enabled && this.workerProxy) {
+      this.workerProxy.destroy();
+      this.workerProxy = null;
+    }
+  }
+
+  /**
+   * ## 检查 Worker 是否可用
+   */
+  isWorkerAvailable(): boolean {
+    return this.workerProxy?.isAvailable ?? false;
+  }
+
+  /**
+   * ## 检查是否正在异步计算中
+   */
+  get isComputing(): boolean {
+    return this.isComputingAsync;
+  }
+
+  /**
+   * ## 异步计算布局（使用 Worker）
+   * 如果 Worker 不可用，自动回退到同步计算
+   */
+  async computeAsync(): Promise<LayoutNodes<Entity>> {
+    return this.computeAndCacheAsync();
   }
 
   // --- 状态更新 ---------------------------------------------------------------------------------
