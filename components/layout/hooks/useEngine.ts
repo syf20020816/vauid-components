@@ -49,7 +49,7 @@ export const useEngine = ({ container, entities }: UseEngineProps) => {
       setNodes(engine.getNodes());
     });
 
-    engine.setPageSize(4);
+    // engine.setPageSize(8);
 
     // 启动引擎
     engine.watch();

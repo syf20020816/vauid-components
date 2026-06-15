@@ -13,6 +13,18 @@ import {
   type NodeUpdate,
 } from "../types";
 import type { ComputeConfig } from "./compute";
+
+/** 设备类型对应的默认 pageSize */
+const DEFAULT_PAGE_SIZE: Record<DeviceType, number> = {
+  [DeviceTypes.Desktop]: 6,
+  [DeviceTypes.Mobile]: 3,
+};
+
+/** 设备类型对应的默认 aspectRatio */
+const DEFAULT_ASPECT_RATIO: Record<DeviceType, { w: number; h: number }> = {
+  [DeviceTypes.Desktop]: { w: 16, h: 9 },
+  [DeviceTypes.Mobile]: { w: 9, h: 16 },
+};
 import { LayoutCompute } from "./compute";
 import { LayoutSizeWatcher } from "./watcher/size";
 import { LayoutNodeWatcher } from "./watcher/node";
@@ -52,9 +64,11 @@ interface EngineState<Entity extends LayoutEntity = LayoutEntity> {
   pageSize?: number;
   /** 当前页码 */
   page?: number;
-  /** 轨道宽度 */
+  /** rail 宽度，仅在桌面端有效，控制 rail 区域的宽度 */
   railWidth?: number;
-  /** 是否固定尺寸 */
+  /** rail 高度，仅在移动端有效，控制 rail 区域的高度 */
+  railHeight?: number;
+  /** 固定宽高比 */
   fixedSize?: boolean;
   /** grid 布局是否固定宽高比，默认 false（均分容器） */
   gridFixedSize?: boolean;
@@ -98,12 +112,15 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     fullScreen: false,
     deviceType: DeviceTypes.Desktop,
     layoutType: LayoutTypes.Grid,
-    pageSize: 6,
+    pageSize: DEFAULT_PAGE_SIZE[DeviceTypes.Desktop],
     page: 1,
-    railWidth: 180,
+    /** rail 宽度，仅在桌面端有效，控制 rail 区域的宽度 */
+    railWidth: 220,
+    /** rail 高度，仅在移动端有效，控制 rail 区域的高度 */
+    railHeight: 140,
     fixedSize: true,
     gridFixedSize: false,
-    aspectRatio: { w: 16, h: 9 },
+    aspectRatio: DEFAULT_ASPECT_RATIO[DeviceTypes.Desktop],
     smart: true,
   };
 
@@ -296,6 +313,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
       pageSize,
       page,
       railWidth,
+      railHeight,
       fixedSize,
       gridFixedSize,
       aspectRatio,
@@ -310,12 +328,13 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
       fullScreen: fullScreen ?? false,
       deviceType: deviceType ?? DeviceTypes.Desktop,
       layoutType: layoutType ?? LayoutTypes.Grid,
-      pageSize: pageSize ?? 6,
+      pageSize: pageSize ?? DEFAULT_PAGE_SIZE[deviceType ?? DeviceTypes.Desktop],
       page: page ?? 1,
-      railWidth: railWidth ?? 180,
+      railWidth: railWidth ?? 220,
+      railHeight: railHeight ?? 140,
       fixedSize: fixedSize ?? true,
       gridFixedSize: gridFixedSize ?? false,
-      aspectRatio: aspectRatio ?? { w: 16, h: 9 },
+      aspectRatio: aspectRatio ?? DEFAULT_ASPECT_RATIO[deviceType ?? DeviceTypes.Desktop],
       smart: smart ?? true,
     };
   }
@@ -726,8 +745,12 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     }
   }
 
-  setDeviceType(deviceType: DeviceType) {
+  setDeviceType(deviceType: DeviceType, auto?: boolean) {
     this.state.deviceType = deviceType;
+    if (auto) {
+      this.state.pageSize = DEFAULT_PAGE_SIZE[deviceType];
+      this.state.aspectRatio = DEFAULT_ASPECT_RATIO[deviceType];
+    }
     this.computeAndCache();
     this.onUpdate();
   }

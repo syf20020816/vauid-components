@@ -297,7 +297,10 @@ export interface SerializableComputeConfig {
   layoutType: string;
   pageSize: number;
   page: number;
+  /** rail 宽度，仅在桌面端有效 */
   railWidth: number;
+  /** rail 高度，仅在移动端有效 */
+  railHeight: number;
   fixedSize: boolean;
   gridFixedSize: boolean;
   aspectRatio: { w: number; h: number };

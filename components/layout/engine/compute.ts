@@ -17,13 +17,6 @@ const Z_INDEX = {
   Float: 3,
 };
 
-const RATIOS = {
-  /** 移动端主区占比 */
-  MOBILE_FOCUS_MAIN: 0.72,
-  /** 桌面端侧边栏占比 */
-  DESKTOP_FOCUS_RAIL: 0.28,
-};
-
 const LAYOUT_GAP = 4;
 
 /**
@@ -40,7 +33,10 @@ export interface ComputeConfig<Entity extends LayoutEntity = LayoutEntity> {
   layoutType: LayoutType;
   pageSize: number;
   page: number;
+  /** rail 宽度，仅在桌面端有效，控制 rail 区域的宽度 */
   railWidth: number;
+  /** rail 高度，仅在移动端有效，控制 rail 区域的高度 */
+  railHeight: number;
   fixedSize: boolean;
   /** grid 布局是否固定宽高比，默认 false（均分容器） */
   gridFixedSize: boolean;
@@ -466,42 +462,9 @@ export class LayoutCompute {
   }
 
   /**
-   * ## 计算单个网格单元在指定轴上的尺寸。
-   */
-  private static resolveCellSize(
-    totalSize: number,
-    divisions: number,
-    axis: "width" | "height",
-    crossSize: number,
-    aspectRatio: { w: number; h: number },
-    fixedSize: boolean,
-  ) {
-    if (fixedSize) {
-      const availableSize =
-        divisions <= 1
-          ? totalSize
-          : (totalSize - LAYOUT_GAP * (divisions - 1)) / divisions;
-
-      if (axis === "width") {
-        const maxFromHeight = (crossSize * aspectRatio.w) / aspectRatio.h;
-        return Math.min(availableSize, maxFromHeight);
-      } else {
-        const maxFromWidth = (crossSize * aspectRatio.h) / aspectRatio.w;
-        return Math.min(availableSize, maxFromWidth);
-      }
-    } else {
-      if (divisions <= 1) {
-        return totalSize;
-      }
-      return Math.max(
-        (totalSize - LAYOUT_GAP * (divisions - 1)) / divisions,
-        0,
-      );
-    }
-  }
-
-  /**
    * 桌面端 focus 布局。
+   * fixedSize=true 时 rail 宽度最大为容器宽度的 1/4，高度由宽高比推导，宽度不小于 railWidth
+   * fixedSize=false 时 rail 宽度 = railWidth，高度均分容器
    */
   private static computeDesktopFocusLayout<Entity extends LayoutEntity>(
     config: ComputeConfig<Entity>,
@@ -510,24 +473,30 @@ export class LayoutCompute {
     visibleRailEntityIds: Set<string>,
     styleBuildFn?: (node: LayoutNode<Entity>) => LayoutStyleProperties,
   ): LayoutNodes<Entity> {
-    // 1. rail 项目高度 = (容器高度 - gap) / (pageSize - 1)
-    const railItemCount = config.pageSize - 1;
-    const railItemHeight =
-      railItemCount <= 1
-        ? config.height
-        : (config.height - LAYOUT_GAP * (railItemCount - 1)) / railItemCount;
-
-    // 2. 根据 fixedSize 决定 rail 宽高
+    const railItemCount = Math.max(1, config.pageSize - 1);
     let effectiveRailWidth: number;
-    let effectiveRailItemHeight = railItemHeight;
+    let railItemHeight: number;
 
     if (config.fixedSize) {
-      // 固定宽高比：高度固定为容器高度/pageSize，从高度推导宽度
-      effectiveRailItemHeight = railItemHeight;
-      effectiveRailWidth = (railItemHeight * config.aspectRatio.w) / config.aspectRatio.h;
+      // 固定宽高比：从容器可用高度推导 rail 宽度，但不小于 railWidth，最大为容器宽度的 1/4
+      const maxRailWidth = config.width / 4;
+      // 从高度推导：rail 高度应能放下所有 rail 项目
+      const availableHeightForRail = config.height;
+      const derivedRailHeight =
+        railItemCount <= 1
+          ? availableHeightForRail
+          : (availableHeightForRail - LAYOUT_GAP * (railItemCount - 1)) / railItemCount;
+      const derivedRailWidth = (derivedRailHeight * config.aspectRatio.w) / config.aspectRatio.h;
+      // 先限制上限，再确保不小于 railWidth（railWidth 优先级高于 maxRailWidth）
+      effectiveRailWidth = Math.max(config.railWidth, Math.min(derivedRailWidth, maxRailWidth));
+      railItemHeight = derivedRailHeight;
     } else {
-      // 不固定宽高比，使用配置的 railWidth
+      // 不固定宽高比：使用配置的 railWidth，高度均分容器
       effectiveRailWidth = config.railWidth;
+      railItemHeight =
+        railItemCount <= 1
+          ? config.height
+          : (config.height - LAYOUT_GAP * (railItemCount - 1)) / railItemCount;
     }
 
     const effectiveMainWidth = Math.max(config.width - effectiveRailWidth - LAYOUT_GAP, 0);
@@ -552,9 +521,9 @@ export class LayoutCompute {
       const node: LayoutNode<Entity> = {
         entity,
         x: 0,
-        y: index * (effectiveRailItemHeight + LAYOUT_GAP),
+        y: index * (railItemHeight + LAYOUT_GAP),
         width: effectiveRailWidth,
-        height: effectiveRailItemHeight,
+        height: railItemHeight,
         area: Areas.Rail,
         page: config.page,
         isFocus: false,
@@ -593,6 +562,9 @@ export class LayoutCompute {
 
   /**
    * 移动端 focus 布局。
+   * fixedSize=true 时 rail 高度最大为容器高度的 1/4，宽度由宽高比推导，高度不小于 railHeight
+   * fixedSize=false 时 rail 高度 = railHeight，宽度均分容器
+   * Main 区域高度 = 容器高度 - rail 高度 - gap，不严格遵循宽高比
    */
   private static computeMobileFocusLayout<Entity extends LayoutEntity>(
     config: ComputeConfig<Entity>,
@@ -601,16 +573,25 @@ export class LayoutCompute {
     visibleRailEntityIds: Set<string>,
     styleBuildFn?: (node: LayoutNode<Entity>) => LayoutStyleProperties,
   ): LayoutNodes<Entity> {
-    const mainHeight = Math.max(config.height * RATIOS.MOBILE_FOCUS_MAIN, 0);
-    const railHeight = Math.max(config.height - mainHeight - LAYOUT_GAP, 0);
-    const railItemWidth = this.resolveCellSize(
-      config.width,
-      railEntities.length,
-      "width",
-      config.height,
-      config.aspectRatio,
-      config.fixedSize,
-    );
+    // 移动端 rail 实体宽度固定为 主容器宽度 / (pageSize - 1)
+    const railPageSize = Math.max(1, config.pageSize - 1);
+    const railItemWidth = (config.width - LAYOUT_GAP * (railPageSize - 1)) / railPageSize;
+
+    let effectiveRailHeight: number;
+
+    if (config.fixedSize) {
+      // 固定宽高比：从宽度推导高度，railHeight 为最小高度，最大为容器高度的 1/4
+      const maxRailHeight = config.height / 4;
+      const derivedRailHeight = (railItemWidth * config.aspectRatio.h) / config.aspectRatio.w;
+      // 先限制上限，再确保不小于 railHeight（railHeight 优先级高于 maxRailHeight）
+      effectiveRailHeight = Math.max(config.railHeight, Math.min(derivedRailHeight, maxRailHeight));
+    } else {
+      // 不固定宽高比：使用配置的 railHeight
+      effectiveRailHeight = config.railHeight;
+    }
+
+    // Main 区域高度 = 容器高度 - rail 高度 - gap，不严格遵循宽高比
+    const mainHeight = Math.max(config.height - effectiveRailHeight - LAYOUT_GAP, 0);
 
     const result = new Map<string, LayoutNode<Entity>>();
     const focusNode: LayoutNode<Entity> = {
@@ -634,7 +615,7 @@ export class LayoutCompute {
         x: index * (railItemWidth + LAYOUT_GAP),
         y: mainHeight + LAYOUT_GAP,
         width: railItemWidth,
-        height: railHeight,
+        height: effectiveRailHeight,
         area: Areas.Rail,
         page: config.page,
         isFocus: false,

@@ -144,7 +144,7 @@
 ## 4. 待实现的功能
 
 ### 高优先级
-- [ ] **Web Worker 计算**：将 LayoutCompute 移至 Worker，避免阻塞主线程
+- [x] **Web Worker 计算**：将 LayoutCompute 移至 Worker，避免阻塞主线程
 - [ ] **0 帧渲染控制**：在渲染层实现非当前页 Tile 的视频暂停/恢复
 
 ### 中优先级

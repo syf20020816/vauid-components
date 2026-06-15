@@ -146,6 +146,7 @@ export class LayoutWorkerProxy {
       pageSize: config.pageSize,
       page: config.page,
       railWidth: config.railWidth,
+      railHeight: config.railHeight,
       fixedSize: config.fixedSize,
       gridFixedSize: config.gridFixedSize,
       aspectRatio: config.aspectRatio,
