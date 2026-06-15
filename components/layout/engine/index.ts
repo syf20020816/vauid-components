@@ -20,8 +20,8 @@ import { Errors } from "./error";
 import { LayoutCache } from "./cache";
 import { EntityStyleSheet } from "./stylesheet";
 import type { AnimationOptions, AnimationType, StyleOptions } from "../types";
-import { LayoutWorkerProxy } from "./worker-proxy";
-import type { WorkerProxyOptions } from "./worker-proxy";
+import { LayoutWorkerProxy } from "./worker/proxy";
+import type { WorkerProxyOptions } from "./worker/proxy";
 
 /**
  * # FromServer - 来自服务器的初始化数据

@@ -1,17 +1,16 @@
 //! 布局计算 Web Worker
 //! 接收计算配置，执行纯布局计算，返回可序列化的布局节点数据
 
-import { LayoutCompute } from "./compute";
-import type { ComputeConfig } from "./compute";
-import type {
-  SerializableComputeConfig,
+import { LayoutCompute } from "../compute";
+import type { ComputeConfig } from "../compute";
+import type { LayoutEntity, SerializableComputeConfig,
   SerializableLayoutNode,
   ComputeRequestMessage,
   ComputeResponseMessage,
   ComputeErrorMessage,
-} from "./worker-types";
-import { DeviceTypes, LayoutTypes } from "../types";
-import type { LayoutEntity } from "../types";
+  LayoutNodes,
+  DeviceType,
+  LayoutType, } from "../../types";
 
 /**
  * 将可序列化的计算配置还原为 ComputeConfig
@@ -32,8 +31,8 @@ function deserializeConfig(
     width: config.width,
     focusEntity,
     fullScreen: config.fullScreen,
-    deviceType: config.deviceType as (typeof DeviceTypes)[keyof typeof DeviceTypes],
-    layoutType: config.layoutType as (typeof LayoutTypes)[keyof typeof LayoutTypes],
+    deviceType: config.deviceType as DeviceType,
+    layoutType: config.layoutType as LayoutType,
     pageSize: config.pageSize,
     page: config.page,
     railWidth: config.railWidth,
@@ -49,7 +48,7 @@ function deserializeConfig(
  * 移除 entity 引用和 styleSheet，只保留可序列化的字段
  */
 function serializeNodes(
-  nodes: Map<string, import("../types").LayoutNode<LayoutEntity>>,
+  nodes: LayoutNodes<LayoutEntity>,
 ): SerializableLayoutNode[] {
   const result: SerializableLayoutNode[] = [];
   for (const node of nodes.values()) {

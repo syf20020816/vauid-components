@@ -1,21 +1,19 @@
 //! Web Worker 代理
 //! 管理 Worker 生命周期，提供异步计算接口，支持同步回退
 
-import { LayoutCompute } from "./compute";
-import type { ComputeConfig } from "./compute";
+import { LayoutCompute } from "../compute";
+import type { ComputeConfig } from "../compute";
 import type {
   LayoutNode,
   LayoutNodes,
   LayoutEntity,
   LayoutStyleProperties,
-} from "../types";
-import type {
   SerializableComputeConfig,
   SerializableLayoutNode,
   ComputeRequestMessage,
   ComputeResponseMessage,
   ComputeErrorMessage,
-} from "./worker-types";
+} from "../../types";
 
 /**
  * Worker 代理配置
@@ -46,9 +44,7 @@ export class LayoutWorkerProxy {
       reject: (error: Error) => void;
       timer: ReturnType<typeof setTimeout>;
       config: ComputeConfig<LayoutEntity>;
-      styleBuildFn?: (
-        node: LayoutNode<LayoutEntity>,
-      ) => LayoutStyleProperties;
+      styleBuildFn?: (node: LayoutNode<LayoutEntity>) => LayoutStyleProperties;
     }
   >();
 
@@ -86,9 +82,7 @@ export class LayoutWorkerProxy {
    */
   async compute(
     config: ComputeConfig<LayoutEntity>,
-    styleBuildFn?: (
-      node: LayoutNode<LayoutEntity>,
-    ) => LayoutStyleProperties,
+    styleBuildFn?: (node: LayoutNode<LayoutEntity>) => LayoutStyleProperties,
   ): Promise<LayoutNodes<LayoutEntity>> {
     if (!this.worker || !this.enabled) {
       // 回退到同步计算
@@ -128,9 +122,7 @@ export class LayoutWorkerProxy {
    */
   private computeSync(
     config: ComputeConfig<LayoutEntity>,
-    styleBuildFn?: (
-      node: LayoutNode<LayoutEntity>,
-    ) => LayoutStyleProperties,
+    styleBuildFn?: (node: LayoutNode<LayoutEntity>) => LayoutStyleProperties,
   ): Promise<LayoutNodes<LayoutEntity>> {
     const nodes = LayoutCompute.compute(config, styleBuildFn);
     return Promise.resolve(nodes);
@@ -143,7 +135,8 @@ export class LayoutWorkerProxy {
     config: ComputeConfig<LayoutEntity>,
   ): SerializableComputeConfig {
     return {
-      entities: config.entities as unknown as SerializableComputeConfig["entities"],
+      entities:
+        config.entities as unknown as SerializableComputeConfig["entities"],
       height: config.height,
       width: config.width,
       focusEntityId: config.focusEntity?.id ?? null,
@@ -166,9 +159,7 @@ export class LayoutWorkerProxy {
   private deserializeNodes(
     serializedNodes: SerializableLayoutNode[],
     config: ComputeConfig<LayoutEntity>,
-    styleBuildFn?: (
-      node: LayoutNode<LayoutEntity>,
-    ) => LayoutStyleProperties,
+    styleBuildFn?: (node: LayoutNode<LayoutEntity>) => LayoutStyleProperties,
   ): LayoutNodes<LayoutEntity> {
     const entityMap = new Map<string, LayoutEntity>();
     for (const entity of config.entities) {
@@ -208,9 +199,7 @@ export class LayoutWorkerProxy {
    * 处理 Worker 消息
    */
   private handleMessage = (event: MessageEvent) => {
-    const message = event.data as
-      | ComputeResponseMessage
-      | ComputeErrorMessage;
+    const message = event.data as ComputeResponseMessage | ComputeErrorMessage;
 
     if (message.type === "compute_response") {
       const pending = this.pendingRequests.get(message.id);
