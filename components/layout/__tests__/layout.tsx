@@ -96,7 +96,7 @@ export const Page = () => {
           borderRadius: 0,
           color: "#fff",
         })}
-        renderTile={(node: LayoutNode) => (
+        renderEntity={(node: LayoutNode) => (
           <>
             {node.entity.label}
             <div

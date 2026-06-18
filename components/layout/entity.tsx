@@ -1,14 +1,14 @@
 import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
 import type { LayoutEntity, LayoutNode } from "./types";
 
-export interface TileProps<
+export interface EntityProps<
   Entity extends LayoutEntity = LayoutEntity,
 > extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   node: LayoutNode<Entity>;
 }
 
-export const Tile: React.FC<TileProps> = ({ children, node, ...props }) => {
+export const Entity: React.FC<EntityProps> = ({ children, node, ...props }) => {
   return (
     <div
       {...props}

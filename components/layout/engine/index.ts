@@ -80,27 +80,49 @@ interface EngineState<Entity extends LayoutEntity = LayoutEntity> {
 
 /**
  * # Engine - 布局计算引擎
- * 计算引擎 (Engine): 负责布局计算的核心逻辑，提供接口供外部调用，并管理整个流程
+ *
+ * 布局引擎负责管理和调度整个布局计算流程，包括状态管理、计算分发、缓存、动画配置等。
+ * 具体的布局计算逻辑由 `LayoutCompute` 实现，Engine 仅负责流程管理和调度。
+ *
+ * ## 核心能力
+ * - **布局模式**：Grid（网格）、Focus（主视口 + rail）、Fullscreen（全屏）
+ * - **设备适配**：桌面端/移动端差异化默认参数（pageSize、aspectRatio）
+ * - **智能末尾填补**：删除实体时用末尾实体填补空缺，Transform 计算量从 O(N) 降至 O(1)
+ * - **Web Worker 计算**：支持将布局计算移至 Worker 线程，避免阻塞主线程
+ * - **LRU 缓存**：基于容器尺寸、实体数量、布局模式等维度缓存计算结果
+ * - **动画系统**：支持 enableFlip / normal / define 三种动画类型
+ * - **生命周期事件**：onInit / onResize / onUpdate / onEntityUpdate / onDestroy
+ *
  * ## Usage
  * ```typescript
  * const engine = new Engine();
  * const container = document.getElementById('layout-container')!;
- * const entities = tracks.map(//...); // 将媒体轨道转换为布局实体
+ * const entities = tracks.map(track => ({ ... }));
  *
- * engine.init(entities, container, { /* ... *\/ });
- * engine.run();
+ * await engine.init(entities, container, {
+ *   pageSize: 6,
+ *   layoutType: LayoutTypes.Grid,
+ *   deviceType: DeviceTypes.Desktop,
+ *   worker: { enabled: true, workerUrl: '/worker.js' },
+ * });
+ *
+ * // 状态操作
+ * engine.focus(entity);
+ * engine.nextPage();
+ * engine.setDeviceType(DeviceTypes.Mobile, true);
+ *
+ * // 获取布局结果
+ * const nodes = engine.getNodes();
  *
  * // 清理
  * engine.destroy();
  * ```
+ *
  * ## 流程
- * 1. 接收布局计算请求
- * 2. 调用 Compute 进行计算
- * 3. 将计算结果存储 Cache 同时 返回计算结果
- * 4. 根据计算结果作为入参，调用 LayoutTransform 对布局进行移动调整
- * 5. 外层进行渲染
- * **Engine只负责对整个流程进行管理和调度，具体的计算逻辑由 Compute 来实现，
- * 这样可以保持 Engine 的简洁和专注，同时也方便 Compute 的独立测试和优化**
+ * 1. `init()` 初始化引擎，创建尺寸监听器和 Worker 代理
+ * 2. 状态变更时触发 `computeAndCache()`（同步或异步）
+ * 3. 计算结果存入缓存并更新 `layoutNodes`
+ * 4. 触发 `onUpdate` 回调，外层根据节点数据渲染
  */
 export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   /** 布局状态 - 所有数据由 Engine 统一管理 */
