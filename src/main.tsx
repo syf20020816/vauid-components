@@ -1,10 +1,13 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { Page } from "../components/layout/__tests__/layout";
+import { TabPage } from "./layout";
+
 import "./global.css";
+
+
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <Page />
+    <TabPage />
   </StrictMode>,
 );

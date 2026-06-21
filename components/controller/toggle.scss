@@ -1,0 +1,43 @@
+@use "../style/global.scss" as *;
+
+@include cmp("dropdown-content") {
+  background-color: color("bg-elevated");
+  border: 1px solid color("border-default");
+  border-radius: radius("md");
+  padding: space("xs");
+  box-shadow: shadow("md");
+  animation: fadeIn 150ms var(--vauid-ease-out);
+}
+
+@include cmp("dropdown-item") {
+  display: flex;
+  align-items: center;
+  padding: 0 space("md");
+  border-radius: radius("sm");
+  color: color("text-primary");
+  font-size: 0.875rem;
+  cursor: pointer;
+  outline: none;
+  line-height: 2rem;
+  transition: background-color var(--vauid-duration-fast) var(--vauid-ease-out);
+
+  &[data-highlighted] {
+    background-color: color("primary-hover");
+  }
+
+  &[data-disabled] {
+    color: color("text-tertiary");
+    pointer-events: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,7 @@
+@use "../style/global.scss" as *;
+
+@include cmp("leave-button") {
+  background-color: color("error-plain") !important;
+  border: 1px solid color("error");
+  color: color("error");
+}

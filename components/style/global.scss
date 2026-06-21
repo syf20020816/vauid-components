@@ -1,0 +1,460 @@
+// Vauid Components - Global Styles
+// Theme: Minimalist Dark Tech / Orange Accent
+//
+// Users can override tokens by defining their own maps before importing:
+// @use 'global' with (
+//   $color-accent: #00ff88,
+//   $radius-md: 12px,
+// );
+@use "sass:map";
+@use "sass:string";
+
+// ── Theme Token Maps ───────────────────────────────────────────
+
+// Default color tokens
+$default-colors: (
+  // Base palette - off-black, never pure #000
+  bg-primary: #0a0a0b,
+  bg-secondary: #111113,
+  bg-tertiary: #1a1a1d,
+  bg-elevated: #222226,
+
+  primary: #ff5c00,
+  primary-hover: #ff7a2e,
+  primary-active: #e04e00,
+
+  // Surface layers
+  surface: #161618,
+  surface-hover: #1e1e21,
+  surface-active: #28282c,
+
+  // Border system
+  border-subtle: rgba(255, 255, 255, 0.06),
+  border-default: rgba(255, 255, 255, 0.1),
+  border-strong: rgba(255, 255, 255, 0.18),
+
+  // Text hierarchy
+  text-primary: rgba(255, 255, 255, 0.92),
+  text-secondary: rgba(255, 255, 255, 0.6),
+  text-tertiary: rgba(255, 255, 255, 0.38),
+  text-inverse: #0a0a0b,
+
+  // Accent - electric orange, not warm amber
+  accent: #ff5c00,
+  accent-hover: #ff7a2e,
+  accent-active: #e04e00,
+  accent-subtle: rgba(255, 92, 0, 0.12),
+  accent-glow: rgba(255, 92, 0, 0.25),
+
+  // Status colors
+  success: #22c55e,
+  warning: #f59e0b,
+  error: #ef4444,
+  error-plain: #43131380,
+  info: #3b82f6,
+) !default;
+
+// Typography tokens
+$default-fonts: (
+  sans: ('Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif),
+  mono: ('JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace),
+) !default;
+
+// Scale tokens
+$default-radius: (
+  sm: 4px,
+  md: 6px,
+  lg: 12px,
+  full: 9999px,
+) !default;
+
+$default-spacing: (
+  xs: 4px,
+  sm: 8px,
+  md: 16px,
+  lg: 24px,
+  xl: 32px,
+  '2xl': 48px,
+) !default;
+
+$default-padding: (
+  xs: 4px,
+  sm: 8px,
+  md: 12px,
+  lg: 16px,
+  xl: 24px,
+  '2xl': 32px,
+) !default;
+
+// Shadow tokens
+$default-shadows: (
+  sm: (0 1px 2px rgba(0, 0, 0, 0.4)),
+  md: (0 4px 12px rgba(0, 0, 0, 0.5)),
+  lg: (0 8px 32px rgba(0, 0, 0, 0.6)),
+  glow: (0 0 20px var(--vauid-color-accent-glow)),
+) !default;
+
+// Transition tokens
+$default-transitions: (
+  ease-out: cubic-bezier(0.16, 1, 0.3, 1),
+  ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1),
+  duration-fast: 150ms,
+  duration-normal: 250ms,
+  duration-slow: 400ms,
+) !default;
+
+// Z-index tokens
+$default-z-index: (
+  base: 1,
+  dropdown: 100,
+  sticky: 200,
+  overlay: 300,
+  modal: 400,
+  toast: 500,
+  tooltip: 600,
+) !default;
+
+// ── Helper Functions ───────────────────────────────────────────
+
+/// Get a color token by name
+@function color($name) {
+  @return map.get($default-colors, $name);
+}
+
+/// Get a font token by name
+@function font($name) {
+  @return map.get($default-fonts, $name);
+}
+
+/// Get a radius token by name
+@function radius($name) {
+  @return map.get($default-radius, $name);
+}
+
+/// Get a spacing token by name
+@function space($name) {
+  @return map.get($default-spacing, $name);
+}
+
+/// Get a shadow token by name
+@function shadow($name) {
+  @return map.get($default-shadows, $name);
+}
+
+/// Get a transition token by name
+@function transition($name) {
+  @return map.get($default-transitions, $name);
+}
+
+/// Get a z-index token by name
+@function z-index($name) {
+  @return map.get($default-z-index, $name);
+}
+
+/// Get a padding token by name
+@function padding($name) {
+  @return map.get($default-padding, $name);
+}
+
+
+
+// ── Mixins ─────────────────────────────────────────────────────
+
+/// Generate CSS variables from a token map
+/// @param {Map} $tokens - Token map
+/// @param {String} $prefix - CSS variable prefix (e.g. 'vauid-color')
+@mixin generate-css-vars($tokens, $prefix) {
+  @each $key, $value in $tokens {
+    --#{$prefix}-#{$key}: #{$value};
+  }
+}
+
+/// Reset & normalize
+@mixin reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/// Base HTML styles
+@mixin base-html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+}
+
+/// Base body styles
+@mixin base-body {
+  font-family: var(--vauid-font-sans);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--vauid-color-text-primary);
+  background-color: var(--vauid-color-bg-primary);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/// Heading styles
+/// @param {Number} $size - Font size in rem
+@mixin heading($size: 2rem) {
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--vauid-color-text-primary);
+  font-size: $size;
+}
+
+/// Paragraph styles
+@mixin paragraph {
+  color: var(--vauid-color-text-secondary);
+  max-width: 65ch;
+}
+
+/// Link styles
+@mixin link {
+  color: var(--vauid-color-accent);
+  text-decoration: none;
+  transition: color var(--vauid-duration-fast) var(--vauid-ease-out);
+
+  &:hover {
+    color: var(--vauid-color-accent-hover);
+  }
+}
+
+/// Code block styles
+@mixin code {
+  font-family: var(--vauid-font-mono);
+  font-size: 0.875rem;
+  letter-spacing: -0.01em;
+  padding: 2px 6px;
+  background: var(--vauid-color-bg-tertiary);
+  border: 1px solid var(--vauid-color-border-subtle);
+  border-radius: var(--vauid-radius-sm);
+  color: var(--vauid-color-accent);
+}
+
+/// Pre block styles
+@mixin pre {
+  @include code;
+  padding: var(--vauid-space-md);
+  background: var(--vauid-color-bg-secondary);
+  border: 1px solid var(--vauid-color-border-default);
+  border-radius: var(--vauid-radius-md);
+  overflow-x: auto;
+
+  code {
+    padding: 0;
+    background: none;
+    border: none;
+  }
+}
+
+/// Button interactive styles
+@mixin button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition:
+    transform var(--vauid-duration-fast) var(--vauid-ease-out),
+    background-color var(--vauid-duration-fast) var(--vauid-ease-out),
+    box-shadow var(--vauid-duration-fast) var(--vauid-ease-out);
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--vauid-color-accent);
+    outline-offset: 2px;
+  }
+}
+
+/// Input interactive styles
+@mixin input {
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--vauid-color-text-primary);
+  background: var(--vauid-color-bg-secondary);
+  border: 1px solid var(--vauid-color-border-default);
+  border-radius: var(--vauid-radius-md);
+  padding: var(--vauid-space-sm) var(--vauid-space-md);
+  transition:
+    border-color var(--vauid-duration-fast) var(--vauid-ease-out),
+    box-shadow var(--vauid-duration-fast) var(--vauid-ease-out);
+
+  &:focus {
+    outline: none;
+    border-color: var(--vauid-color-accent);
+    box-shadow: 0 0 0 3px var(--vauid-color-accent-subtle);
+  }
+
+  &::placeholder {
+    color: var(--vauid-color-text-tertiary);
+  }
+}
+
+/// Scrollbar styles
+@mixin scrollbar($width: 6px) {
+  &::-webkit-scrollbar {
+    width: $width;
+    height: $width;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--vauid-color-border-strong);
+    border-radius: var(--vauid-radius-full);
+
+    &:hover {
+      background: var(--vauid-color-text-tertiary);
+    }
+  }
+}
+
+/// Selection styles
+@mixin selection {
+  &::selection {
+    background: var(--vauid-color-accent-subtle);
+    color: var(--vauid-color-accent);
+  }
+}
+
+/// Reduced motion support
+@mixin reduced-motion {
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/// Container layout
+@mixin container($max-width: 1400px) {
+  max-width: $max-width;
+  margin: 0 auto;
+  padding: 0 var(--vauid-space-lg);
+}
+
+/// Flex center utility
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/// Flex between utility
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/// Status dot indicator
+@mixin status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--vauid-radius-full);
+
+  &.online { background-color: var(--vauid-color-success); }
+  &.offline { background-color: var(--vauid-color-text-tertiary); }
+  &.busy { background-color: var(--vauid-color-warning); }
+  &.error { background-color: var(--vauid-color-error); }
+}
+
+// ── Default Output ─────────────────────────────────────────────
+
+// Generate CSS variables
+:root {
+  @include generate-css-vars($default-colors, 'vauid-color');
+  @include generate-css-vars($default-fonts, 'vauid-font');
+  @include generate-css-vars($default-radius, 'vauid-radius');
+  @include generate-css-vars($default-spacing, 'vauid-space');
+  @include generate-css-vars($default-shadows, 'vauid-shadow');
+  @include generate-css-vars($default-transitions, 'vauid');
+  @include generate-css-vars($default-z-index, 'vauid-z');
+}
+
+// Apply base styles
+@include reset;
+
+html {
+  @include base-html;
+}
+
+body {
+  @include base-body;
+}
+
+// Typography
+h1 { @include heading(2rem); }
+h2 { @include heading(1.5rem); }
+h3 { @include heading(1.25rem); }
+h4 { @include heading(1.125rem); }
+h5, h6 { @include heading(1rem); }
+
+p { @include paragraph; }
+
+a { @include link; }
+
+code { @include code; }
+
+pre { @include pre; }
+
+// Interactive elements
+button, [role="button"] { @include button; }
+
+input, textarea, select { @include input; }
+
+// Utility classes
+.text-mono { font-family: var(--vauid-font-mono); }
+.text-accent { color: var(--vauid-color-accent); }
+.text-secondary { color: var(--vauid-color-text-secondary); }
+.text-tertiary { color: var(--vauid-color-text-tertiary); }
+
+.bg-primary { background-color: var(--vauid-color-bg-primary); }
+.bg-secondary { background-color: var(--vauid-color-bg-secondary); }
+.bg-tertiary { background-color: var(--vauid-color-bg-tertiary); }
+.bg-elevated { background-color: var(--vauid-color-bg-elevated); }
+
+.border-subtle { border-color: var(--vauid-color-border-subtle); }
+.border-default { border-color: var(--vauid-color-border-default); }
+.border-strong { border-color: var(--vauid-color-border-strong); }
+
+.container { @include container; }
+.flex-center { @include flex-center; }
+.flex-between { @include flex-between; }
+
+.status-dot { @include status-dot; }
+
+// Scrollbar (global)
+@include scrollbar;
+
+// Selection (global)
+@include selection;
+
+// Reduced motion
+@include reduced-motion;
+
+
+// Component class prefix
+@mixin cmp($name) {
+    .vauid-#{$name} {
+        @content;
+    }
+}
