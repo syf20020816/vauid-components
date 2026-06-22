@@ -4,4 +4,30 @@
   background-color: color("error-plain") !important;
   border: 1px solid color("error");
   color: color("error");
+  transition: background-color var(--vauid-duration-fast) var(--vauid-ease-out);
+  .leave-icon {
+    color: color("error");
+    transition: color var(--vauid-duration-fast) var(--vauid-ease-out);
+  }
+
+  &:hover {
+    background-color: color("error") !important;
+    color: color("error-plain");
+
+    .leave-icon {
+      color: color("error-plain");
+    }
+  }
+}
+
+@include cmp("controller") {
+  @include flex-between;
+  width: 100%;
+  gap: 32px;
+  padding: space("sm") space("md");
+  background-color: color("bg-secondary");
+  @include cmp("devices") {
+    @include flex-start;
+    gap: space("md");
+  }
 }

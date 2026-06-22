@@ -2,7 +2,7 @@ import { Page } from "../components/layout/__tests__/layout";
 import { Button } from "../components/button";
 import { LeaveButton } from "../components/controller/leave";
 import { Controller } from "../components/controller";
-import { Toggle } from "../components/controller/toggle";
+import { Toggle } from "../components/toggle/index";
 
 const flexCenter = {
   display: "flex",
@@ -37,7 +37,11 @@ export const TabPage = ({
       <div style={flexCenter}>
         <LeaveButton />
         <Button>Vauid Btn</Button>
-        <Toggle />
+        <Toggle options={[
+          { label: "Option 1", value: "1" },
+          { label: "Option 2", value: "2" },
+          { label: "Option 3", value: "3" },
+        ]} />
       </div>
     );
   } else {

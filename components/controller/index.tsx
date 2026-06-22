@@ -1,18 +1,19 @@
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
-
+import { DeviceToggle } from "./device";
 import { LeaveButton, type LeaveButtonAttr } from "./leave";
 import { mergeClassNames } from "../_std/util";
+import "./index.scss";
 
 export interface ControllerProps
   extends LeaveButtonAttr, HTMLAttributes<HTMLElement> {
   other?: ReactNode;
 }
 
-export interface ControllerComponent
-  extends React.ForwardRefExoticComponent<
-    ControllerProps & React.RefAttributes<HTMLElement>
-  > {
+export interface ControllerComponent extends React.ForwardRefExoticComponent<
+  ControllerProps & React.RefAttributes<HTMLElement>
+> {
   Leave: typeof LeaveButton;
+  Device: typeof DeviceToggle;
 }
 
 /**
@@ -34,6 +35,10 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
     const className = mergeClassNames("controller")(props.className);
     return (
       <footer className={className} ref={ref} {...props}>
+        <div className={mergeClassNames("devices")()}>
+          <DeviceToggle.Audio />
+          <DeviceToggle.Video />
+        </div>
         <LeaveButton
           onClick={onLeave}
           onBeforeLeave={onBeforeLeave}
@@ -46,3 +51,4 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
 ) as ControllerComponent;
 
 Controller.Leave = LeaveButton;
+Controller.Device = DeviceToggle;

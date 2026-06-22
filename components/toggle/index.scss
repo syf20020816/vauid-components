@@ -41,3 +41,19 @@
     transform: translateY(0);
   }
 }
+
+
+@include cmp("toggle-trigger") {
+  @include flex-center;
+  border: 1px solid color("border-default");
+  border-radius: radius("md");
+  @include cmp("toggle-button") {
+    border-radius: radius("md") 0 0 radius("md");
+  }
+  @include cmp("toggle-icon") {
+    background-color: transparent;
+    height: 100%;
+    width: fit-content;
+    padding: 0 space("xs");
+  }
+}

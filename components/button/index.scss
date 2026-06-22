@@ -5,7 +5,8 @@
   font-size: 1rem;
   padding: 0 padding("md");
   border-radius: radius("md");
-  background: color("accent");
+  background: color("bg-elevated");
+  border: 1px solid color("border-default");
   color: color("text-secondary");
   line-height: 2rem;
   @include button;

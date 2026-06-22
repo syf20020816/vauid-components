@@ -7,7 +7,7 @@ export const Icon = ({ children }: { children: ReactNode }) => {
 Icon.Arrow = ({
   height = 24,
   width = 24,
-  color = "#fff",
+  color = "currentColor",
   strokeWidth = 4,
   ...rest
 }: SVGProps<SVGSVGElement>) =>
@@ -19,11 +19,12 @@ Icon.Arrow = ({
         viewBox="0 0 48 48"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        color={color}
         {...rest}
       >
         <path
           d="M19 12L31 24L19 36"
-          stroke={color}
+          stroke="currentColor"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -35,7 +36,7 @@ Icon.Arrow = ({
 Icon.Leave = ({
   height = 24,
   width = 24,
-  color = "#ef4444",
+  color,
   strokeWidth = 4,
   ...rest
 }: SVGProps<SVGSVGElement>) =>
@@ -47,25 +48,26 @@ Icon.Leave = ({
         viewBox="0 0 48 48"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        color={color}
         {...rest}
       >
         <path
           d="M23.9917 6H6V42H24"
-          stroke={color}
+          stroke="currentColor"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <path
           d="M33 33L42 24L33 15"
-          stroke={color}
+          stroke="currentColor"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <path
           d="M16 23.9917H42"
-          stroke={color}
+          stroke="currentColor"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeLinejoin="round"
