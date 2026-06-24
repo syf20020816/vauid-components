@@ -82,7 +82,7 @@ export const Page = () => {
     <div
       style={{
         width: "100vw",
-        height: "calc(100vh - 50px)",
+        height: "calc(100vh - 56px)",
         margin: 0,
         padding: 0,
       }}

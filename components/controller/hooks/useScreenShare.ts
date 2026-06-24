@@ -18,7 +18,14 @@ export const useScreenShare = ({ element, option }: UseScreenShareProps) => {
     const stream = await navigator.mediaDevices.getDisplayMedia(mediaOption);
 
     if (stream) {
-      stream.getTracks().forEach((track) => (track.enabled = true));
+      stream.getTracks().forEach((track) => {
+        track.enabled = true;
+        // 监听每个 track 的 ended 事件（浏览器原生停止按钮会触发）
+        track.addEventListener("ended", () => {
+          streamRef.current = null;
+          setSharing(false);
+        });
+      });
       const videoEl = element?.current;
       if (videoEl) {
         Object.assign(videoEl, { srcObject: stream });

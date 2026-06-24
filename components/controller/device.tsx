@@ -12,6 +12,7 @@ export interface DeviceToggleComponent extends React.FC<ToggleProps> {
   Audio: React.FC<ToggleProps>;
   Video: React.FC<ToggleProps>;
   ScreenShare: React.FC<UseScreenShareProps>;
+  More: React.FC<ToggleProps>;
 }
 
 const svgProps = {
@@ -55,7 +56,11 @@ const DeviceScreenShare = (props: UseScreenShareProps) => {
   const { share, sharing, stop } = useScreenShare(props);
   return (
     <Button
-      className={sharing && mergeClassNames("screenShare")()}
+      className={
+        sharing
+          ? mergeClassNames(["screenShare", "active"])()
+          : mergeClassNames("screenShare")()
+      }
       onClick={() => {
         if (sharing) {
           stop();
@@ -70,10 +75,15 @@ const DeviceScreenShare = (props: UseScreenShareProps) => {
   );
 };
 
+const DeviceToggleMore = (props: ToggleProps) => {
+  return <Toggle options={props.options} placeholder="More" />;
+};
+
 export const DeviceToggle = (({ options }: ToggleProps) => {
-  return <Toggle options={options} />;
+  return <Toggle options={options} showLabel={false} />;
 }) as DeviceToggleComponent;
 
 DeviceToggle.Audio = DeviceToggleAudio;
 DeviceToggle.Video = DeviceToggleVideo;
 DeviceToggle.ScreenShare = DeviceScreenShare;
+DeviceToggle.More = DeviceToggleMore;

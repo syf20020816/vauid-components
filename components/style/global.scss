@@ -15,12 +15,12 @@
 // Default color tokens
 $default-colors: (
   // Base palette - off-black, never pure #000
-  bg-primary: #0a0a0b,
+  bg-primary: #020202,
   bg-secondary: #111113,
   bg-tertiary: #1a1a1d,
   bg-elevated: #222226,
 
-  primary: #0a0a0b,
+  primary: #020202,
   primary-hover: #131313,
   primary-active: #131313,
 
@@ -37,7 +37,7 @@ $default-colors: (
   text-primary: rgba(255, 255, 255, 0.92),
   text-secondary: rgba(255, 255, 255, 0.6),
   text-tertiary: rgba(255, 255, 255, 0.38),
-  text-inverse: #0a0a0b,
+  text-inverse: #020202,
 
   // Accent - electric orange, not warm amber
   accent: #ff5c00,

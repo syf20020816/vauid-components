@@ -32,7 +32,7 @@ export const TabPage = ({
     return (
       <>
         <Page />
-        <Controller />
+        <Controller position="center" />
       </>
     );
   } else if (tab === "ctr") {

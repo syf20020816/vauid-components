@@ -104,21 +104,23 @@ export const Toggle = ({
           </div>
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        className={mergeClassNames("dropdown-content")(classNames?.dropdown)}
-        sideOffset={4}
-        style={styles?.dropdown}
-      >
-        {options?.map(({ label, value }) => (
-          <DropdownMenuItem
-            key={value}
-            className={mergeClassNames("dropdown-item")()}
-            onClick={() => handleSelect(value)}
-          >
-            {label}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
+      {options?.length > 0 && (
+        <DropdownMenuContent
+          className={mergeClassNames("dropdown-content")(classNames?.dropdown)}
+          sideOffset={4}
+          style={styles?.dropdown}
+        >
+          {options?.map(({ label, value }) => (
+            <DropdownMenuItem
+              key={value}
+              className={mergeClassNames("dropdown-item")()}
+              onClick={() => handleSelect(value)}
+            >
+              {label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      )}
     </DropdownMenu>
   );
 };

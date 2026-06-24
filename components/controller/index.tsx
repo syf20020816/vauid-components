@@ -3,10 +3,14 @@ import { DeviceToggle } from "./device";
 import { LeaveButton, type LeaveButtonAttr } from "./leave";
 import { mergeClassNames } from "../_std/util";
 import "./index.scss";
+import type { Option } from "../toggle/types";
 
 export interface ControllerProps
   extends LeaveButtonAttr, HTMLAttributes<HTMLElement> {
   other?: ReactNode;
+  position?: "start" | "end" | "center";
+  showMore?: boolean;
+  moreOptions?: Option[];
 }
 
 export interface ControllerComponent extends React.ForwardRefExoticComponent<
@@ -29,16 +33,32 @@ export interface ControllerComponent extends React.ForwardRefExoticComponent<
  */
 export const Controller = forwardRef<HTMLElement, ControllerProps>(
   (
-    { onLeave, onBeforeLeave, onAfterLeave, other, ...props }: ControllerProps,
+    {
+      onLeave,
+      onBeforeLeave,
+      onAfterLeave,
+      other,
+      position,
+      showMore = true,
+      moreOptions = [],
+      ...props
+    }: ControllerProps,
     ref,
   ) => {
     const className = mergeClassNames("controller")(props.className);
     return (
       <footer className={className} ref={ref} {...props}>
-        <div className={mergeClassNames("devices")()}>
+        <div
+          className={mergeClassNames("devices")()}
+          style={{
+            justifyContent: position,
+          }}
+        >
           <DeviceToggle.Audio />
           <DeviceToggle.Video />
           <DeviceToggle.ScreenShare />
+          {showMore && moreOptions.length > 0 && <DeviceToggle.More options={moreOptions} />}
+          {other}
         </div>
         <LeaveButton
           onClick={onLeave}

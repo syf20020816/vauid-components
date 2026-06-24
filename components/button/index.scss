@@ -8,9 +8,8 @@
   background: color("bg-elevated");
   border: 1px solid color("border-default");
   color: color("text-secondary");
-  line-height: 2rem;
+  line-height: 2.25rem;
   @include button;
   @include flex-center;
-  @include box-shadow(color("border-default"));
   gap: 4px;
 }
