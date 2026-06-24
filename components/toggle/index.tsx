@@ -9,10 +9,11 @@ import { Icon } from "../svg";
 import { mergeClassNames } from "../_std/util";
 import "./index.scss";
 import type { Option } from "./types";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import type { FnReturn } from "../_std";
 
 export interface ToggleProps {
+  prefix?: ReactNode;
   options?: Option[];
   activeKey?: string;
   showLabel?: boolean;
@@ -35,6 +36,7 @@ export interface ToggleProps {
 }
 
 export const Toggle = ({
+  prefix,
   options,
   activeKey: controlledActiveKey,
   showLabel = true,
@@ -81,7 +83,7 @@ export const Toggle = ({
           style={styles?.trigger}
         >
           <Button
-            iconPosition="right"
+            icon={prefix}
             className={mergeClassNames("toggle-button")(classNames?.button)}
             style={styles?.button}
           >

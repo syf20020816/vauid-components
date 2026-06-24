@@ -6,7 +6,7 @@ import { Toggle } from "../components/toggle/index";
 
 const flexCenter = {
   display: "flex",
-  alignItems: "center",
+  alignItems: "flex-end",
   justifyContent: "center",
   height: "100vh",
   gap: 12,
@@ -29,19 +29,30 @@ export const TabPage = ({
   const tab = params.get("tab");
 
   if (!tab) {
-    return <Page />;
+    return (
+      <>
+        <Page />
+        <Controller />
+      </>
+    );
   } else if (tab === "ctr") {
-    return<div style={flexCenter}><Controller /></div> ;
+    return (
+      <div style={flexCenter}>
+        <Controller />
+      </div>
+    );
   } else if (tab === "btn") {
     return (
       <div style={flexCenter}>
         <LeaveButton />
         <Button>Vauid Btn</Button>
-        <Toggle options={[
-          { label: "Option 1", value: "1" },
-          { label: "Option 2", value: "2" },
-          { label: "Option 3", value: "3" },
-        ]} />
+        <Toggle
+          options={[
+            { label: "Option 1", value: "1" },
+            { label: "Option 2", value: "2" },
+            { label: "Option 3", value: "3" },
+          ]}
+        />
       </div>
     );
   } else {

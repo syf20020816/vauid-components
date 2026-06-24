@@ -38,6 +38,7 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
         <div className={mergeClassNames("devices")()}>
           <DeviceToggle.Audio />
           <DeviceToggle.Video />
+          <DeviceToggle.ScreenShare />
         </div>
         <LeaveButton
           onClick={onLeave}

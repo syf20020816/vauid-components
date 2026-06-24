@@ -82,7 +82,7 @@ export const Page = () => {
     <div
       style={{
         width: "100vw",
-        height: "100vh",
+        height: "calc(100vh - 50px)",
         margin: 0,
         padding: 0,
       }}
@@ -90,7 +90,7 @@ export const Page = () => {
       <Layout
         ref={containerRef}
         nodes={nodes}
-        style={{ height: "calc(100vh - 60px)" }}
+        style={{ height: "calc(100% - 60px)" }}
         tileStyle={(node: LayoutNode, index: number) => ({
           background: node.isFocus ? "#d0266aff" : BG_COLORS[index],
           borderRadius: 0,

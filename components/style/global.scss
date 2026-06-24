@@ -6,6 +6,7 @@
 //   $color-accent: #00ff88,
 //   $radius-md: 12px,
 // );
+@use "sass:list";
 @use "sass:map";
 @use "sass:string";
 
@@ -31,8 +32,7 @@ $default-colors: (
   // Border system
   border-subtle: rgba(255, 255, 255, 0.06),
   border-default: rgba(255, 255, 255, 0.1),
-  border-strong: rgba(255, 255, 255, 0.18),
-
+  border-strong: rgba(0, 0, 0, 0.18),
   // Text hierarchy
   text-primary: rgba(255, 255, 255, 0.92),
   text-secondary: rgba(255, 255, 255, 0.6),
@@ -45,19 +45,31 @@ $default-colors: (
   accent-active: #e04e00,
   accent-subtle: rgba(255, 92, 0, 0.12),
   accent-glow: rgba(255, 92, 0, 0.25),
-
   // Status colors
   success: #22c55e,
   warning: #f59e0b,
   error: #ef4444,
-  error-plain: #270F0F,
-  info: #3b82f6,
+  error-plain: #270f0f,
+  info: #3b82f6
 ) !default;
 
 // Typography tokens
 $default-fonts: (
-  sans: ('Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif),
-  mono: ('JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace),
+  sans: (
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    system-ui,
+    sans-serif,
+  ),
+  mono: (
+    "JetBrains Mono",
+    "SF Mono",
+    "Fira Code",
+    "Cascadia Code",
+    monospace,
+  ),
 ) !default;
 
 // Scale tokens
@@ -74,7 +86,7 @@ $default-spacing: (
   md: 16px,
   lg: 24px,
   xl: 32px,
-  '2xl': 48px,
+  "2xl": 48px,
 ) !default;
 
 $default-padding: (
@@ -83,21 +95,26 @@ $default-padding: (
   md: 12px,
   lg: 16px,
   xl: 24px,
-  '2xl': 32px,
+  "2xl": 32px,
 ) !default;
 
 // Shadow tokens
 $default-shadows: (
-  sm: (0 1px 2px rgba(0, 0, 0, 0.4)),
-  md: (0 4px 12px rgba(0, 0, 0, 0.5)),
-  lg: (0 8px 32px rgba(0, 0, 0, 0.6)),
-  glow: (0 0 20px var(--vauid-color-accent-glow)),
+  edge: 0 0 0 1px,
+  contact: 0 1px 2px,
+  glow: 0 2px 12px,
+) !default;
+
+$default-shadow-level: (
+  edge: 0.08,
+  contact: 0.06,
+  glow: 0.14,
 ) !default;
 
 // Transition tokens
 $default-transitions: (
-  ease-out: 'cubic-bezier(0.16, 1, 0.3, 1)',
-  ease-spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+  ease-out: "cubic-bezier(0.16, 1, 0.3, 1)",
+  ease-spring: "cubic-bezier(0.34, 1.56, 0.64, 1)",
   duration-fast: 150ms,
   duration-normal: 250ms,
   duration-slow: 400ms,
@@ -115,6 +132,10 @@ $default-z-index: (
 ) !default;
 
 // ── Helper Functions ───────────────────────────────────────────
+
+@function color-hex-opacity($hex, $opacity) {
+  @return #{$hex}#{$opacity};
+}
 
 /// Get a color token by name
 @function color($name) {
@@ -156,8 +177,6 @@ $default-z-index: (
   @return map.get($default-padding, $name);
 }
 
-
-
 // ── Mixins ─────────────────────────────────────────────────────
 
 /// Generate CSS variables from a token map
@@ -167,6 +186,13 @@ $default-z-index: (
   @each $key, $value in $tokens {
     --#{$prefix}-#{$key}: #{$value};
   }
+}
+
+@mixin box-shadow($c: color("border-default")) {
+  $edge: shadow("edge");
+  $contact: shadow("contact");
+  $glow: shadow("glow");
+  box-shadow: #{$edge} #{$c}, #{$contact} #{$c}, #{$glow} #{$c};
 }
 
 /// Reset & normalize
@@ -371,7 +397,6 @@ $default-z-index: (
   justify-content: flex-start;
 }
 
-
 /// Status dot indicator
 @mixin status-dot {
   display: inline-block;
@@ -379,23 +404,31 @@ $default-z-index: (
   height: 8px;
   border-radius: var(--vauid-radius-full);
 
-  &.online { background-color: var(--vauid-color-success); }
-  &.offline { background-color: var(--vauid-color-text-tertiary); }
-  &.busy { background-color: var(--vauid-color-warning); }
-  &.error { background-color: var(--vauid-color-error); }
+  &.online {
+    background-color: var(--vauid-color-success);
+  }
+  &.offline {
+    background-color: var(--vauid-color-text-tertiary);
+  }
+  &.busy {
+    background-color: var(--vauid-color-warning);
+  }
+  &.error {
+    background-color: var(--vauid-color-error);
+  }
 }
 
 // ── Default Output ─────────────────────────────────────────────
 
 // Generate CSS variables
 :root {
-  @include generate-css-vars($default-colors, 'vauid-color');
-  @include generate-css-vars($default-fonts, 'vauid-font');
-  @include generate-css-vars($default-radius, 'vauid-radius');
-  @include generate-css-vars($default-spacing, 'vauid-space');
-  @include generate-css-vars($default-shadows, 'vauid-shadow');
-  @include generate-css-vars($default-transitions, 'vauid');
-  @include generate-css-vars($default-z-index, 'vauid-z');
+  @include generate-css-vars($default-colors, "vauid-color");
+  @include generate-css-vars($default-fonts, "vauid-font");
+  @include generate-css-vars($default-radius, "vauid-radius");
+  @include generate-css-vars($default-spacing, "vauid-space");
+  @include generate-css-vars($default-shadows, "vauid-shadow");
+  @include generate-css-vars($default-transitions, "vauid");
+  @include generate-css-vars($default-z-index, "vauid-z");
 }
 
 // Apply base styles
@@ -410,45 +443,101 @@ body {
 }
 
 // Typography
-h1 { @include heading(2rem); }
-h2 { @include heading(1.5rem); }
-h3 { @include heading(1.25rem); }
-h4 { @include heading(1.125rem); }
-h5, h6 { @include heading(1rem); }
+h1 {
+  @include heading(2rem);
+}
+h2 {
+  @include heading(1.5rem);
+}
+h3 {
+  @include heading(1.25rem);
+}
+h4 {
+  @include heading(1.125rem);
+}
+h5,
+h6 {
+  @include heading(1rem);
+}
 
-p { @include paragraph; }
+p {
+  @include paragraph;
+}
 
-a { @include link; }
+a {
+  @include link;
+}
 
-code { @include code; }
+code {
+  @include code;
+}
 
-pre { @include pre; }
+pre {
+  @include pre;
+}
 
 // Interactive elements
-button, [role="button"] { @include button; }
+button,
+[role="button"] {
+  @include button;
+}
 
-input, textarea, select { @include input; }
+input,
+textarea,
+select {
+  @include input;
+}
 
 // Utility classes
-.text-mono { font-family: var(--vauid-font-mono); }
-.text-accent { color: var(--vauid-color-accent); }
-.text-secondary { color: var(--vauid-color-text-secondary); }
-.text-tertiary { color: var(--vauid-color-text-tertiary); }
+.text-mono {
+  font-family: var(--vauid-font-mono);
+}
+.text-accent {
+  color: var(--vauid-color-accent);
+}
+.text-secondary {
+  color: var(--vauid-color-text-secondary);
+}
+.text-tertiary {
+  color: var(--vauid-color-text-tertiary);
+}
 
-.bg-primary { background-color: var(--vauid-color-bg-primary); }
-.bg-secondary { background-color: var(--vauid-color-bg-secondary); }
-.bg-tertiary { background-color: var(--vauid-color-bg-tertiary); }
-.bg-elevated { background-color: var(--vauid-color-bg-elevated); }
+.bg-primary {
+  background-color: var(--vauid-color-bg-primary);
+}
+.bg-secondary {
+  background-color: var(--vauid-color-bg-secondary);
+}
+.bg-tertiary {
+  background-color: var(--vauid-color-bg-tertiary);
+}
+.bg-elevated {
+  background-color: var(--vauid-color-bg-elevated);
+}
 
-.border-subtle { border-color: var(--vauid-color-border-subtle); }
-.border-default { border-color: var(--vauid-color-border-default); }
-.border-strong { border-color: var(--vauid-color-border-strong); }
+.border-subtle {
+  border-color: var(--vauid-color-border-subtle);
+}
+.border-default {
+  border-color: var(--vauid-color-border-default);
+}
+.border-strong {
+  border-color: var(--vauid-color-border-strong);
+}
 
-.container { @include container; }
-.flex-center { @include flex-center; }
-.flex-between { @include flex-between; }
+.container {
+  @include container;
+}
+.flex-center {
+  @include flex-center;
+}
+.flex-between {
+  @include flex-between;
+}
 
-.status-dot { @include status-dot; }
+.status-dot {
+  @include status-dot;
+}
 
 // Scrollbar (global)
 @include scrollbar;
@@ -459,10 +548,9 @@ input, textarea, select { @include input; }
 // Reduced motion
 @include reduced-motion;
 
-
 // Component class prefix
 @mixin cmp($name) {
-    .vauid-#{$name} {
-        @content;
-    }
+  .vauid-#{$name} {
+    @content;
+  }
 }

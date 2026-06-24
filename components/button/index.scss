@@ -11,5 +11,6 @@
   line-height: 2rem;
   @include button;
   @include flex-center;
+  @include box-shadow(color("border-default"));
   gap: 4px;
 }

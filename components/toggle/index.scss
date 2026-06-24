@@ -7,6 +7,7 @@
   padding: space("xs");
   box-shadow: shadow("md");
   animation: fadeIn 150ms var(--vauid-ease-out);
+  
 }
 
 @include cmp("dropdown-item") {
@@ -45,15 +46,19 @@
 
 @include cmp("toggle-trigger") {
   @include flex-center;
+  @include box-shadow(color("border-default"));
   border: 1px solid color("border-default");
   border-radius: radius("md");
   @include cmp("toggle-button") {
     border-radius: radius("md") 0 0 radius("md");
+    box-shadow: none;
+    border: none;
   }
   @include cmp("toggle-icon") {
     background-color: transparent;
     height: 100%;
     width: fit-content;
     padding: 0 space("xs");
+    transform: translateY(2px);
   }
 }
