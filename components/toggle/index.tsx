@@ -6,11 +6,11 @@ import {
 } from "@radix-ui/react-dropdown-menu";
 import { Button } from "../button";
 import { Icon } from "../svg";
-import { mergeClassNames } from "../_std/util";
+import { mergeClassNames } from "../std/util";
 import "./index.scss";
 import type { Option } from "./types";
 import { useMemo, useState, type ReactNode } from "react";
-import type { FnReturn } from "../_std";
+import type { FnReturn } from "../std";
 
 export interface ToggleProps {
   prefix?: ReactNode;

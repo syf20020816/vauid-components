@@ -1,7 +1,7 @@
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
 import { DeviceToggle } from "./device";
 import { LeaveButton, type LeaveButtonAttr } from "./leave";
-import { mergeClassNames } from "../_std/util";
+import { mergeClassNames } from "../std/util";
 import "./index.scss";
 import type { Option } from "../toggle/types";
 

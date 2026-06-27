@@ -1,9 +1,9 @@
 import { forwardRef } from "react";
 import { Button, type ButtonProps } from "../button";
-import { mergeClassNames } from "../_std/util";
+import { mergeClassNames } from "../std/util";
 import { Icon } from "../svg";
 import "./index.scss";
-import type { FnReturn } from "../_std";
+import type { FnReturn } from "../std";
 
 export interface LeaveButtonProps extends ButtonProps {
   onBeforeLeave?: () => void;

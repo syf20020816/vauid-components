@@ -1,4 +1,4 @@
-import { mergeClassNames } from "../_std/util";
+import { mergeClassNames } from "../std/util";
 import { Button } from "../button";
 import { Icon } from "../svg";
 import { Toggle, type ToggleProps } from "../toggle";

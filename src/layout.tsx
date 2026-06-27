@@ -3,6 +3,7 @@ import { Button } from "../components/button";
 import { LeaveButton } from "../components/controller/leave";
 import { Controller } from "../components/controller";
 import { Toggle } from "../components/toggle/index";
+import { NoteTile } from "../components/tile/note";
 
 const flexCenter = {
   display: "flex",
@@ -55,7 +56,16 @@ export const TabPage = ({
         />
       </div>
     );
-  } else {
-    return <Page />;
+  } else if (tab === "tile") {
+    return <NoteTile value={[
+      {
+        type: "t1",
+        value: "Note Title",
+      },
+      {
+        type: "text",
+        value: "Hello World",
+      },
+    ]} />;
   }
 };
