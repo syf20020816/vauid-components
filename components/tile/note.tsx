@@ -1,24 +1,15 @@
-import { useState } from "react";
-import { Input } from "../input";
-import { NoteOrders, NoteTitles, NoteUnOrders, type NoteValue, type NoteValueType } from "./types";
+import { useState, useCallback } from "react";
+import { TextArea } from "../input";
+import type { NoteValue, NoteValueType } from "./types";
+import { NoteTitles, NoteOrders, NoteUnOrders } from "./types";
+import { mergeClassNames } from "../std/util";
+import "./index.scss";
+import { EditButton } from "./note/edit";
 
 export interface NoteTileProps {
   value: NoteValue[];
+  onChange?: (value: NoteValue[]) => void;
 }
-
-/**
- * # NoteTile - 便条/通知组件
- * 用于显示房间中的便条/通知，通常这是一个常驻组件
- */
-export const NoteTile = ({ value }: NoteTileProps) => {
-  return (
-    <div>
-      {value.map((item) => (
-        <Line key={item.type} {...item} />
-      ))}
-    </div>
-  );
-};
 
 const classNames = new Map<NoteValueType, string>([
   [NoteTitles.T1, "title_t1"],
@@ -33,18 +24,99 @@ const classNames = new Map<NoteValueType, string>([
   ["text", "text"],
 ]);
 
-const Line = ({ type, value }: NoteValue) => {
-  const [editing, setEditing] = useState(false);
+export const NoteTile = ({ value, onChange }: NoteTileProps) => {
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  // const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
-  const className = classNames.get(type) ?? "text";
+  const handleInsert = useCallback(
+    (index: number, type: NoteValueType) => {
+      const newValue = [...value];
+      newValue.splice(index, 0, { type, value: "" });
+      onChange?.(newValue);
+      setEditingIndex(index);
+    },
+    [value, onChange],
+  );
+
+  const handleValueChange = useCallback(
+    (index: number, newValue: string) => {
+      const newArr = [...value];
+      newArr[index] = { ...newArr[index], value: newValue };
+      onChange?.(newArr);
+    },
+    [value, onChange],
+  );
+
+  const handleLineClick = useCallback((index: number) => {
+    setEditingIndex(index);
+  }, []);
+
+  const handleContainerClick = useCallback(
+    (e: React.MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target === e.currentTarget ||
+        target.classList.contains("note_tile__empty")
+      ) {
+        const newIndex = value.length;
+        handleInsert(newIndex, "text");
+      }
+    },
+    [value.length, handleInsert],
+  );
 
   return (
     <div
-      onClick={() => {
-        setEditing(!editing);
-      }}
+      className={mergeClassNames("note_tile")()}
+      onClick={handleContainerClick}
     >
-      <Input value={value} className={className} disabled={editing} />
+      {value.map((item, index) => {
+        const className = classNames.get(item.type) ?? "text";
+        const isEditing = editingIndex === index;
+
+        return (
+          <div
+            key={index}
+            className={mergeClassNames("line")(
+              isEditing ? "line--editing" : "",
+            )}
+            // onMouseEnter={() => setHoverIndex(index)}
+            // onMouseLeave={() => setHoverIndex(null)}
+          >
+            {isEditing && (
+              <div
+                className={mergeClassNames("line__edit-btn")()}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <EditButton onInsert={(type) => handleInsert(index, type)} />
+              </div>
+            )}
+            <div
+              className={mergeClassNames("line__content")()}
+              onClick={() => handleLineClick(index)}
+            >
+              {isEditing ? (
+                <TextArea
+                  block
+                  bordered={false}
+                  value={item.value}
+                  className={mergeClassNames("line__textarea")(className)}
+                  autoSize
+                  onChange={(e) => handleValueChange(index, e.target.value)}
+                  onBlur={() => setEditingIndex(null)}
+                />
+              ) : (
+                <p className={className}>{item.value || " "}</p>
+              )}
+            </div>
+          </div>
+        );
+      })}
+      {value.length === 0 && (
+        <div className={mergeClassNames("note_tile__empty")()}>
+          点击添加内容...
+        </div>
+      )}
     </div>
   );
 };

@@ -1,0 +1,27 @@
+@use "../style/global.scss" as *;
+
+@include cmp("textarea") {
+  &.vauid-autosize {
+    resize: none;
+    overflow: hidden;
+  }
+
+  &.vauid-no-resize {
+    resize: none;
+  }
+}
+
+// Password
+@include cmp("input") {
+  &[type="password"] {
+    padding-right: 32px;
+  }
+
+  // NumberInput
+  &[type="number"] {
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      opacity: 1;
+    }
+  }
+}

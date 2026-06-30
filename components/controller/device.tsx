@@ -1,18 +1,18 @@
 import { mergeClassNames } from "../std/util";
 import { Button } from "../button";
 import { Icon } from "../svg";
-import { Toggle, type ToggleProps } from "../toggle";
+import { Trigger, type TriggerProps } from "../trigger";
 import { useDevice } from "./hooks/useDevice";
 import {
   useScreenShare,
   type UseScreenShareProps,
 } from "./hooks/useScreenShare";
 
-export interface DeviceToggleComponent extends React.FC<ToggleProps> {
-  Audio: React.FC<ToggleProps>;
-  Video: React.FC<ToggleProps>;
+export interface DeviceTriggerComponent extends React.FC<TriggerProps> {
+  Audio: React.FC<TriggerProps>;
+  Video: React.FC<TriggerProps>;
   ScreenShare: React.FC<UseScreenShareProps>;
-  More: React.FC<ToggleProps>;
+  More: React.FC<TriggerProps>;
 }
 
 const svgProps = {
@@ -20,7 +20,7 @@ const svgProps = {
   width: 16,
 };
 
-const DeviceToggleAudio = (props: ToggleProps) => {
+const DeviceTriggerAudio = (props: TriggerProps) => {
   const { devices } = useDevice({ deviceKind: "audioinput" });
   const options = devices.map((device) => ({
     label: device.label,
@@ -28,7 +28,7 @@ const DeviceToggleAudio = (props: ToggleProps) => {
   }));
 
   return (
-    <Toggle
+    <Trigger
       prefix={<Icon.Microphone {...svgProps} />}
       options={[...options, ...(props.options ?? [])]}
       {...props}
@@ -36,7 +36,7 @@ const DeviceToggleAudio = (props: ToggleProps) => {
   );
 };
 
-const DeviceToggleVideo = (props: ToggleProps) => {
+const DeviceTriggerVideo = (props: TriggerProps) => {
   const { devices } = useDevice({ deviceKind: "videoinput" });
   const options = devices.map((device) => ({
     label: device.label,
@@ -44,7 +44,7 @@ const DeviceToggleVideo = (props: ToggleProps) => {
   }));
 
   return (
-    <Toggle
+    <Trigger
       prefix={<Icon.Camera {...svgProps} />}
       options={[...options, ...(props.options ?? [])]}
       {...props}
@@ -75,15 +75,15 @@ const DeviceScreenShare = (props: UseScreenShareProps) => {
   );
 };
 
-const DeviceToggleMore = (props: ToggleProps) => {
-  return <Toggle options={props.options} placeholder="More" />;
+const DeviceTriggerMore = (props: TriggerProps) => {
+  return <Trigger options={props.options} placeholder="More" />;
 };
 
-export const DeviceToggle = (({ options }: ToggleProps) => {
-  return <Toggle options={options} showLabel={false} />;
-}) as DeviceToggleComponent;
+export const DeviceTrigger = (({ options }: TriggerProps) => {
+  return <Trigger options={options} showLabel={false} />;
+}) as DeviceTriggerComponent;
 
-DeviceToggle.Audio = DeviceToggleAudio;
-DeviceToggle.Video = DeviceToggleVideo;
-DeviceToggle.ScreenShare = DeviceScreenShare;
-DeviceToggle.More = DeviceToggleMore;
+DeviceTrigger.Audio = DeviceTriggerAudio;
+DeviceTrigger.Video = DeviceTriggerVideo;
+DeviceTrigger.ScreenShare = DeviceScreenShare;
+DeviceTrigger.More = DeviceTriggerMore;

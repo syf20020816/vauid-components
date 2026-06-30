@@ -2,7 +2,7 @@ import { Page } from "../components/layout/__tests__/layout";
 import { Button } from "../components/button";
 import { LeaveButton } from "../components/controller/leave";
 import { Controller } from "../components/controller";
-import { Toggle } from "../components/toggle/index";
+import { Trigger } from "../components/trigger/index";
 import { NoteTile } from "../components/tile/note";
 
 const flexCenter = {
@@ -47,7 +47,7 @@ export const TabPage = ({
       <div style={flexCenter}>
         <LeaveButton />
         <Button>Vauid Btn</Button>
-        <Toggle
+        <Trigger
           options={[
             { label: "Option 1", value: "1" },
             { label: "Option 2", value: "2" },
@@ -57,15 +57,27 @@ export const TabPage = ({
       </div>
     );
   } else if (tab === "tile") {
-    return <NoteTile value={[
-      {
-        type: "t1",
-        value: "Note Title",
-      },
-      {
-        type: "text",
-        value: "Hello World",
-      },
-    ]} />;
+    return (
+      <div
+        style={{
+          height: 400,
+          width: 300,
+          backgroundColor: "#2e2e2eff",
+        }}
+      >
+        <NoteTile
+          value={[
+            {
+              type: "t1",
+              value: "房间公告！",
+            },
+            {
+              type: "text",
+              value: "房间公告内容：这是一个房间公告，用于通知房间中的玩家。",
+            },
+          ]}
+        />
+      </div>
+    );
   }
 };

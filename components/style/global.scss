@@ -12,6 +12,13 @@
 
 // ── Theme Token Maps ───────────────────────────────────────────
 
+$default-font-size: (
+  h1: 24px,
+  h2: 20px,
+  h3: 16px,
+  p: 14px,
+) !default;
+
 // Default color tokens
 $default-colors: (
   // Base palette - off-black, never pure #000
@@ -133,6 +140,10 @@ $default-z-index: (
 
 // ── Helper Functions ───────────────────────────────────────────
 
+@function font-size($name) {
+  @return map.get($default-font-size, $name);
+}
+
 @function color-hex-opacity($hex, $opacity) {
   @return #{$hex}#{$opacity};
 }
@@ -192,7 +203,10 @@ $default-z-index: (
   $edge: shadow("edge");
   $contact: shadow("contact");
   $glow: shadow("glow");
-  box-shadow: #{$edge} #{$c}, #{$contact} #{$c}, #{$glow} #{$c};
+  box-shadow:
+    #{$edge} #{$c},
+    #{$contact} #{$c},
+    #{$glow} #{$c};
 }
 
 /// Reset & normalize
@@ -304,6 +318,7 @@ $default-z-index: (
 
 /// Input interactive styles
 @mixin input {
+  min-width: 0;
   font-family: inherit;
   font-size: inherit;
   color: var(--vauid-color-text-primary);
@@ -418,6 +433,13 @@ $default-z-index: (
   }
 }
 
+// Component class prefix
+@mixin cmp($name) {
+  .vauid-#{$name} {
+    @content;
+  }
+}
+
 // ── Default Output ─────────────────────────────────────────────
 
 // Generate CSS variables
@@ -488,6 +510,39 @@ select {
   @include input;
 }
 
+@include cmp("unbordered") {
+  border: none;
+  outline: none;
+  box-shadow: none;
+  transition: none;
+
+  &:focus {
+    outline: none;
+    border: none;
+    box-shadow: none;
+  }
+
+  &:focus-visible {
+    border: none;
+    outline: none;
+    box-shadow: none;
+  }
+
+  &:active {
+    border: none;
+    outline: none;
+    box-shadow: none;
+  }
+}
+
+@include cmp("disabled") {
+  cursor: not-allowed;
+}
+
+@include cmp("block") {
+  width: 100%;
+}
+
 // Utility classes
 .text-mono {
   font-family: var(--vauid-font-mono);
@@ -547,10 +602,3 @@ select {
 
 // Reduced motion
 @include reduced-motion;
-
-// Component class prefix
-@mixin cmp($name) {
-  .vauid-#{$name} {
-    @content;
-  }
-}

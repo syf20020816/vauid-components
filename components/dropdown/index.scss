@@ -1,12 +1,35 @@
 @use "../style/global.scss" as *;
 
-@include cmp("dropdown-content") {
+@include cmp("dropdown-trigger") {
+  display: inline-flex;
+  cursor: pointer;
+
+  &--disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+@include cmp("dropdown-menu") {
+  display: flex;
   background-color: color("bg-elevated");
   border: 1px solid color("border-default");
   border-radius: radius("md");
   padding: space("xs");
-  animation: fadeIn 150ms var(--vauid-ease-out);
-  z-index: 111;
+  animation: dropdownFadeIn 150ms var(--vauid-ease-out);
+  min-width: 120px;
+  max-height: 40vh;
+  overflow-y: auto;
+  pointer-events: auto;
+
+  &--vertical {
+    flex-direction: column;
+  }
+
+  &--horizontal {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
 }
 
 @include cmp("dropdown-item") {
@@ -19,19 +42,29 @@
   cursor: pointer;
   outline: none;
   line-height: 2rem;
+  white-space: nowrap;
   transition: background-color var(--vauid-duration-fast) var(--vauid-ease-out);
 
-  &[data-highlighted] {
+  &:hover {
     background-color: color("primary-hover");
   }
 
-  &[data-disabled] {
+  &--disabled {
     color: color("text-tertiary");
+    cursor: not-allowed;
     pointer-events: none;
+  }
+
+  &--danger {
+    color: color("error");
+
+    &:hover {
+      background-color: color("error-hover");
+    }
   }
 }
 
-@keyframes fadeIn {
+@keyframes dropdownFadeIn {
   from {
     opacity: 0;
     transform: translateY(-4px);
@@ -39,24 +72,5 @@
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-
-@include cmp("toggle-trigger") {
-  @include flex-center;
-  border: 1px solid color("border-default");
-  border-radius: radius("md");
-  @include cmp("toggle-button") {
-    border-radius: radius("md") 0 0 radius("md");
-    box-shadow: none;
-    border: none;
-  }
-  @include cmp("toggle-icon") {
-    background-color: transparent;
-    height: 100%;
-    width: fit-content;
-    padding: 0 space("xs");
-    transform: translateY(2px);
   }
 }

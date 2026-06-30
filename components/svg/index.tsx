@@ -147,11 +147,7 @@ Icon.Microphone = ({
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <path
-          d="M24 38V44"
-          stroke="currentColor"
-          strokeWidth={strokeWidth}
-        />
+        <path d="M24 38V44" stroke="currentColor" strokeWidth={strokeWidth} />
         <path
           d="M16 44H32"
           stroke="currentColor"
@@ -297,6 +293,49 @@ Icon.ScreenShare = ({
         />
         <path
           d="M4 16.0566V8H44V40H28.7712"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  });
+
+Icon.Add = ({
+  height = 24,
+  width = 24,
+  color,
+  strokeWidth = 4,
+  ...rest
+}: SVGProps<SVGSVGElement>) =>
+  Icon({
+    children: (
+      <svg
+        width={width}
+        height={height}
+        viewBox="0 0 48 48"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        color={color}
+        {...rest}
+      >
+        <path
+          d="M24 44C35.0457 44 44 35.0457 44 24C44 12.9543 35.0457 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          strokeLinejoin="round"
+        />
+        <path
+          d="M24 16V32"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M16 24L32 24"
           stroke="currentColor"
           strokeWidth={strokeWidth}
           strokeLinecap="round"

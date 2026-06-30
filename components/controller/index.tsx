@@ -1,9 +1,9 @@
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
-import { DeviceToggle } from "./device";
+import { DeviceTrigger } from "./device";
 import { LeaveButton, type LeaveButtonAttr } from "./leave";
 import { mergeClassNames } from "../std/util";
 import "./index.scss";
-import type { Option } from "../toggle/types";
+import type { Option } from "../trigger/types";
 
 export interface ControllerProps
   extends LeaveButtonAttr, HTMLAttributes<HTMLElement> {
@@ -17,7 +17,7 @@ export interface ControllerComponent extends React.ForwardRefExoticComponent<
   ControllerProps & React.RefAttributes<HTMLElement>
 > {
   Leave: typeof LeaveButton;
-  Device: typeof DeviceToggle;
+  Device: typeof DeviceTrigger;
 }
 
 /**
@@ -54,10 +54,10 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
             justifyContent: position,
           }}
         >
-          <DeviceToggle.Audio />
-          <DeviceToggle.Video />
-          <DeviceToggle.ScreenShare />
-          {showMore && moreOptions.length > 0 && <DeviceToggle.More options={moreOptions} />}
+          <DeviceTrigger.Audio />
+          <DeviceTrigger.Video />
+          <DeviceTrigger.ScreenShare />
+          {showMore && moreOptions.length > 0 && <DeviceTrigger.More options={moreOptions} />}
           {other}
         </div>
         <LeaveButton
@@ -72,4 +72,4 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
 ) as ControllerComponent;
 
 Controller.Leave = LeaveButton;
-Controller.Device = DeviceToggle;
+Controller.Device = DeviceTrigger;

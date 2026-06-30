@@ -1,7 +1,7 @@
-export const mergeClassNames = (bases: string[] | string) => {
+export const mergeClassNames = (bases: (string | false | null | undefined)[] | string) => {
   const nextClassName = (other?: string) => {
     const basesStr = Array.isArray(bases)
-      ? bases.map((i) => `vauid-${i}`).join(" ")
+      ? bases.filter(Boolean).map((i) => `vauid-${i}`).join(" ")
       : `vauid-${bases}`;
     return `${basesStr}${other ? ` ${other}` : ""}`;
   };
