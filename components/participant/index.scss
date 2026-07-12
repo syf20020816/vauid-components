@@ -22,11 +22,12 @@
 @include cmp("participant-item") {
   display: flex;
   align-items: center;
-  gap: space("sm");
+  gap: space("md");
+  background-color: color("bg-elevated");
   padding: padding("sm") padding("md");
-  border-radius: radius("md");
   cursor: pointer;
   transition: background-color var(--vauid-duration-fast) var(--vauid-ease-out);
+  width: 100%;
 
   &:hover {
     background-color: color("bg-tertiary");
@@ -66,7 +67,7 @@
   &__right {
     @include flex-center;
     flex-shrink: 0;
-    gap: space("xs");
+    gap: space("sm");
     color: color("text-tertiary");
   }
 }
@@ -91,11 +92,7 @@
     }
 
     &--inactive {
-      color: color("text-tertiary");
-    }
-
-    &--warning {
-      color: color("warning");
+      color: color("error");
     }
   }
 }

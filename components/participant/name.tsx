@@ -1,8 +1,9 @@
-import { type CSSProperties, type HTMLAttributes } from "react";
+import type { HTMLAttributes } from "react";
 import { Icon } from "../svg";
 import { mergeClassNames } from "../std/util";
 import "./index.scss";
 import type { Device } from "../std/media";
+import { useIcon } from "./hooks/icon";
 
 export interface ParticipantNameProps extends HTMLAttributes<HTMLDivElement> {
   name: string;
@@ -11,11 +12,6 @@ export interface ParticipantNameProps extends HTMLAttributes<HTMLDivElement> {
   screenShare?: boolean;
   device?: Device;
 }
-
-const iconSize: CSSProperties = {
-  width: 16,
-  height: 16,
-};
 
 /**
  * ## ParticipantName
@@ -51,51 +47,38 @@ export const ParticipantName = ({
   ...props
 }: ParticipantNameProps) => {
   let icon: React.ReactNode;
-  let active: boolean;
+  const { onClassName, offClassName, iconSize } = useIcon();
 
   if (device === "microphone") {
-    active = !!audioEnabled;
-    icon = active ? (
-      <Icon.Microphone style={iconSize} />
+    icon = audioEnabled ? (
+      <Icon.Microphone style={iconSize} className={onClassName} />
     ) : (
-      <Icon.MicOff style={iconSize} />
+      <Icon.MicOff style={iconSize} className={offClassName} />
     );
   } else if (device === "camera") {
-    active = !!videoEnabled;
-    icon = active ? (
-      <Icon.Camera style={iconSize} />
+    icon = videoEnabled ? (
+      <Icon.Camera style={iconSize} className={onClassName} />
     ) : (
-      <Icon.CameraOff style={iconSize} />
+      <Icon.CameraOff style={iconSize} className={offClassName} />
     );
   } else if (device === "screenShare") {
-    active = !!screenShare;
-    icon = <Icon.ScreenShare style={iconSize} />;
+    icon = <Icon.ScreenShare style={iconSize} className={onClassName} />;
   } else {
     // No device fixed — follow priority: s > v > a
     if (screenShare) {
-      active = true;
-      icon = <Icon.ScreenShare style={iconSize} />;
+      icon = <Icon.ScreenShare style={iconSize} className={onClassName} />;
     } else if (videoEnabled) {
-      active = true;
-      icon = <Icon.Camera style={iconSize} />;
+      icon = <Icon.Camera style={iconSize} className={onClassName} />;
     } else if (audioEnabled) {
-      active = true;
-      icon = <Icon.Microphone style={iconSize} />;
+      icon = <Icon.Microphone style={iconSize} className={onClassName} />;
     } else {
-      active = false;
-      icon = <Icon.MicOff style={iconSize} />;
+      icon = <Icon.MicOff style={iconSize} className={offClassName} />;
     }
   }
 
   return (
     <div className={mergeClassNames("participant-name")(className)} {...props}>
-      <span
-        className={mergeClassNames("participant-name__status")(
-          active
-            ? "participant-name__status--active"
-            : "participant-name__status--inactive",
-        )}
-      >
+      <span className={mergeClassNames("participant-name__status")()}>
         {icon}
       </span>
       <span>{name}</span>

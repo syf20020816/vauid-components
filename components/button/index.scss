@@ -12,4 +12,7 @@
   @include button;
   @include flex-center;
   gap: 4px;
+  &--round {
+    border-radius: radius("full");
+  }
 }

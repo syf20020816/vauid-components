@@ -121,29 +121,64 @@ export const TabPage = ({
     return (
       <div style={{ ...flexCenter, gap: 16 }}>
         <Avatar name="张三" />
-        <Avatar name="John" size={48} />
-        <Avatar name="Alice" size={56} />
+        <Avatar name="John" size={40} />
+        <Avatar name="Alice" size={60} />
         <Avatar name="测试" size={40} />
-        <Avatar name="123" size={40} />
+        <Avatar
+          src="//iconfont.alicdn.com/p/illus/preview_image/ciljjYR1xjY3/441f1b88-03ef-48bd-9ad1-64f655cbdc0f.png"
+          name="123"
+          size={40}
+        />
       </div>
     );
   } else if (tab === "name") {
     return (
-      <div style={{ ...flexCol, gap: 16, alignItems: "flex-start", padding: 12 }}>
+      <div
+        style={{ ...flexCol, gap: 16, alignItems: "flex-start", padding: 12 }}
+      >
         <ParticipantName name="a-v-on" audioEnabled videoEnabled />
         <ParticipantName name="a-on v-off" audioEnabled videoEnabled={false} />
-        <ParticipantName name="a-v-off" audioEnabled={false} videoEnabled={false} />
-        <ParticipantName name="a-on v-off s-on" audioEnabled videoEnabled={false} screenShare />
-        <ParticipantName name="a-on v-on s-on" audioEnabled videoEnabled screenShare />
-        <ParticipantName name="a-on v-off s-off" audioEnabled videoEnabled={false} screenShare={false} />
+        <ParticipantName
+          name="a-v-off"
+          audioEnabled={false}
+          videoEnabled={false}
+        />
+        <ParticipantName
+          name="a-on v-off s-on"
+          audioEnabled
+          videoEnabled={false}
+          screenShare
+        />
+        <ParticipantName
+          name="a-on v-on s-on"
+          audioEnabled
+          videoEnabled
+          screenShare
+        />
+        <ParticipantName
+          name="a-on v-off s-off"
+          audioEnabled
+          videoEnabled={false}
+          screenShare={false}
+        />
       </div>
     );
   } else if (tab === "item") {
     return (
-      <div style={{ width: 300, ...flexCol }}>
+      <div style={{ width: 300, ...flexCol, padding: 12 }}>
         <ParticipantItem name="张三" audioEnabled videoEnabled />
-        <ParticipantItem name="John" extra="主持人" audioEnabled videoEnabled={false} />
-        <ParticipantItem name="Alice" extra="静音中" audioEnabled={false} videoEnabled />
+        <ParticipantItem
+          name="John"
+          extra="主持人"
+          audioEnabled
+          videoEnabled={false}
+        />
+        <ParticipantItem
+          name="Alice"
+          extra="静音中"
+          audioEnabled={false}
+          videoEnabled
+        />
         <ParticipantItem name="Bob" audioEnabled={false} videoEnabled={false} />
       </div>
     );

@@ -3,6 +3,7 @@ import { Avatar } from "./avatar";
 import { Icon } from "../svg";
 import { mergeClassNames } from "../std/util";
 import "./index.scss";
+import { useIcon } from "./hooks/icon";
 
 export interface ParticipantItemProps extends HTMLAttributes<HTMLDivElement> {
   name: string;
@@ -23,11 +24,9 @@ export const ParticipantItem = ({
   className,
   ...props
 }: ParticipantItemProps) => {
+  const { onClassName, offClassName, iconSize } = useIcon();
   return (
-    <div
-      className={mergeClassNames("participant-item")(className)}
-      {...props}
-    >
+    <div className={mergeClassNames("participant-item")(className)} {...props}>
       <div className={mergeClassNames("participant-item__left")()}>
         <Avatar name={name} size={avatarSize} src={avatarSrc} />
       </div>
@@ -44,12 +43,16 @@ export const ParticipantItem = ({
       </div>
 
       <div className={mergeClassNames("participant-item__right")()}>
-        <span style={{ color: audioEnabled ? "var(--vauid-color-success)" : undefined }}>
-          {audioEnabled ? <Icon.Microphone width={14} height={14} /> : <Icon.MicOff width={14} height={14} />}
-        </span>
-        <span style={{ color: videoEnabled ? "var(--vauid-color-success)" : undefined }}>
-          {videoEnabled ? <Icon.Camera width={14} height={14} /> : <Icon.CameraOff width={14} height={14} />}
-        </span>
+        {audioEnabled ? (
+          <Icon.Microphone style={iconSize} className={onClassName} />
+        ) : (
+          <Icon.MicOff style={iconSize} className={offClassName} />
+        )}
+        {videoEnabled ? (
+          <Icon.Camera style={iconSize} className={onClassName} />
+        ) : (
+          <Icon.CameraOff style={iconSize} className={offClassName} />
+        )}
       </div>
     </div>
   );
