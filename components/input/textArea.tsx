@@ -58,7 +58,8 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
         if (!autoSize) return;
         el.style.height = "auto";
         const scrollHeight = el.scrollHeight;
-        const lineHeight = parseInt(getComputedStyle(el).lineHeight) || 20;
+        const lineHeight = parseFloat(getComputedStyle(el).lineHeight) || 20;
+
         const minHeight = minRows * lineHeight;
         const height = Math.max(scrollHeight, minHeight);
 

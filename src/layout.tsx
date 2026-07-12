@@ -66,18 +66,17 @@ export const TabPage = ({
         }}
       >
         <NoteTile
-          value={[
-            {
-              type: "t1",
-              value: "房间公告！",
-            },
-            {
-              type: "text",
-              value: "房间公告内容：这是一个房间公告，用于通知房间中的玩家。",
-            },
-          ]}
+          value={noteValue}
         />
       </div>
     );
   }
 };
+
+const noteValue = `
+  # 房间公告！
+  房间公告内容：这是一个房间公告，用于通知房间中的玩家。
+  ## 注意事项
+  - 房间公告内容不能超过100个字符
+  - 房间公告内容不能包含特殊字符
+`;
