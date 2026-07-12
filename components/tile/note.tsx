@@ -16,7 +16,7 @@ export interface NoteTileProps {
  */
 export const NoteTile = ({ value, children }: NoteTileProps) => {
   return (
-    <div className={mergeClassNames("note_tile")()}>
+    <div className={mergeClassNames("basic_tile")()}>
       {children ? children : <Markdown>{value}</Markdown>}
     </div>
   );

@@ -1,0 +1,104 @@
+@use "../style/global.scss" as *;
+
+// ── Status Button ───────────────────────────────────────────────
+@include cmp("status-button") {
+  @include flex-center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 padding("sm");
+  border-radius: radius("md");
+  background: color("bg-elevated");
+  border: 1px solid color("border-default");
+  color: color("text-secondary");
+  font-family: font(sans) !important;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color var(--vauid-duration-fast) var(--vauid-ease-out),
+    border-color var(--vauid-duration-fast) var(--vauid-ease-out);
+
+  &:hover {
+    background: color("surface-hover");
+    border-color: color("border-strong");
+    color: color("text-primary");
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+// ── Tooltip ─────────────────────────────────────────────────────
+@include cmp("tooltip-content") {
+  padding: 4px 8px;
+  border-radius: radius("sm");
+  background: color("bg-elevated");
+  border: 1px solid color("border-default");
+  color: color("text-primary");
+  font-size: 12px;
+  font-family: font(sans) !important;
+  white-space: nowrap;
+  pointer-events: auto;
+  z-index: z-index("tooltip");
+}
+
+@include cmp("tooltip-trigger") {
+  display: inline-flex;
+  pointer-events: auto;
+}
+
+// ── During (duration timer) ────────────────────────────────────
+@include cmp("during") {
+  @include flex-center;
+  gap: 8px;
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: radius("full");
+    flex-shrink: 0;
+
+    &--live {
+      background: color("success");
+      box-shadow: 0 0 6px color("success");
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    &--recording {
+      background: color("error");
+      box-shadow: 0 0 6px color("error");
+      animation: pulse-dot 1s ease-in-out infinite;
+    }
+  }
+
+  &__time {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.3);
+  }
+}
+
+// ── Network Status ─────────────────────────────────────────────
+@include cmp("network-status") {
+  gap: 6px;
+
+  &__label {
+    font-size: 13px;
+  }
+}
+
+@include cmp("network-speed") {
+  gap: 6px;
+}

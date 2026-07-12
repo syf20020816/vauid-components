@@ -4,23 +4,42 @@ import { LeaveButton } from "../components/controller/leave";
 import { Controller } from "../components/controller";
 import { Trigger } from "../components/trigger/index";
 import { NoteTile } from "../components/tile/note";
+import { AudioTile } from "../components/tile/auido";
+import { VideoTile } from "../components/tile/video";
+import { Avatar } from "../components/participant/avatar";
+import { ParticipantName } from "../components/participant/name";
+import { ParticipantItem } from "../components/participant/item";
+import { ParticipantNum } from "../components/participant/num";
+import { During } from "../components/status/during";
+import { Focus } from "../components/status/focus";
+import { FullScreen } from "../components/status/fullScreen";
+import {
+  NetworkStatus,
+  NetworkUpload,
+  NetworkDownload,
+} from "../components/status/network";
 
-const flexCenter = {
+const flexCenter: React.CSSProperties = {
   display: "flex",
-  alignItems: "flex-end",
+  alignItems: "center",
   justifyContent: "center",
   height: "100vh",
   gap: 12,
 };
 
-/**
- * URL：
- * 1. /?tab=btn
- * 2. /?tab=page
- * 3. /?tab=other
- * @param param0
- * @returns
- */
+const flexCol: React.CSSProperties = {
+  ...flexCenter,
+  flexDirection: "column",
+};
+
+const flexRowWrap: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  flexWrap: "wrap",
+  gap: 12,
+};
+
 export const TabPage = ({
   searchParams,
 }: {
@@ -65,18 +84,127 @@ export const TabPage = ({
           backgroundColor: "#2e2e2eff",
         }}
       >
-        <NoteTile
-          value={noteValue}
+        <NoteTile value={noteValue} />
+      </div>
+    );
+  } else if (tab === "audio") {
+    return (
+      <div style={{ ...flexCenter, gap: 24 }}>
+        <AudioTile
+          name="张三"
+          style={{ height: 280, width: 200 }}
+          onClick={() => console.log("click")}
         />
+        <AudioTile
+          name="John"
+          style={{ height: 280, width: 200 }}
+          onClick={() => console.log("click")}
+        />
+      </div>
+    );
+  } else if (tab === "video") {
+    return (
+      <div style={{ ...flexCenter, gap: 24 }}>
+        <div style={{ width: 320, height: 240 }}>
+          <VideoTile label="张三" style={{ width: "100%", height: "100%" }} />
+        </div>
+        <div style={{ width: 320, height: 240 }}>
+          <VideoTile
+            label="John (屏幕分享)"
+            screenShare
+            style={{ width: "100%", height: "100%" }}
+          />
+        </div>
+      </div>
+    );
+  } else if (tab === "avatar") {
+    return (
+      <div style={{ ...flexCenter, gap: 16 }}>
+        <Avatar name="张三" />
+        <Avatar name="John" size={48} />
+        <Avatar name="Alice" size={56} />
+        <Avatar name="测试" size={40} />
+        <Avatar name="123" size={40} />
+      </div>
+    );
+  } else if (tab === "name") {
+    return (
+      <div style={{ ...flexCol, gap: 16, alignItems: "flex-start", padding: 12 }}>
+        <ParticipantName name="a-v-on" audioEnabled videoEnabled />
+        <ParticipantName name="a-on v-off" audioEnabled videoEnabled={false} />
+        <ParticipantName name="a-v-off" audioEnabled={false} videoEnabled={false} />
+        <ParticipantName name="a-on v-off s-on" audioEnabled videoEnabled={false} screenShare />
+        <ParticipantName name="a-on v-on s-on" audioEnabled videoEnabled screenShare />
+        <ParticipantName name="a-on v-off s-off" audioEnabled videoEnabled={false} screenShare={false} />
+      </div>
+    );
+  } else if (tab === "item") {
+    return (
+      <div style={{ width: 300, ...flexCol }}>
+        <ParticipantItem name="张三" audioEnabled videoEnabled />
+        <ParticipantItem name="John" extra="主持人" audioEnabled videoEnabled={false} />
+        <ParticipantItem name="Alice" extra="静音中" audioEnabled={false} videoEnabled />
+        <ParticipantItem name="Bob" audioEnabled={false} videoEnabled={false} />
+      </div>
+    );
+  } else if (tab === "num") {
+    return (
+      <div style={flexCenter}>
+        <ParticipantNum count={42} />
+      </div>
+    );
+  } else if (tab === "during") {
+    return (
+      <div style={{ ...flexCol, gap: 24 }}>
+        <During roomStartTime={Date.now() - 3723000} />
+        <During
+          roomStartTime={Date.now() - 3723000}
+          recording
+          recordingStartTime={Date.now() - 120000}
+          recordingElapsed={60000}
+        />
+      </div>
+    );
+  } else if (tab === "focus") {
+    return (
+      <div style={flexCenter}>
+        <Focus />
+      </div>
+    );
+  } else if (tab === "fullscreen") {
+    return (
+      <div style={flexCenter}>
+        <FullScreen />
+      </div>
+    );
+  } else if (tab === "network") {
+    return (
+      <div style={flexRowWrap}>
+        <NetworkStatus />
+        <NetworkUpload />
+        <NetworkDownload />
+      </div>
+    );
+  } else if (tab === "status") {
+    return (
+      <div style={flexRowWrap}>
+        <During roomStartTime={Date.now() - 3723000} />
+        <ParticipantNum count={42} />
+        <NetworkStatus />
+        <NetworkUpload />
+        <NetworkDownload />
+        <Focus />
+        <FullScreen />
       </div>
     );
   }
 };
 
 const noteValue = `
-  # 房间公告！
-  房间公告内容：这是一个房间公告，用于通知房间中的玩家。
-  ## 注意事项
-  - 房间公告内容不能超过100个字符
-  - 房间公告内容不能包含特殊字符
+# 房间公告！
+房间公告内容：这是一个房间公告，用于通知房间中的玩家。
+
+## 注意事项
+- 房间公告内容不能超过100个字符
+- 房间公告内容不能包含特殊字符
 `;
