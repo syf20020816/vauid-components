@@ -1,4 +1,4 @@
-import { type HTMLAttributes } from "react";
+import { type CSSProperties, type HTMLAttributes } from "react";
 import { StatusButton } from "./tooltip";
 import { Icon } from "../svg";
 import { mergeClassNames } from "../std/util";
@@ -20,16 +20,57 @@ function getSignalLevel(rtt: number): number {
   return 0;
 }
 
+const SIGNAL_COLORS = [
+  "var(--vauid-color-success)",
+  "var(--vauid-color-error)",
+  "var(--vauid-color-warning)",
+  "var(--vauid-color-warning)",
+];
+
 const SignalIcon = ({ level }: { level: number }) => {
-  if (level >= 4) return <Icon.SignalHigh width={16} height={16} />;
-  if (level >= 3) return <Icon.SignalMedium width={16} height={16} />;
-  if (level >= 2) return <Icon.SignalLow width={16} height={16} />;
-  return <Icon.SignalZero width={16} height={16} />;
+  const color = SIGNAL_COLORS[Math.min(level, 4)] ?? SIGNAL_COLORS[0];
+  const iconProps = {
+    style: {
+      position: "absolute",
+      inset: 0,
+      color,
+    } as CSSProperties,
+    height: 16,
+    width: 16,
+  };
+
+  const icon = (() => {
+    if (level >= 4) return <Icon.SignalHigh {...iconProps} />;
+    if (level >= 3) return <Icon.SignalMedium {...iconProps} />;
+    if (level >= 2) return <Icon.SignalLow {...iconProps} />;
+    return <Icon.SignalZero {...iconProps} />;
+  })();
+
+  return (
+    <span
+      style={{
+        position: "relative",
+        display: "inline-flex",
+        width: 16,
+        height: 16,
+      }}
+    >
+      <Icon.SignalHigh
+        {...iconProps}
+        style={{ ...iconProps.style, color: "rgba(255,255,255,0.4)" }}
+      />
+      {icon}
+    </span>
+  );
 };
 
 const LevelLabel = ["极差", "较差", "一般", "良好", "优秀"];
 
-export const NetworkStatus = ({ rtt, className, ...props }: NetworkStatusProps) => {
+export const NetworkStatus = ({
+  rtt,
+  className,
+  ...props
+}: NetworkStatusProps) => {
   const [internalRtt, setInternalRtt] = useState<number>(0);
   const currentRtt = rtt ?? internalRtt;
 
@@ -37,7 +78,9 @@ export const NetworkStatus = ({ rtt, className, ...props }: NetworkStatusProps) 
     if (rtt !== undefined) return;
     const id = setInterval(async () => {
       if ("connection" in navigator) {
-        const conn: { rtt?: number } = (navigator as { connection?: { rtt?: number } }).connection;
+        const conn: { rtt?: number } = (
+          navigator as { connection?: { rtt?: number } }
+        ).connection;
         if (conn?.rtt !== undefined && conn?.rtt >= 0) {
           setInternalRtt(conn.rtt);
         }
@@ -84,7 +127,9 @@ function formatSpeed(bytesPerSec: number): string {
  * 选取最近完成的资源，取其 transferSize / duration
  */
 function estimateDownloadSpeed(): number {
-  const entries = performance.getEntriesByType("resource") as PerformanceResourceTiming[];
+  const entries = performance.getEntriesByType(
+    "resource",
+  ) as PerformanceResourceTiming[];
   if (entries.length === 0) return 0;
   // 取最后一个完成的资源
   const last = entries[entries.length - 1];
@@ -124,10 +169,12 @@ export const NetworkSpeed = ({
     // Upload speed estimation via navigator.connection (downlink ≈ upload in many cases)
     const id = setInterval(() => {
       if ("connection" in navigator) {
-        const conn: { downlink?: number } = (navigator as { connection?: { downlink?: number } }).connection;
+        const conn: { downlink?: number } = (
+          navigator as { connection?: { downlink?: number } }
+        ).connection;
         if (conn?.downlink) {
           // downlink is in Mb/s, convert to bytes/s as rough estimate
-          setInternalSpeed(Math.round(conn.downlink * 1_000_000 / 8));
+          setInternalSpeed(Math.round((conn.downlink * 1_000_000) / 8));
         }
       }
     }, 3000);

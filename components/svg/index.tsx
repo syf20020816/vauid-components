@@ -9,6 +9,7 @@ import {
   User,
   MicOff,
   Focus,
+  Hand,
   Maximize,
   Minimize,
   Signal,
@@ -35,6 +36,7 @@ type IconComponent = FC<SVGProps<SVGSVGElement>> & {
   MicOff: FC<SVGProps<SVGSVGElement>>;
   CameraOff: FC<SVGProps<SVGSVGElement>>;
   Focus: FC<SVGProps<SVGSVGElement>>;
+  Hand: FC<SVGProps<SVGSVGElement>>;
   FullScreen: FC<SVGProps<SVGSVGElement>>;
   FullScreenExit: FC<SVGProps<SVGSVGElement>>;
   Signal: FC<SVGProps<SVGSVGElement>>;
@@ -67,6 +69,7 @@ BaseIcon.User = (props) => <User {...defaultProps} {...props} />;
 BaseIcon.MicOff = (props) => <MicOff {...defaultProps} {...props} />;
 BaseIcon.CameraOff = (props) => <VideoOff {...defaultProps} {...props} />;
 BaseIcon.Focus = (props) => <Focus {...defaultProps} {...props} />;
+BaseIcon.Hand = (props) => <Hand {...defaultProps} {...props} />;
 BaseIcon.FullScreen = (props) => <Maximize {...defaultProps} {...props} />;
 BaseIcon.FullScreenExit = (props) => <Minimize {...defaultProps} {...props} />;
 BaseIcon.Signal = (props) => <Signal {...defaultProps} {...props} />;

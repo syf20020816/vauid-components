@@ -187,3 +187,8 @@
     border: 2px solid color("warning");
   }
 }
+
+// ── Participant Num ─────────────────────────────────────────────────
+@include cmp("participant-num") {
+  font-size: font-size(p) !important;
+}

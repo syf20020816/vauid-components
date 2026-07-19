@@ -23,9 +23,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref,
   ) => {
     const className = mergeClassNames([
-      icon ? "button--icon" : "button",
+      icon && children ? "button" : icon ? "button--icon" : "button",
       round && "button--round",
-      `button${icon ? "--icon" : ""}--${size}`,
+      `button${icon && !children ? "--icon" : ""}--${size}`,
     ])(rest.className);
 
     return (

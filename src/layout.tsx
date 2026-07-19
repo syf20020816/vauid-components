@@ -13,6 +13,7 @@ import { ParticipantNum } from "../components/participant/num";
 import { Role } from "../components/participant/role";
 import { During } from "../components/status/during";
 import { Focus } from "../components/status/focus";
+import { RaiseHand } from "../components/status/raise";
 import { FullScreen } from "../components/status/fullScreen";
 import {
   NetworkStatus,
@@ -208,7 +209,7 @@ export const TabPage = ({
         <Role role="participant" />
         <Role role="manager" />
         <Role role="guest" />
-        <Role text="自定义" color="#fff" bgColor="#8b5cf6" />
+        <Role text="自定义" color="#fff" backgroundColor="#8b5cf6" />
       </div>
     );
   } else if (tab === "during") {
@@ -227,13 +228,20 @@ export const TabPage = ({
     return (
       <div style={flexCenter}>
         <Focus />
-         <FullScreen />
+        <Focus focused />
+        <FullScreen />
+        <FullScreen fullScreen />
+        <RaiseHand />
+        <RaiseHand raised />
       </div>
     );
   } else if (tab === "network") {
     return (
       <div style={flexRowWrap}>
         <NetworkStatus />
+        <NetworkStatus rtt={200} />
+        <NetworkStatus rtt={300} />
+        <NetworkStatus rtt={4} />
         <NetworkUpload />
         <NetworkDownload />
       </div>

@@ -1,10 +1,11 @@
 import { Tooltip } from "./tooltip";
 import { Icon } from "../svg";
 import { Button } from "../button/index";
+import type { FnReturn } from "../std";
 
 export interface FullScreenProps {
   fullScreen?: boolean;
-  onClick?: () => void;
+  onClick?: () => FnReturn<void>;
 }
 
 export const FullScreen = ({ fullScreen, onClick }: FullScreenProps) => {

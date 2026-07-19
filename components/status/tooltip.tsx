@@ -4,6 +4,7 @@ import "@rc-component/trigger/assets/index.css";
 import { mergeClassNames } from "../std/util";
 import { getPopupContainer, builtinPlacements } from "../trigger/config";
 import "./index.scss";
+import { Button } from "../button";
 
 export interface TooltipProps {
   content: ReactNode;
@@ -27,9 +28,7 @@ export const Tooltip = ({
     <RcTrigger
       action={["hover"]}
       popup={
-        <div className={mergeClassNames("tooltip-content")()}>
-          {content}
-        </div>
+        <div className={mergeClassNames("tooltip-content")()}>{content}</div>
       }
       popupPlacement={placementMap[placement]}
       builtinPlacements={builtinPlacements}
@@ -37,9 +36,7 @@ export const Tooltip = ({
       mouseEnterDelay={0.2}
       mouseLeaveDelay={0.1}
     >
-      <div className={mergeClassNames("tooltip-trigger")()}>
-        {children}
-      </div>
+      <div className={mergeClassNames("tooltip-trigger")()}>{children}</div>
     </RcTrigger>
   );
 };
@@ -57,9 +54,8 @@ export const StatusButton = ({
 }: StatusButtonProps) => {
   const cls = mergeClassNames("status-button")(className);
   return (
-    <button className={cls} {...props}>
-      {icon}
+    <Button className={cls} {...props} icon={icon}>
       {children}
-    </button>
+    </Button>
   );
 };

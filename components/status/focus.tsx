@@ -2,10 +2,11 @@ import { Tooltip } from "./tooltip";
 import { Icon } from "../svg";
 import { Button } from "../button";
 import { mergeClassNames } from "../std/util";
+import type { FnReturn } from "../std";
 
 export interface FocusProps {
   focused?: boolean;
-  onClick?: () => void;
+  onClick?: () => FnReturn<void>;
 }
 
 export const Focus = ({ focused, onClick }: FocusProps) => {
