@@ -1,18 +1,54 @@
 @use "../style/global.scss" as *;
 
-@include cmp("button") {
-  font-family: font(sans) !important;
+@mixin basic-button {
   font-size: 1rem;
-  padding: 0 padding("md");
-  border-radius: radius("md");
   background: color("bg-elevated");
   border: 1px solid color("border-default");
-  color: color("text-secondary");
   line-height: 2.25rem;
   @include button;
   @include flex-center;
   gap: 4px;
+  color: color("text-secondary");
+}
+
+@include cmp("button") {
+  font-family: font(sans) !important;
+  @include basic-button();
+
+  gap: 4px;
   &--round {
     border-radius: radius("full");
+  }
+  &--small {
+    padding: 0 padding("sm");
+    border-radius: radius("sm");
+  }
+  &--medium {
+    padding: 0 padding("md");
+    border-radius: radius("md");
+  }
+  &--large {
+    padding: 0 padding("lg");
+    border-radius: radius("lg");
+  }
+}
+
+@include cmp("button--icon") {
+  font-size: 1rem;
+  @include basic-button();
+  &--round {
+    border-radius: radius("full");
+  }
+  &--small {
+    padding: padding("xs");
+    border-radius: radius("sm");
+  }
+  &--medium {
+    padding: padding("md");
+    border-radius: radius("md");
+  }
+  &--large {
+    padding: padding("lg");
+    border-radius: radius("lg");
   }
 }

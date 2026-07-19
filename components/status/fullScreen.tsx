@@ -1,5 +1,6 @@
 import { Tooltip } from "./tooltip";
 import { Icon } from "../svg";
+import { Button } from "../button/index";
 
 export interface FullScreenProps {
   fullScreen?: boolean;
@@ -9,13 +10,18 @@ export interface FullScreenProps {
 export const FullScreen = ({ fullScreen, onClick }: FullScreenProps) => {
   return (
     <Tooltip content={fullScreen ? "退出全屏" : "全屏"}>
-      <button className="vauid-status-button" onClick={onClick}>
-        {fullScreen ? (
-          <Icon.FullScreenExit width={18} height={18} />
-        ) : (
-          <Icon.FullScreen width={18} height={18} />
-        )}
-      </button>
+      <Button
+        size="small"
+        className="vauid-status-button"
+        onClick={onClick}
+        icon={
+          fullScreen ? (
+            <Icon.FullScreenExit width={14} height={14} />
+          ) : (
+            <Icon.FullScreen width={14} height={14} />
+          )
+        }
+      ></Button>
     </Tooltip>
   );
 };

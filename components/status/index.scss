@@ -1,33 +1,7 @@
 @use "../style/global.scss" as *;
 
 // ── Status Button ───────────────────────────────────────────────
-@include cmp("status-button") {
-  @include flex-center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 padding("sm");
-  border-radius: radius("md");
-  background: color("bg-elevated");
-  border: 1px solid color("border-default");
-  color: color("text-secondary");
-  font-family: font(sans) !important;
-  font-size: 13px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    background-color var(--vauid-duration-fast) var(--vauid-ease-out),
-    border-color var(--vauid-duration-fast) var(--vauid-ease-out);
-
-  &:hover {
-    background: color("surface-hover");
-    border-color: color("border-strong");
-    color: color("text-primary");
-  }
-
-  &:active {
-    transform: scale(0.97);
-  }
-}
+@include cmp("status-button") {}
 
 // ── Tooltip ─────────────────────────────────────────────────────
 @include cmp("tooltip-content") {
@@ -58,7 +32,6 @@
     height: 8px;
     border-radius: radius("full");
     flex-shrink: 0;
-    
 
     &--live {
       background: color("success");

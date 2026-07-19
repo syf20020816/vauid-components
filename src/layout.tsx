@@ -167,12 +167,18 @@ export const TabPage = ({
   } else if (tab === "item") {
     return (
       <div style={{ width: 300, ...flexCol, padding: 12 }}>
-        <ParticipantItem name="张三" audioEnabled videoEnabled />
+        <ParticipantItem
+          name="张三"
+          role="participant"
+          audioEnabled
+          videoEnabled
+        />
         <ParticipantItem
           name="John"
           extra="主持人"
           audioEnabled
           videoEnabled={false}
+          role="host"
         />
         <ParticipantItem
           name="Alice"
@@ -181,7 +187,12 @@ export const TabPage = ({
           videoEnabled
           role="manager"
         />
-        <ParticipantItem name="Bob" audioEnabled={false} videoEnabled={false} />
+        <ParticipantItem
+          name="Bob"
+          role="guest"
+          audioEnabled={false}
+          videoEnabled={false}
+        />
       </div>
     );
   } else if (tab === "num") {
@@ -216,12 +227,7 @@ export const TabPage = ({
     return (
       <div style={flexCenter}>
         <Focus />
-      </div>
-    );
-  } else if (tab === "fullscreen") {
-    return (
-      <div style={flexCenter}>
-        <FullScreen />
+         <FullScreen />
       </div>
     );
   } else if (tab === "network") {
