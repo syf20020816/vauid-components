@@ -17,6 +17,7 @@ $default-font-size: (
   h2: 20px,
   h3: 16px,
   p: 14px,
+  t: 10px,
 ) !default;
 
 // Default color tokens
@@ -47,17 +48,28 @@ $default-colors: (
   text-inverse: #020202,
 
   // Accent - electric orange, not warm amber
-  accent: #ff5c00,
+  accent: #D84A1A,
   accent-hover: #ff7a2e,
   accent-active: #e04e00,
   accent-subtle: rgba(255, 92, 0, 0.12),
   accent-glow: rgba(255, 92, 0, 0.25),
   // Status colors
   success: #22c55e,
-  warning: #f59e0b,
+  success-border: #274916,
+  success-plain: #162312,
+  success-text: #6abe39,
+  warning: #D84A1A,
+  warning-border: #592716,
+  warning-plain: #2b1611,
+  warning-text: #e87040,
   error: #ef4444,
-  error-plain: #270f0f,
-  info: #3b82f6
+  error-border: #58181c,
+  error-plain: #2a1215,
+  error-text: #e84749,
+  info: #3b82f6,
+  info-border: #15325b,
+  info-plain: #111a2c,
+  info-text: #3c89e8
 ) !default;
 
 // Typography tokens

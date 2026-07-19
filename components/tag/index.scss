@@ -1,0 +1,43 @@
+@use "../style/global.scss" as *;
+
+@include cmp("tag") {
+  font-family: font(sans) !important;
+  font-size: font-size(t);
+  padding: 2px padding("sm");
+  border-radius: radius("sm");
+  background: color("bg-elevated");
+  border: 1px solid color("border-default");
+  color: color("text-secondary");
+  line-height: 1.2;
+  @include flex-center;
+  gap: 4px;
+  display: inline-flex;
+
+  &--round {
+    border-radius: radius("full");
+  }
+
+  &--host {
+    background: color("error");
+    border-color: color("error");
+    color: #fff;
+  }
+
+  &--participant {
+    background: color("info");
+    border-color: color("info");
+    color: #fff;
+  }
+
+  &--manager {
+    background: color("warning");
+    border-color: color("warning");
+    color: #fff;
+  }
+
+  &--guest {
+    background: color("success");
+    border-color: color("success");
+    color: #fff;
+  }
+}

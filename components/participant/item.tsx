@@ -1,5 +1,6 @@
 import { type HTMLAttributes, type ReactNode } from "react";
 import { Avatar } from "./avatar";
+import { Role, type RoleType } from "./role";
 import { Icon } from "../svg";
 import { mergeClassNames } from "../std/util";
 import "./index.scss";
@@ -8,6 +9,7 @@ import { useIcon } from "./hooks/icon";
 export interface ParticipantItemProps extends HTMLAttributes<HTMLDivElement> {
   name: string;
   avatarSrc?: string;
+  role?: RoleType;
   extra?: ReactNode;
   audioEnabled?: boolean;
   videoEnabled?: boolean;
@@ -17,6 +19,7 @@ export interface ParticipantItemProps extends HTMLAttributes<HTMLDivElement> {
 export const ParticipantItem = ({
   name,
   avatarSrc,
+  role,
   extra,
   audioEnabled,
   videoEnabled,
@@ -32,9 +35,12 @@ export const ParticipantItem = ({
       </div>
 
       <div className={mergeClassNames("participant-item__center")()}>
-        <span className={mergeClassNames("participant-item__name")()}>
-          {name}
-        </span>
+        <div className={mergeClassNames("participant-item__name-row")()}>
+          <span className={mergeClassNames("participant-item__name")()}>
+            {name}
+          </span>
+          {role && <Role role={role} />}
+        </div>
         {extra && (
           <span className={mergeClassNames("participant-item__extra")()}>
             {extra}

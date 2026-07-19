@@ -10,6 +10,7 @@ import { Avatar } from "../components/participant/avatar";
 import { ParticipantName } from "../components/participant/name";
 import { ParticipantItem } from "../components/participant/item";
 import { ParticipantNum } from "../components/participant/num";
+import { Role } from "../components/participant/role";
 import { During } from "../components/status/during";
 import { Focus } from "../components/status/focus";
 import { FullScreen } from "../components/status/fullScreen";
@@ -178,6 +179,7 @@ export const TabPage = ({
           extra="静音中"
           audioEnabled={false}
           videoEnabled
+          role="manager"
         />
         <ParticipantItem name="Bob" audioEnabled={false} videoEnabled={false} />
       </div>
@@ -186,6 +188,16 @@ export const TabPage = ({
     return (
       <div style={flexCenter}>
         <ParticipantNum count={42} />
+      </div>
+    );
+  } else if (tab === "role") {
+    return (
+      <div style={flexCenter}>
+        <Role role="host" />
+        <Role role="participant" />
+        <Role role="manager" />
+        <Role role="guest" />
+        <Role text="自定义" color="#fff" bgColor="#8b5cf6" />
       </div>
     );
   } else if (tab === "during") {

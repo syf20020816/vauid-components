@@ -1,14 +1,14 @@
-import { Button, type ButtonProps } from "../button";
+import { Tag, type TagProps } from "../tag";
 import { Icon } from "../svg";
 
-export interface ParticipantNumProps extends Omit<ButtonProps, "children"> {
+export interface ParticipantNumProps extends Omit<TagProps, "children"> {
   count: number;
 }
 
 export const ParticipantNum = ({ count, ...props }: ParticipantNumProps) => {
   return (
-    <Button round icon={<Icon.Users width={16} height={16} />} {...props}>
+    <Tag round icon={<Icon.Users width={14} height={14} />} {...props}>
       {count}
-    </Button>
+    </Tag>
   );
 };

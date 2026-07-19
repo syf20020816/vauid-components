@@ -49,9 +49,10 @@ export const During = ({
   return (
     <StatusButton className={mergeClassNames("during")()}>
       <span
-        className={mergeClassNames("during__dot")(
+        className={mergeClassNames([
+          "during__dot",
           recording ? "during__dot--recording" : "during__dot--live",
-        )}
+        ])()}
       />
       <span className={mergeClassNames("during__time")()}>{display}</span>
     </StatusButton>
