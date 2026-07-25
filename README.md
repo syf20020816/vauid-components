@@ -9,7 +9,8 @@
 - **Web Worker 计算**：布局计算异步执行，不阻塞主线程，超时自动回退到同步计算
 - **多端适配**：桌面端/移动端差异化默认参数，容器尺寸变化时自动重算
 - **框架无关引擎**：纯计算核心，可在 React/Vue/原生 JS 中使用
-- **开箱即用组件**：Tile（Video/Audio/Iframe/Canvas）、白板、控制栏、特效层等
+- **开箱即用组件**：Tile（Video/Audio/Note）、控制栏、参会者列表、状态指示等
+- **组件文档**：使用 Dumi 构建，提供完整的组件示例和 API 文档
 
 ## 组件列表
 
@@ -18,14 +19,62 @@
 | 组件 | 描述 |
 |------|------|
 | `Layout` | 虚拟布局容器，支持 Grid / Focus / Fullscreen 模式 |
-| `Tile` | 媒体渲染单元，支持 Video / Audio / Iframe / Canvas 等多种内容类型 |
+| `useEngine` | Layout 引擎 Hook，管理布局状态和操作 |
+| `LayoutTypes` / `DeviceTypes` | 布局类型和设备类型枚举 |
 
-### 计划中组件
+### 媒体 Tile
 
-- **白板组件**：协作白板，支持画笔、形状、文字等
-- **控制栏**：退出连接、麦克风切换、摄像头切换等
-- **交互层**：鼠标映射层、标注层
-- **特效层**：虚拟背景、滤镜等
+| 组件 | 描述 |
+|------|------|
+| `VideoTile` | 视频渲染单元，支持屏幕分享标识 |
+| `AudioTile` | 音频渲染单元，带波形动画 |
+| `NoteTile` | 文本/备注 Tile，支持 Markdown 渲染 |
+
+### 控制器
+
+| 组件 | 描述 |
+|------|------|
+| `Controller` | 会议控制栏，包含设备切换、退出按钮 |
+| `Controller.Leave` | 退出房间按钮 |
+| `Controller.Device` | 设备选择触发器（麦克风/摄像头/屏幕共享） |
+
+### 参会者
+
+| 组件 | 描述 |
+|------|------|
+| `ParticipantItem` | 参会者列表项，含头像、名称、角色、音视频状态 |
+| `ParticipantName` | 参会者名称，带音视频状态图标 |
+| `ParticipantNum` | 参会人数徽章 |
+| `Avatar` | 用户头像，支持文字和图片 |
+| `Role` | 角色标签（主持人/参会者/管理员/游客） |
+
+### 状态指示
+
+| 组件 | 描述 |
+|------|------|
+| `During` | 会议时长和录制状态 |
+| `Focus` | 焦点状态指示 |
+| `FullScreen` | 全屏切换按钮 |
+| `RaiseHand` | 举手按钮，举手中显示警告色 |
+| `NetworkStatus` | 网络信号强度（颜色分级，白色背景） |
+| `NetworkUpload` / `NetworkDownload` | 上传/下载速率显示 |
+
+### 通用 UI
+
+| 组件 | 描述 |
+|------|------|
+| `Button` | 按钮，支持图标、尺寸、圆角 |
+| `Tag` | 标签组件 |
+| `Input` | 输入框，支持 TextArea / Password / Number |
+| `Dropdown` | 下拉菜单，基于 @rc-component/trigger |
+| `Trigger` | 选择触发器，带下拉选项 |
+| `Icon` | 图标组件，基于 Lucide React |
+
+### 工具
+
+| 导出 | 描述 |
+|------|------|
+| `DEFAULT_COLORS` | 全局颜色配置，包含 status 颜色（success/warning/error/info）的多状态值 |
 
 ## 安装
 
@@ -65,10 +114,7 @@ function MyLayout() {
     <div ref={containerRef}>
       <Layout
         nodes={nodes}
-        tileStyle={(node) => ({
-          /* 自定义样式 */
-        })}
-        renderTile={(node) => (
+        renderEntity={(node) => (
           <div key={node.entityId}>
             <video src={`stream-${node.entityId}`} autoPlay muted />
           </div>
@@ -193,7 +239,7 @@ const nodes = engine.getNodes();
 
 ```text
 components/
-├── layout/              # 布局模块（已完成）
+├── layout/              # 布局模块
 │   ├── engine/          # 布局引擎核心
 │   │   ├── compute.ts   # 布局计算逻辑
 │   │   ├── cache.ts     # LRU 缓存
@@ -204,26 +250,63 @@ components/
 │   ├── hooks/           # React Hooks
 │   │   └── useEngine.ts
 │   ├── types.ts         # 类型定义
-│   └── README.md        # 布局引擎详细文档
-├── tile/                # Tile 组件
-│   └── index.tsx
-├── whiteboard/          # 白板组件（计划中）
-├── controls/            # 控制栏组件（计划中）
-├── interaction/         # 交互层组件（计划中）
-├── effects/             # 特效层组件（计划中）
-└── _std/                # 标准工具函数
-    └── index.ts
+│   ├── entity.tsx       # Entity 渲染组件
+│   └── index.tsx        # Layout 组件
+├── tile/                # 媒体 Tile
+│   ├── video.tsx        # 视频 Tile
+│   ├── auido.tsx        # 音频 Tile
+│   ├── note.tsx         # 备注 Tile
+│   ├── iframe.tsx       # 内嵌网页 Tile
+│   └── types.ts
+├── controller/          # 控制器
+│   ├── index.tsx        # Controller 主组件
+│   ├── device.tsx       # 设备选择器
+│   └── leave.tsx        # 退出按钮
+├── participant/         # 参会者相关
+│   ├── avatar.tsx       # 头像
+│   ├── item.tsx         # 参会者列表项
+│   ├── name.tsx         # 名称组件
+│   ├── num.tsx          # 人数徽章
+│   ├── role.tsx         # 角色标签
+│   └── hooks/           # 自定义 Hooks
+├── status/              # 状态指示
+│   ├── during.tsx       # 会议时长
+│   ├── focus.tsx        # 焦点状态
+│   ├── fullScreen.tsx   # 全屏切换
+│   ├── raise.tsx        # 举手按钮
+│   ├── network.tsx      # 网络状态
+│   └── tooltip.tsx      # 提示组件
+├── button/              # 按钮组件
+├── input/               # 输入框系列
+├── tag/                 # 标签组件
+├── dropdown/            # 下拉菜单
+├── trigger/             # 选择触发器
+├── svg/                 # 图标定义
+├── style/               # 全局样式和主题
+│   ├── global.scss      # SCSS 主题变量
+│   └── global.ts        # TS 主题变量
+└── std/                 # 标准工具函数
 ```
 
 ## 开发
 
 ```bash
-pnpm install    # 安装依赖
-pnpm dev        # 启动开发服务器
-pnpm build      # 构建
-pnpm test       # 运行测试
-pnpm lint       # 代码检查
+pnpm install          # 安装依赖
+pnpm dev              # 启动开发服务器
+pnpm build            # 构建组件库
+pnpm test             # 运行测试
+pnpm lint             # 代码检查
+pnpm docs:dev         # 启动文档开发服务器
+pnpm docs:build       # 构建文档
 ```
+
+## 文档
+
+组件文档使用 [Dumi](https://d.umijs.org/) 构建，提供完整的组件示例和 API 文档。
+
+- **文档地址**：访问 `pnpm docs:dev` 启动后在浏览器打开
+- **文档构建**：`pnpm docs:build` 将文档输出到 `docs-dist` 目录
+- **GitHub Pages 部署**：将 `docs-dist` 目录部署到 GitHub Pages 即可
 
 ## License
 

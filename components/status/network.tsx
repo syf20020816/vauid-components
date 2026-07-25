@@ -193,7 +193,7 @@ export const NetworkSpeed = ({
       }
       {...props}
     >
-      <span>{formatSpeed(currentSpeed)}</span>
+      <span className={mergeClassNames("network-status__label")()}>{formatSpeed(currentSpeed)}</span>
     </StatusButton>
   );
 };

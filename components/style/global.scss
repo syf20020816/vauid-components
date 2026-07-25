@@ -20,40 +20,29 @@ $default-font-size: (
   t: 10px,
 ) !default;
 
-// Default color tokens
-$default-colors: (
-  // Base palette - off-black, never pure #000
+$dark-colors: (
   bg-primary: #020202,
   bg-secondary: #111113,
   bg-tertiary: #1a1a1d,
   bg-elevated: #222226,
-
   primary: #020202,
   primary-hover: #131313,
   primary-active: #131313,
-
-  // Surface layers
   surface: #161618,
   surface-hover: #1e1e21,
   surface-active: #28282c,
-
-  // Border system
   border-subtle: rgba(255, 255, 255, 0.06),
   border-default: rgba(255, 255, 255, 0.1),
   border-strong: rgba(0, 0, 0, 0.18),
-  // Text hierarchy
   text-primary: rgba(255, 255, 255, 0.92),
   text-secondary: rgba(255, 255, 255, 0.6),
   text-tertiary: rgba(255, 255, 255, 0.38),
   text-inverse: #020202,
-
-  // Accent - electric orange, not warm amber
   accent: #D84A1A,
   accent-hover: #ff7a2e,
   accent-active: #e04e00,
   accent-subtle: rgba(255, 92, 0, 0.12),
   accent-glow: rgba(255, 92, 0, 0.25),
-  // Status colors
   success: #22c55e,
   success-border: #274916,
   success-plain: #162312,
@@ -71,6 +60,49 @@ $default-colors: (
   info-plain: #111a2c,
   info-text: #3c89e8
 ) !default;
+
+$light-colors: (
+  bg-primary: #ffffff,
+  bg-secondary: #f8f9fa,
+  bg-tertiary: #e9ecef,
+  bg-elevated: #dee2e6,
+  primary: #ffffff,
+  primary-hover: #f1f3f5,
+  primary-active: #e9ecef,
+  surface: #ffffff,
+  surface-hover: #f8f9fa,
+  surface-active: #e9ecef,
+  border-subtle: rgba(0, 0, 0, 0.06),
+  border-default: rgba(0, 0, 0, 0.1),
+  border-strong: rgba(0, 0, 0, 0.18),
+  text-primary: rgba(0, 0, 0, 0.92),
+  text-secondary: rgba(0, 0, 0, 0.6),
+  text-tertiary: rgba(0, 0, 0, 0.38),
+  text-inverse: #ffffff,
+  accent: #D84A1A,
+  accent-hover: #ff7a2e,
+  accent-active: #e04e00,
+  accent-subtle: rgba(216, 74, 26, 0.12),
+  accent-glow: rgba(216, 74, 26, 0.25),
+  success: #22c55e,
+  success-border: #dcfce7,
+  success-plain: #f0fdf4,
+  success-text: #15803d,
+  warning: #D84A1A,
+  warning-border: #fef3c7,
+  warning-plain: #fffbeb,
+  warning-text: #b45309,
+  error: #ef4444,
+  error-border: #fee2e2,
+  error-plain: #fef2f2,
+  error-text: #dc2626,
+  info: #3b82f6,
+  info-border: #dbeafe,
+  info-plain: #eff6ff,
+  info-text: #2563eb
+) !default;
+
+$default-colors: $dark-colors !default;
 
 // Typography tokens
 $default-fonts: (
@@ -247,7 +279,6 @@ $default-z-index: (
   font-size: 1rem;
   line-height: 1.6;
   color: var(--vauid-color-text-primary);
-  background-color: var(--vauid-color-bg-primary);
   min-height: 100dvh;
   overflow-x: hidden;
 }
@@ -355,16 +386,16 @@ $default-z-index: (
 
 /// Scrollbar styles
 @mixin scrollbar($width: 6px) {
-  &::-webkit-scrollbar {
+  *::-webkit-scrollbar {
     width: $width;
     height: $width;
   }
 
-  &::-webkit-scrollbar-track {
+  *::-webkit-scrollbar-track {
     background: transparent;
   }
 
-  &::-webkit-scrollbar-thumb {
+  *::-webkit-scrollbar-thumb {
     background: var(--vauid-color-border-strong);
     border-radius: var(--vauid-radius-full);
 
@@ -376,7 +407,7 @@ $default-z-index: (
 
 /// Selection styles
 @mixin selection {
-  &::selection {
+  *::selection {
     background: var(--vauid-color-accent-subtle);
     color: var(--vauid-color-accent);
   }
@@ -454,15 +485,25 @@ $default-z-index: (
 
 // ── Default Output ─────────────────────────────────────────────
 
-// Generate CSS variables
+// Generate CSS variables - Dark mode (default)
 :root {
-  @include generate-css-vars($default-colors, "vauid-color");
+  @include generate-css-vars($dark-colors, "vauid-color");
   @include generate-css-vars($default-fonts, "vauid-font");
   @include generate-css-vars($default-radius, "vauid-radius");
   @include generate-css-vars($default-spacing, "vauid-space");
   @include generate-css-vars($default-shadows, "vauid-shadow");
   @include generate-css-vars($default-transitions, "vauid");
   @include generate-css-vars($default-z-index, "vauid-z");
+}
+
+// Light mode
+html[data-theme="light"] {
+  @include generate-css-vars($light-colors, "vauid-color");
+}
+
+[data-theme="light"] body {
+  background-color: var(--vauid-color-bg-primary) !important;
+  color: var(--vauid-color-text-primary) !important;
 }
 
 // Apply base styles
