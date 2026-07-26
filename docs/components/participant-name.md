@@ -13,11 +13,11 @@ order: 18
 import { ParticipantName } from 'vauid-components';
 
 export default () => (
-  <>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
     <ParticipantName name="张三" audioEnabled videoEnabled />
     <ParticipantName name="John" audioEnabled videoEnabled={false} />
     <ParticipantName name="Alice" audioEnabled={false} videoEnabled={false} />
-  </>
+  </div>
 );
 ```
 

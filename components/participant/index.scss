@@ -89,6 +89,8 @@
   background-color: color("bg-elevated");
   padding: space("xs") space("sm");
   border-radius: radius("sm");
+  max-width: 200px;
+  width: fit-content;
 
   &__status {
     @include flex-center;

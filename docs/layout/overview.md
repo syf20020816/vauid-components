@@ -18,20 +18,55 @@ Vauid Components 的核心布局引擎，支持多种布局模式。
 ## 快速开始
 
 ```tsx
-import { Button, Tag } from 'vauid-components';
+import { Page } from '../../components/layout/__tests__/layout';
 
 export default () => (
-  <div style={{ padding: '20px' }}>
-    <h3 style={{ marginBottom: '16px' }}>布局引擎基础示例</h3>
-    <p style={{ color: '#666', marginBottom: '16px' }}>
-      布局引擎支持 Grid、Focus、Fullscreen 三种布局模式，
-      通过 useEngine hook 管理布局状态。
-    </p>
-    <div style={{ display: 'flex', gap: '12px' }}>
-      <Button>Grid 布局</Button>
-      <Button>Focus 布局</Button>
-      <Button>Fullscreen</Button>
-    </div>
+  <div style={{ height: '500px', width: '100%' }}>
+    <Page />
   </div>
 );
+```
+
+## API 说明
+
+### useEngine Hook
+
+用于管理布局引擎状态的 React Hook。
+
+```typescript
+const { engine, size, nodes } = useEngine({
+  container: containerRef,
+  entities: defaultEntities,
+});
+```
+
+### Engine 实例方法
+
+| 方法 | 说明 | 参数 |
+|------|------|------|
+| `focus(id)` | 设置焦点实体 | id: string |
+| `unFocus()` | 取消焦点 | 无 |
+| `addEntity(entity)` | 添加实体 | entity: LayoutEntity |
+| `delEntity(id)` | 删除实体 | id: string |
+| `nextPage()` | 下一页 | 无 |
+| `prevPage()` | 上一页 | 无 |
+| `setFullScreen(boolean)` | 设置全屏 | boolean |
+| `setDeviceType(type, auto)` | 设置设备类型 | type: 'mobile' \| 'desktop', auto?: boolean |
+| `setAnimationOptions(type)` | 设置动画选项 | type: 'enableFlip' \| 'normal' \| 'define' |
+
+### Layout 组件
+
+用于渲染布局的 React 组件。
+
+```md
+<Layout
+  ref={containerRef}
+  nodes={nodes}
+  tileStyle={(node, index) => ({
+    background: node.isFocus ? '#d0266aff' : BG_COLORS[index],
+    borderRadius: 0,
+    color: '#fff',
+  })}
+  renderEntity={(node) => node.entity.label}
+/>
 ```
