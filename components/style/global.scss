@@ -17,7 +17,7 @@ $default-font-size: (
   h2: 20px,
   h3: 16px,
   p: 14px,
-  t: 10px,
+  t: 12px,
 ) !default;
 
 $dark-colors: (
@@ -496,12 +496,12 @@ $default-z-index: (
   @include generate-css-vars($default-z-index, "vauid-z");
 }
 
-// Light mode
-html[data-theme="light"] {
+// Light mode - Dumi uses data-prefers-color attribute
+html[data-prefers-color="light"] {
   @include generate-css-vars($light-colors, "vauid-color");
 }
 
-[data-theme="light"] body {
+[data-prefers-color="light"] body {
   background-color: var(--vauid-color-bg-primary) !important;
   color: var(--vauid-color-text-primary) !important;
 }

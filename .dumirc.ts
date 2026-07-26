@@ -1,14 +1,19 @@
 import { defineConfig } from 'dumi';
 import { resolve } from 'path';
 
+const isProd = process.env.NODE_ENV === 'production';
+
 export default defineConfig({
   title: 'Vauid Components',
   locales: [
     { id: 'zh-CN', name: '中文' },
   ],
   outputPath: 'docs-dist',
-  base: '/vauid-components/',
+  base: isProd ? '/vauid-components/' : '/',
+  publicPath: isProd ? '/vauid-components/' : '/',
   themeConfig: {
+    prefersColor: { default: 'dark', switch: true },
+    logo: '/favicon.svg',
     nav: [
       { title: '首页', link: '/' },
       { title: '组件', link: '/components/' },

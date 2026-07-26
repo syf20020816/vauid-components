@@ -31,7 +31,6 @@ export default () => (
     <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
       <Button>主要按钮</Button>
       <Button round>圆角按钮</Button>
-      <Tag>标签</Tag>
     </div>
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
       <Avatar name="张三" />

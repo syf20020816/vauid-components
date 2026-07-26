@@ -18,41 +18,20 @@ Vauid Components 的核心布局引擎，支持多种布局模式。
 ## 快速开始
 
 ```tsx
-import { Layout, useEngine, LayoutTypes, DeviceTypes } from 'vauid-components';
-import { useRef } from 'react';
+import { Button, Tag } from 'vauid-components';
 
-function MyLayout() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  
-  const entities = [
-    { id: '1', label: 'Track 1' },
-    { id: '2', label: 'Track 2' },
-    { id: '3', label: 'Track 3' },
-  ];
-
-  const { nodes } = useEngine({ 
-    container: containerRef, 
-    entities 
-  });
-
-  return (
-    <div ref={containerRef} style={{ height: '400px', border: '1px solid #e9ecef' }}>
-      <Layout
-        nodes={nodes}
-        renderEntity={(node) => (
-          <div key={node.entityId} style={{ 
-            width: '100%', 
-            height: '100%', 
-            display: 'flex', 
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#f8f9fa'
-          }}>
-            {node.entity.label}
-          </div>
-        )}
-      />
+export default () => (
+  <div style={{ padding: '20px' }}>
+    <h3 style={{ marginBottom: '16px' }}>布局引擎基础示例</h3>
+    <p style={{ color: '#666', marginBottom: '16px' }}>
+      布局引擎支持 Grid、Focus、Fullscreen 三种布局模式，
+      通过 useEngine hook 管理布局状态。
+    </p>
+    <div style={{ display: 'flex', gap: '12px' }}>
+      <Button>Grid 布局</Button>
+      <Button>Focus 布局</Button>
+      <Button>Fullscreen</Button>
     </div>
-  );
-}
+  </div>
+);
 ```

@@ -17,9 +17,10 @@ export default () => (
     <Avatar name="张三" />
     <Avatar name="John" size={40} />
     <Avatar name="Alice" size={60} />
+    <Avatar name="测试" size={40} />
     <Avatar
-      src="//example.com/avatar.png"
-      name="测试"
+      src="//iconfont.alicdn.com/p/illus/preview_image/ciljjYR1xjY3/441f1b88-03ef-48bd-9ad1-64f655cbdc0f.png"
+      name="123"
       size={40}
     />
   </>
