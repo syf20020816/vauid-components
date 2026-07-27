@@ -20,6 +20,7 @@ import {
   NetworkUpload,
   NetworkDownload,
 } from "../components/status/network";
+import { RoomHeader } from "../components/header";
 
 const flexCenter: React.CSSProperties = {
   display: "flex",
@@ -53,7 +54,19 @@ export const TabPage = ({
   if (!tab) {
     return (
       <>
-        <Page />
+        <RoomHeader roomName="Will's room" />
+        <div style={{ width: "100vw", height: "calc(100vh - 114px)" }}>
+          <Page />
+        </div>
+        <Controller position="center" />
+      </>
+    );
+  } else if (tab == "page") {
+    return (
+      <>
+        <div style={{ width: "100vw", height: "calc(100vh - 54px)" }}>
+          <Page />
+        </div>
         <Controller position="center" />
       </>
     );

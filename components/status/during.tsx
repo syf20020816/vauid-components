@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { StatusButton } from "./tooltip";
 import { mergeClassNames } from "../std/util";
 import "./index.scss";
 
@@ -47,7 +46,7 @@ export const During = ({
   }, [getDisplay]);
 
   return (
-    <StatusButton className={mergeClassNames("during")()}>
+    <div className={mergeClassNames("during")()}>
       <span
         className={mergeClassNames([
           "during__dot",
@@ -55,6 +54,6 @@ export const During = ({
         ])()}
       />
       <span className={mergeClassNames("during__time")()}>{display}</span>
-    </StatusButton>
+    </div>
   );
 };

@@ -9,6 +9,7 @@
   @include flex-center;
   gap: 4px;
   color: color("text-secondary");
+  white-space: nowrap;
 }
 
 @include cmp("button") {

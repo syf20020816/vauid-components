@@ -1,0 +1,39 @@
+@use "../style/global.scss" as *;
+
+@include cmp("room-header") {
+  @include flex-between;
+  gap: 12px;
+  height: 60px;
+  padding: 0 8px;
+  background: color("bg-primary");
+  .logo-icon {
+    height: 36px;
+  }
+  &-content {
+    @include flex-start;
+    gap: 12px;
+    height: 36px;
+  }
+  &-room-name {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  &-room-desc {
+    font-size: 12px;
+    font-weight: 400;
+  }
+  &-room-info {
+    @include flex-start;
+    flex-direction: column;
+    line-height: 1.2;
+    align-items: flex-start;
+    &-name {
+      @include flex-start;
+      gap: 8px;
+    }
+  }
+  &-extra {
+    @include flex-start;
+    gap: 8px;
+  }
+}

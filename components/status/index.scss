@@ -26,6 +26,7 @@
 @include cmp("during") {
   @include flex-center;
   gap: 8px;
+  padding: 0 8px;
 
   &__dot {
     width: 8px;
