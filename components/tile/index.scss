@@ -67,4 +67,18 @@
   height: 100%;
   width: 100%;
   @include flex-center;
+  flex-direction: column;
+  gap: space(md);
+  &__waveform {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: space(sm);
+
+    canvas {
+      display: block;
+      height: 30%;
+      min-height: 48px;
+    }
+  }
 }
