@@ -22,6 +22,25 @@ import {
 } from "../components/status/network";
 import { RoomHeader } from "../components/header";
 import { TileWrap } from "../components/tile/wrap";
+import { Areas } from "../components/layout/types";
+import type { LayoutNode } from "../components/layout/types";
+
+const mockNode = (
+  id: string,
+  label: string,
+  isFocus = false,
+): LayoutNode => ({
+  entity: { id, label },
+  x: 0,
+  y: 0,
+  width: 300,
+  height: 300,
+  area: Areas.Grid,
+  page: 0,
+  isFocus,
+  zIndex: 0,
+  hidden: false,
+});
 
 const flexCenter: React.CSSProperties = {
   display: "flex",
@@ -56,7 +75,7 @@ export const TabPage = ({
     return (
       <>
         <RoomHeader roomName="Will's room" />
-        <div style={{ width: "100vw", height: "calc(100vh - 114px)" }}>
+        <div style={{ width: "100vw", height: "calc(100vh - 118px)" }}>
           <Page />
         </div>
         <Controller position="center" />
@@ -100,17 +119,22 @@ export const TabPage = ({
   } else if (tab === "tile") {
     return (
       <div style={flexRowWrap}>
-        <div
-          style={{
-            height: 400,
-            width: 300,
-            backgroundColor: "#2e2e2eff",
+        <TileWrap
+          node={mockNode("note", "公告")}
+          style={{ height: 300, width: 300 }}
+          float={{
+            showLeftTop: false,
+            showLeftBottom: false,
+            showRightBottom: false,
           }}
         >
           <NoteTile value={noteValue} />
-        </div>
-        <TileWrap style={{height: 300, width: 300}}>
+        </TileWrap>
+        <TileWrap node={mockNode("audio", "Join")} style={{ height: 300, width: 300 }}>
           <AudioTile name="Join"></AudioTile>
+        </TileWrap>
+        <TileWrap node={mockNode("video", "视频", true)} style={{ height: 300, width: 300 }}>
+          <VideoTile></VideoTile>
         </TileWrap>
       </div>
     );
@@ -133,14 +157,10 @@ export const TabPage = ({
     return (
       <div style={{ ...flexCenter, gap: 24 }}>
         <div style={{ width: 320, height: 240 }}>
-          <VideoTile label="张三" style={{ width: "100%", height: "100%" }} />
+          <VideoTile style={{ width: "100%", height: "100%" }} />
         </div>
         <div style={{ width: 320, height: 240 }}>
-          <VideoTile
-            label="John (屏幕分享)"
-            screenShare
-            style={{ width: "100%", height: "100%" }}
-          />
+          <VideoTile screenShare style={{ width: "100%", height: "100%" }} />
         </div>
       </div>
     );

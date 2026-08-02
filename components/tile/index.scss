@@ -17,7 +17,6 @@
   position: relative;
   height: 100%;
   width: 100%;
-  background: color("bg-secondary");
   border-radius: space(xs);
 }
 
@@ -81,4 +80,10 @@
       min-height: 48px;
     }
   }
+}
+
+// --------- video-tile -------------------------------------------
+@include cmp("video-tile") {
+  height: 100%;
+  width: 100%;
 }

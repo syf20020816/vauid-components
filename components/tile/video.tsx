@@ -1,38 +1,28 @@
-import {
-  forwardRef,
-  type VideoHTMLAttributes,
-  type RefObject,
-} from "react";
-import { mergeClassNames } from "../std/util";
+import { forwardRef, type VideoHTMLAttributes, type RefObject } from "react";
+
 import "./index.scss";
+import { useCls } from "../std/hooks/cls";
 
 export interface VideoTileProps extends VideoHTMLAttributes<HTMLVideoElement> {
-  label?: string;
   screenShare?: boolean;
 }
 
 export const VideoTile = forwardRef<HTMLVideoElement, VideoTileProps>(
-  ({ label, screenShare, className, ...props }, ref) => {
-    const classNames = mergeClassNames(
-      "video-tile",
-      screenShare && "video-tile--screen-share",
-    )(className);
+  ({ screenShare, className, ...props }, ref) => {
+    const { cls } = useCls(
+      ["video-tile", screenShare && "screen-share"],
+      className,
+    );
 
     return (
-      <div className={classNames}>
-        <video
-          ref={ref as RefObject<HTMLVideoElement | null>}
-          autoPlay
-          playsInline
-          muted
-          {...props}
-        />
-        {label && (
-          <div className={mergeClassNames("video-tile__label")()}>
-            {label}
-          </div>
-        )}
-      </div>
+      <video
+        className={cls}
+        ref={ref as RefObject<HTMLVideoElement | null>}
+        autoPlay
+        playsInline
+        muted
+        {...props}
+      />
     );
   },
 );

@@ -56,9 +56,12 @@ const { engine, size, nodes } = useEngine({
 
 ### Layout 组件
 
-用于渲染布局的 React 组件。
+用于渲染布局的 React 组件。通过 `renderEntity` 渲染每个节点的内容，推荐使用 `TileWrap` 包裹业务 Tile，并将 `node` 传入，悬浮层的默认组件会基于 `node` 自动展示（用户名称取自 `node.entity.label`，聚焦按钮状态取自 `node.isFocus`）。
 
-```md
+```tsx
+import { Layout } from 'vauid-components/components/layout';
+import { TileWrap } from 'vauid-components/components/tile/wrap';
+
 <Layout
   ref={containerRef}
   nodes={nodes}
@@ -67,6 +70,24 @@ const { engine, size, nodes } = useEngine({
     borderRadius: 0,
     color: '#fff',
   })}
-  renderEntity={(node) => node.entity.label}
+  renderEntity={(node) => (
+    <TileWrap
+      node={node}
+      float={{ showLeftTop: false, showRightTop: false, showRightBottom: false }}
+    >
+      {node.entity.label}
+    </TileWrap>
+  )}
 />
 ```
+
+#### TileWrap 与 LayoutNode
+
+`TileWrap` 需要接收布局引擎输出的 `LayoutNode` 作为 `node` prop，用于驱动悬浮层默认组件的展示：
+
+| 悬浮位置 | 默认组件 | 使用的 node 字段 |
+|----------|----------|------------------|
+| 左上角 `leftTop` | 举手图标 | - |
+| 左下角 `leftBottom` | 用户名称 | `node.entity.label` |
+| 右上角 `rightTop` | 聚焦 / 全屏按钮 | `node.isFocus` |
+| 右下角 `rightBottom` | 网络信号 | - |

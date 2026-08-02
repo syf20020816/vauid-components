@@ -1,4 +1,4 @@
-import type { FnReturn, Nullable } from "../_std";
+import type { FnReturn, Nullable } from "../std";
 
 /**
  * # 实体类别

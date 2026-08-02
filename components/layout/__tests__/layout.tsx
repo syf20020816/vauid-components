@@ -2,6 +2,7 @@ import { useMemo, useRef } from "react";
 import { useEngine } from "../hooks/useEngine";
 import type { LayoutEntity, LayoutNode } from "../types";
 import { Layout } from "../index";
+import { TileWrap } from "../../tile/wrap";
 
 const BG_COLORS = [
   "#333",
@@ -90,23 +91,26 @@ export const Page = () => {
       <Layout
         ref={containerRef}
         nodes={nodes}
-        style={{ height: "calc(100% - 60px)" }}
+        style={{ height: "calc(100% - 60px)", margin: 4, boxSizing: "border-box" }}
         tileStyle={(node: LayoutNode, index: number) => ({
           background: node.isFocus ? "#d0266aff" : BG_COLORS[index],
           borderRadius: 0,
           color: "#fff",
         })}
         renderEntity={(node: LayoutNode) => (
-          <>
-            {node.entity.label}
+          <TileWrap node={node}>
             <div
               style={{
                 display: "flex",
                 flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
                 gap: 6,
                 margin: "0 8px",
               }}
             >
+              {node.entity.label}
               <button onClick={() => setFocus(node.entity.id)}>
                 设置为focus
               </button>
@@ -114,7 +118,7 @@ export const Page = () => {
                 设置删除Track
               </button>
             </div>
-          </>
+          </TileWrap>
         )}
       />
       <div
@@ -145,9 +149,11 @@ export const Page = () => {
         >
           默认动画
         </button>
-        <button onClick={() => {
-          engine.current.setDeviceType("mobile", true);
-        }}>
+        <button
+          onClick={() => {
+            engine.current.setDeviceType("mobile", true);
+          }}
+        >
           切换移动端
         </button>
         <button onClick={() => engine.current.setDeviceType("desktop", true)}>
