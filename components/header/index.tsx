@@ -26,7 +26,7 @@ export const RoomHeader = ({
 }: RoomHeaderProps) => {
   const { cls, vcls } = useCls("room-header", className);
   const roomDesc = `vauid - meeting`;
-  const [roomStartTime] = useState(() => Date.now() - 3723000);
+  const [roomStartTime] = useState(() => Date.now());
   const copyInvite = () => {
     navigator.clipboard.writeText(window.location.href);
   };

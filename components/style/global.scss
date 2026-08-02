@@ -455,6 +455,15 @@ $default-z-index: (
   justify-content: flex-start;
 }
 
+/// Flex end utility
+@mixin flex-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+
+
 /// Status dot indicator
 @mixin status-dot {
   display: inline-block;

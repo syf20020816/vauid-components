@@ -12,3 +12,59 @@
   @include flex-start;
   flex-direction: column;
 }
+
+@include cmp("tile-wrap") {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  background: color("bg-secondary");
+  border-radius: space(xs);
+}
+
+@mixin unifiedFloat {
+  width: fit-content;
+  max-width: calc(50% - 2 * space(xs));
+  height: fit-content;
+  max-height: calc(50% - 2 * space(xs));
+  position: absolute;
+  margin: space(xs);
+  gap: space(xs);
+}
+
+@include cmp("tile-float") {
+  position: absolute;
+  z-index: 100;
+
+  &--leftTop {
+    @include unifiedFloat;
+    top: 0;
+    left: 0;
+    @include flex-start;
+  }
+  &--leftBottom {
+    @include unifiedFloat;
+    bottom: 0;
+    left: 0;
+    @include flex-start;
+  }
+  &--rightTop {
+    @include unifiedFloat;
+    top: 0;
+    right: 0;
+    @include flex-end;
+  }
+  &--rightBottom {
+    @include unifiedFloat;
+    bottom: 0;
+    right: 0;
+    @include flex-end;
+  }
+}
+
+//-------- audio-tile -------------------------------------------
+
+@include cmp("audio-tile") {
+  height: 100%;
+  width: 100%;
+  @include flex-center;
+}

@@ -21,6 +21,7 @@ import {
   NetworkDownload,
 } from "../components/status/network";
 import { RoomHeader } from "../components/header";
+import { TileWrap } from "../components/tile/wrap";
 
 const flexCenter: React.CSSProperties = {
   display: "flex",
@@ -61,6 +62,12 @@ export const TabPage = ({
         <Controller position="center" />
       </>
     );
+  } else if (tab == "header") {
+    return (
+      <>
+        <RoomHeader roomName="Will's room" />
+      </>
+    );
   } else if (tab == "page") {
     return (
       <>
@@ -92,14 +99,19 @@ export const TabPage = ({
     );
   } else if (tab === "tile") {
     return (
-      <div
-        style={{
-          height: 400,
-          width: 300,
-          backgroundColor: "#2e2e2eff",
-        }}
-      >
-        <NoteTile value={noteValue} />
+      <div style={flexRowWrap}>
+        <div
+          style={{
+            height: 400,
+            width: 300,
+            backgroundColor: "#2e2e2eff",
+          }}
+        >
+          <NoteTile value={noteValue} />
+        </div>
+        <TileWrap style={{height: 300, width: 300}}>
+          <AudioTile name="Join"></AudioTile>
+        </TileWrap>
       </div>
     );
   } else if (tab === "audio") {

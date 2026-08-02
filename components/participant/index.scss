@@ -106,58 +106,6 @@
   }
 }
 
-// ── Audio Tile ─────────────────────────────────────────────────
-@include cmp("audio-tile") {
-  @include flex-center;
-  position: relative;
-  flex-direction: column;
-  gap: space("md");
-  border-radius: radius("lg");
-  background: color("bg-secondary");
-  overflow: hidden;
-
-  &__avatar {
-    @include flex-center;
-    @include flex-center;
-    border-radius: radius("full");
-    overflow: hidden;
-  }
-
-  &__waveform {
-    @include flex-center;
-    gap: 3px;
-    height: 32px;
-    align-items: flex-end;
-
-    span {
-      display: block;
-      width: 3px;
-      background: color("accent");
-      border-radius: radius("full");
-      animation: audio-wave 1.2s ease-in-out infinite;
-
-      @for $i from 1 through 5 {
-        &:nth-child(#{$i}) {
-          animation-delay: #{$i * 0.15}s;
-          height: #{8 + $i * 4}px;
-        }
-      }
-    }
-  }
-}
-
-@keyframes audio-wave {
-  0%,
-  100% {
-    opacity: 0.3;
-    transform: scaleY(0.6);
-  }
-  50% {
-    opacity: 1;
-    transform: scaleY(1);
-  }
-}
-
 // ── Video Tile ─────────────────────────────────────────────────
 @include cmp("video-tile") {
   position: relative;

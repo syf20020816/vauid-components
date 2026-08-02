@@ -4,7 +4,6 @@ import "@rc-component/trigger/assets/index.css";
 import { mergeClassNames } from "../std/util";
 import { getPopupContainer, builtinPlacements } from "../trigger/config";
 import "./index.scss";
-import { Button } from "../button";
 
 export interface TooltipProps {
   content: ReactNode;
@@ -41,21 +40,21 @@ export const Tooltip = ({
   );
 };
 
-export interface StatusButtonProps extends HTMLAttributes<HTMLButtonElement> {
-  children?: ReactNode;
+export interface StatusTagProps extends HTMLAttributes<HTMLDivElement> {
   icon?: ReactNode;
 }
 
-export const StatusButton = ({
+export const StatusTag = ({
   children,
   icon,
   className,
   ...props
-}: StatusButtonProps) => {
-  const cls = mergeClassNames("status-button")(className);
+}: StatusTagProps) => {
+  const cls = mergeClassNames("status-tag")(className);
   return (
-    <Button className={cls} {...props} icon={icon}>
+    <div className={cls} {...props}>
+      {icon}
       {children}
-    </Button>
+    </div>
   );
 };

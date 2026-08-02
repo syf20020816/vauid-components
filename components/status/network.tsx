@@ -1,5 +1,5 @@
 import { type CSSProperties, type HTMLAttributes } from "react";
-import { StatusButton } from "./tooltip";
+import { StatusTag } from "./tooltip";
 import { Icon } from "../svg";
 import { mergeClassNames } from "../std/util";
 import { useState, useEffect } from "react";
@@ -7,7 +7,7 @@ import "./index.scss";
 
 // ─── Network Status ────────────────────────────────────────────
 
-export interface NetworkStatusProps extends HTMLAttributes<HTMLButtonElement> {
+export interface NetworkStatusProps extends HTMLAttributes<HTMLDivElement> {
   /** 0-4 的信号强度，不传则使用浏览器 API 获取 */
   rtt?: number;
 }
@@ -92,7 +92,7 @@ export const NetworkStatus = ({
   const level = getSignalLevel(currentRtt);
 
   return (
-    <StatusButton
+    <StatusTag
       className={mergeClassNames("network-status")(className)}
       icon={<SignalIcon level={level} />}
       {...props}
@@ -100,13 +100,13 @@ export const NetworkStatus = ({
       <span className={mergeClassNames("network-status__label")()}>
         {LevelLabel[level]}
       </span>
-    </StatusButton>
+    </StatusTag>
   );
 };
 
 // ─── Network Speed (Upload / Download) ─────────────────────────
 
-export interface NetworkSpeedProps extends HTMLAttributes<HTMLButtonElement> {
+export interface NetworkSpeedProps extends HTMLAttributes<HTMLDivElement> {
   /** 速率 byte/s，不传则使用浏览器 API 实时测量 */
   speed?: number;
   type: "upload" | "download";
@@ -182,7 +182,7 @@ export const NetworkSpeed = ({
   }, [speed, type]);
 
   return (
-    <StatusButton
+    <StatusTag
       className={mergeClassNames("network-speed")(className)}
       icon={
         type === "upload" ? (
@@ -193,7 +193,9 @@ export const NetworkSpeed = ({
       }
       {...props}
     >
-      <span className={mergeClassNames("network-status__label")()}>{formatSpeed(currentSpeed)}</span>
-    </StatusButton>
+      <span className={mergeClassNames("network-status__label")()}>
+        {formatSpeed(currentSpeed)}
+      </span>
+    </StatusTag>
   );
 };

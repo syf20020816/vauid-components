@@ -1,8 +1,8 @@
 import { type HTMLAttributes, type ReactNode } from "react";
 import { Avatar } from "../participant/avatar";
-import { mergeClassNames } from "../std/util";
 import "../participant/index.scss";
 import "./index.scss";
+import { useCls } from "../std/hooks/cls";
 
 export interface AudioTileProps extends HTMLAttributes<HTMLDivElement> {
   name?: string;
@@ -18,11 +18,12 @@ export const AudioTile = ({
   onClick,
   ...props
 }: AudioTileProps) => {
-  const classNames = mergeClassNames("audio-tile")(className);
+  // const classNames = mergeClassNames("audio-tile")(className);
+  const {cls, vcls} = useCls("audio-tile", className);
 
   return (
-    <div className={classNames} onClick={onClick} {...props}>
-      <div className={mergeClassNames("audio-tile__avatar")()}>
+    <div className={cls} onClick={onClick} {...props}>
+      <div className={vcls("avatar")}>
         {avatar ? (
           avatar
         ) : (
@@ -30,7 +31,7 @@ export const AudioTile = ({
         )}
       </div>
 
-      <div className={mergeClassNames("audio-tile__waveform")()}>
+      <div className={vcls("waveform")}>
         <span />
         <span />
         <span />

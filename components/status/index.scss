@@ -1,7 +1,18 @@
 @use "../style/global.scss" as *;
 
-// ── Status Button ───────────────────────────────────────────────
-@include cmp("status-button") {}
+// ── Status Tag ─────────────────────────────────────────────────
+@include cmp("status-tag") {
+  @include flex-start;
+  gap: space("xs");
+  font-size: font-size(p);
+  color: color("text-primary");
+  line-height: 1.4;
+  background-color: color("bg-elevated");
+  padding: space("xs") space("sm");
+  border-radius: radius("sm");
+  max-width: 200px;
+  width: fit-content;
+}
 
 // ── Tooltip ─────────────────────────────────────────────────────
 @include cmp("tooltip-content") {
