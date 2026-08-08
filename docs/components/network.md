@@ -13,13 +13,13 @@ order: 10
 import { NetworkStatus, NetworkUpload, NetworkDownload } from 'vauid-components';
 
 export default () => (
-  <>
+  <div style={{ display: 'flex', gap: 12 }}>
     <NetworkStatus />
     <NetworkStatus rtt={200} />
     <NetworkStatus rtt={300} />
     <NetworkUpload />
     <NetworkDownload />
-  </>
+  </div>
 );
 ```
 

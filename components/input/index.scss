@@ -13,8 +13,17 @@
 
 // Password
 @include cmp("input") {
-  &[type="password"] {
-    padding-right: 32px;
+  &-wrap {
+    position: relative;
+    height: fit-content;
+    width: fit-content;
+  }
+
+  &-suffix {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
   }
 
   // NumberInput
@@ -24,4 +33,9 @@
       opacity: 1;
     }
   }
+}
+
+
+@include cmp("password") {
+  padding-right: 32px;
 }

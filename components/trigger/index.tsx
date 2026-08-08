@@ -105,7 +105,7 @@ export const Trigger = ({
           className={mergeClassNames("toggle-button")(classNames?.button)}
           style={styles?.button}
         >
-          {showLabel ? label : placeholder}
+          {(showLabel && label) ??  placeholder }
         </Button>
         <div
           className={mergeClassNames("toggle-icon")(classNames?.icon)}

@@ -1,8 +1,8 @@
 import { forwardRef } from "react";
-import type { HTMLAttributes } from "react";
-import { mergeClassNames } from "../std/util";
+import type { HTMLAttributes, ReactNode } from "react";
 import type { ValueType } from "./types";
 import "./index.scss";
+import { useCls } from "vauid-components/std/hooks/cls";
 
 export interface InputProps extends HTMLAttributes<HTMLInputElement> {
   disabled?: boolean;
@@ -13,6 +13,7 @@ export interface InputProps extends HTMLAttributes<HTMLInputElement> {
   min?: number;
   max?: number;
   step?: number;
+  suffix?: ReactNode;
 }
 
 /**
@@ -20,22 +21,31 @@ export interface InputProps extends HTMLAttributes<HTMLInputElement> {
  * 使用@rc-component/input组件，理由是它足够强大支持
  */
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ disabled, value, bordered = true, block = false, ...props }, ref) => {
-    const className = mergeClassNames([
-      "input",
-      !bordered && "unbordered",
-      disabled && "disabled",
-      block && "block",
-    ])(props.className);
+  (
+    { disabled, value, bordered = true, block = false, suffix, ...props },
+    ref,
+  ) => {
+    const { cls, vcls } = useCls(
+      [
+        "input",
+        !bordered && "unbordered",
+        disabled && "disabled",
+        block && "block",
+      ],
+      props.className,
+    );
 
     return (
-      <input
-        {...props}
-        value={value}
-        disabled={disabled}
-        className={className}
-        ref={ref}
-      />
+      <div className={vcls("wrap")}>
+        <input
+          {...props}
+          value={value}
+          disabled={disabled}
+          className={cls}
+          ref={ref}
+        />
+        {suffix && <span className={vcls("suffix")}>{suffix}</span>}
+      </div>
     );
   },
 );

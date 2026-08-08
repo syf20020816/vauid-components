@@ -44,6 +44,7 @@
   @include flex-center;
   border: 1px solid color("border-default");
   border-radius: radius("md");
+  width: fit-content;
   @include cmp("toggle-button") {
     border-radius: radius("md") 0 0 radius("md");
     box-shadow: none;

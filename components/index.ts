@@ -1,6 +1,12 @@
 export { Layout } from './layout';
 export { useEngine } from './layout/hooks/useEngine';
-export { type LayoutTypes, type DeviceTypes } from './layout/types';
+export {
+  Areas,
+  LayoutTypes,
+  DeviceTypes,
+  type Area,
+} from './layout/types';
+export { TileWrap } from './tile/wrap';
 export { VideoTile } from './tile/video';
 export { AudioTile } from './tile/auido';
 export { NoteTile } from './tile/note';

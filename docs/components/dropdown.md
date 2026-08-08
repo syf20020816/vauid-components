@@ -10,7 +10,7 @@ order: 16
 ## 基础用法
 
 ```tsx
-import { Dropdown } from 'vauid-components';
+import { Dropdown, Button } from 'vauid-components';
 
 export default () => (
   <Dropdown
@@ -20,7 +20,7 @@ export default () => (
       { key: '3', label: 'Option 3', danger: true },
     ]}
   >
-    <button>点击展开</button>
+    <Button>点击展开</Button>
   </Dropdown>
 );
 ```

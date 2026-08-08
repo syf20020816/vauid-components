@@ -22,15 +22,23 @@ export default () => (
 ## 屏幕分享
 
 ```tsx
-import { VideoTile } from 'vauid-components';
+import { VideoTile, TileWrap } from 'vauid-components';
+
+const mockNode = (id: string, label: string, isFocus = false) => ({
+  entity: { id, label },
+  x: 0, y: 0, width: 300, height: 300,
+  area: "grid", page: 0, isFocus, zIndex: 0, hidden: false,
+});
 
 export default () => (
   <div style={{ width: 320, height: 240 }}>
+    <TileWrap node={mockNode("video", "John")}>
     <VideoTile
       label="John (屏幕分享)"
       screenShare
       style={{ width: '100%', height: '100%' }}
     />
+    </TileWrap>
   </div>
 );
 ```

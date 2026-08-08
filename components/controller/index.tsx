@@ -4,6 +4,8 @@ import { LeaveButton, type LeaveButtonAttr } from "./leave";
 import { mergeClassNames } from "../std/util";
 import "./index.scss";
 import type { Option } from "../trigger/types";
+import type { TriggerProps } from "../trigger";
+import type { UseScreenShareProps } from "./hooks/useScreenShare";
 
 export interface ControllerProps
   extends LeaveButtonAttr, HTMLAttributes<HTMLElement> {
@@ -11,6 +13,21 @@ export interface ControllerProps
   position?: "start" | "end" | "center";
   showMore?: boolean;
   moreOptions?: Option[];
+  audio?: {
+    show?: boolean;
+    props?: TriggerProps;
+    children?: ReactNode;
+  };
+  video?: {
+    show?: boolean;
+    props?: TriggerProps;
+    children?: ReactNode;
+  };
+  screenShare?: {
+    show?: boolean;
+    props?: UseScreenShareProps;
+    children?: ReactNode;
+  };
 }
 
 export interface ControllerComponent extends React.ForwardRefExoticComponent<
@@ -41,11 +58,18 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
       position,
       showMore = true,
       moreOptions = [],
+      audio,
+      video,
+      screenShare,
       ...props
     }: ControllerProps,
     ref,
   ) => {
     const className = mergeClassNames("controller")(props.className);
+    const showAudio = audio?.show ?? true;
+    const showVideo = video?.show ?? true;
+    const showScreenShare = screenShare?.show ?? true;
+
     return (
       <footer className={className} ref={ref} {...props}>
         <div
@@ -54,10 +78,17 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
             justifyContent: position,
           }}
         >
-          <DeviceTrigger.Audio />
-          <DeviceTrigger.Video />
-          <DeviceTrigger.ScreenShare />
-          {showMore && moreOptions.length > 0 && <DeviceTrigger.More options={moreOptions} />}
+          {showAudio &&
+            (audio?.children ?? <DeviceTrigger.Audio {...audio?.props} />)}
+          {showVideo &&
+            (video?.children ?? <DeviceTrigger.Video {...video?.props} />)}
+          {showScreenShare &&
+            (screenShare?.children ?? (
+              <DeviceTrigger.ScreenShare {...screenShare?.props} />
+            ))}
+          {showMore && moreOptions.length > 0 && (
+            <DeviceTrigger.More options={moreOptions} />
+          )}
           {other}
         </div>
         <LeaveButton

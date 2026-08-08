@@ -16,7 +16,9 @@
     "jsx": "react-jsx",
     "paths": {
       "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime"],
-      "react/jsx-dev-runtime": ["./node_modules/@types/react/jsx-dev-runtime"]
+      "react/jsx-dev-runtime": ["./node_modules/@types/react/jsx-dev-runtime"],
+      "vauid-components": ["./components/index.ts"],
+      "vauid-components/*": ["./components/*"]
     },
 
     /* Linting */

@@ -13,12 +13,12 @@ order: 5
 import { Role } from 'vauid-components';
 
 export default () => (
-  <>
+  <div style={{ display: 'flex', gap: 12 }}>
     <Role role="host" />
     <Role role="participant" />
     <Role role="manager" />
     <Role role="guest" />
-  </>
+  </div>
 );
 ```
 

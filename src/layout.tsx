@@ -75,10 +75,10 @@ export const TabPage = ({
     return (
       <>
         <RoomHeader roomName="Will's room" />
-        <div style={{ width: "100vw", height: "calc(100vh - 118px)" }}>
+        <div style={{ width: "100vw", height: "calc(100vh - 124px)" }}>
           <Page />
         </div>
-        <Controller position="center" />
+        <Controller position="center" audio={{props: {showLabel: false}}} />
       </>
     );
   } else if (tab == "header") {

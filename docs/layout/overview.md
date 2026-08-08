@@ -59,8 +59,8 @@ const { engine, size, nodes } = useEngine({
 用于渲染布局的 React 组件。通过 `renderEntity` 渲染每个节点的内容，推荐使用 `TileWrap` 包裹业务 Tile，并将 `node` 传入，悬浮层的默认组件会基于 `node` 自动展示（用户名称取自 `node.entity.label`，聚焦按钮状态取自 `node.isFocus`）。
 
 ```tsx
-import { Layout } from 'vauid-components/components/layout';
-import { TileWrap } from 'vauid-components/components/tile/wrap';
+import { Layout } from 'vauid-components/layout';
+import { TileWrap } from 'vauid-components/tile/wrap';
 
 <Layout
   ref={containerRef}

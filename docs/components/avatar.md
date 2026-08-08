@@ -13,7 +13,7 @@ order: 4
 import { Avatar } from 'vauid-components';
 
 export default () => (
-  <>
+  <div style={{ display: 'flex', gap: 12 }}>
     <Avatar name="张三" />
     <Avatar name="John" size={40} />
     <Avatar name="Alice" size={60} />
@@ -23,7 +23,7 @@ export default () => (
       name="123"
       size={40}
     />
-  </>
+  </div>
 );
 ```
 
