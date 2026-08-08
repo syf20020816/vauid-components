@@ -2,20 +2,44 @@ import type { HTMLAttributes, ReactNode } from "react";
 import { useCls } from "../../std/hooks/cls";
 import { TileFloat } from "./float";
 import type { LayoutNode } from "../../layout/types";
+import type { RaiseHandProps } from "../../status/raise";
+import type { ParticipantNameProps } from "../../participant/name";
+import type { FocusProps } from "../../status/focus";
+import type { FullScreenProps } from "../../status/fullScreen";
+import type { NetworkStatusProps } from "../../status/network";
 
 export interface TileWrapProps extends HTMLAttributes<HTMLDivElement> {
   /** 布局节点信息，驱动悬浮层默认组件的展示（名称、聚焦状态等） */
   node: LayoutNode;
   children: ReactNode;
   float?: {
-    leftTop?: ReactNode;
-    leftBottom?: ReactNode;
-    rightTop?: ReactNode;
-    rightBottom?: ReactNode;
-    showLeftTop?: boolean;
-    showLeftBottom?: boolean;
-    showRightTop?: boolean;
-    showRightBottom?: boolean;
+    leftTop?: {
+      show?: boolean;
+      children?: ReactNode;
+      props?: RaiseHandProps;
+    };
+    leftBottom?: {
+      show?: boolean;
+      children?: ReactNode;
+      props?: ParticipantNameProps;
+    };
+    rightTop?: {
+      focus?: {
+        show?: boolean;
+        children?: ReactNode;
+        props?: FocusProps;
+      };
+      fullScreen?: {
+        show?: boolean;
+        children?: ReactNode;
+        props?: FullScreenProps;
+      };
+    };
+    rightBottom?: {
+      show?: boolean;
+      children?: ReactNode;
+      props?: NetworkStatusProps;
+    };
   };
 }
 /**
@@ -28,6 +52,13 @@ export interface TileWrapProps extends HTMLAttributes<HTMLDivElement> {
  * 通过 `node` 接收布局引擎输出的 LayoutNode，悬浮层的默认组件会基于它展示：
  * - 左下角用户名称取自 `node.entity.label`
  * - 右上角聚焦按钮状态取自 `node.isFocus`
+ *
+ * 通过 `float` 可以独立控制每个角落的显隐、自定义内容和默认组件 props：
+ * ```tsx
+ * <TileWrap node={node} float={{ leftTop: { show: false } }}>
+ *   <VideoTile />
+ * </TileWrap>
+ * ```
  */
 export const TileWrap = ({
   node,
@@ -38,29 +69,37 @@ export const TileWrap = ({
   ...props
 }: TileWrapProps) => {
   const { cls } = useCls("tile-wrap", className);
-  const {
-    showLeftTop = true,
-    showLeftBottom = true,
-    showRightTop = true,
-    showRightBottom = true,
-    leftTop,
-    leftBottom,
-    rightTop,
-    rightBottom,
-  } = float ?? {};
+  const { leftTop, leftBottom, rightTop, rightBottom } = float ?? {};
 
   return (
     <div className={cls} onClick={onClick} {...props}>
-      {(showLeftTop && leftTop) ?? <TileFloat position="leftTop" node={node} />}
-      {(showLeftBottom && leftBottom) ?? (
-        <TileFloat position="leftBottom" node={node} />
-      )}
-      {(showRightTop && rightTop) ?? (
-        <TileFloat position="rightTop" node={node} />
-      )}
-      {(showRightBottom && rightBottom) ?? (
-        <TileFloat position="rightBottom" node={node} />
-      )}
+      <TileFloat
+        position="leftTop"
+        node={node}
+        show={leftTop?.show ?? true}
+        children={leftTop?.children}
+        props={leftTop?.props}
+      />
+      <TileFloat
+        position="leftBottom"
+        node={node}
+        show={leftBottom?.show ?? true}
+        children={leftBottom?.children}
+        props={leftBottom?.props}
+      />
+      <TileFloat
+        position="rightTop"
+        node={node}
+        focus={rightTop?.focus}
+        fullScreen={rightTop?.fullScreen}
+      />
+      <TileFloat
+        position="rightBottom"
+        node={node}
+        show={rightBottom?.show ?? true}
+        children={rightBottom?.children}
+        props={rightBottom?.props}
+      />
       {children}
     </div>
   );

@@ -123,9 +123,9 @@ export const TabPage = ({
           node={mockNode("note", "公告")}
           style={{ height: 300, width: 300 }}
           float={{
-            showLeftTop: false,
-            showLeftBottom: false,
-            showRightBottom: false,
+            leftTop: { show: false },
+            leftBottom: { show: false },
+            rightBottom: { show: false },
           }}
         >
           <NoteTile value={noteValue} />

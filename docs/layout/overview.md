@@ -73,7 +73,11 @@ import { TileWrap } from 'vauid-components/components/tile/wrap';
   renderEntity={(node) => (
     <TileWrap
       node={node}
-      float={{ showLeftTop: false, showRightTop: false, showRightBottom: false }}
+      float={{
+        leftTop: { show: false },
+        rightTop: { focus: { show: false }, fullScreen: { show: false } },
+        rightBottom: { show: false },
+      }}
     >
       {node.entity.label}
     </TileWrap>

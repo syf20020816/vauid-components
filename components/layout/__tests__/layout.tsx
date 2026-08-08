@@ -91,23 +91,55 @@ export const Page = () => {
       <Layout
         ref={containerRef}
         nodes={nodes}
-        style={{ height: "calc(100% - 60px)", margin: 4, boxSizing: "border-box" }}
-        tileStyle={(node: LayoutNode, index: number) => ({
-          background: node.isFocus ? "#d0266aff" : BG_COLORS[index],
+        style={{
+          height: "calc(100% - 60px)",
+          margin: 4,
+          boxSizing: "border-box",
+          width: "calc(100% - 8px)",
+        }}
+        tileStyle={() => ({
           borderRadius: 0,
           color: "#fff",
         })}
-        renderEntity={(node: LayoutNode) => (
-          <TileWrap node={node}>
+        renderEntity={(node: LayoutNode, index: number) => (
+          <TileWrap
+            node={node}
+            float={{
+              rightTop: {
+                focus: {
+                  props: {
+                    onClick: () => {
+                      if (node.isFocus) {
+                        setFocus("");
+                      } else {
+                        setFocus(node.entity.id);
+                      }
+                    },
+                  },
+                },
+                fullScreen: {
+                  props: {
+                    onClick: () => {
+                      const isFullScreen = engine.current.isFullScreen();
+                      if (!node.isFocus && !isFullScreen) {
+                        setFocus(node.entity.id);
+                      }
+                      engine.current?.setFullScreen(!isFullScreen);
+                    },
+                  },
+                },
+              },
+            }}
+          >
             <div
               style={{
+                background: BG_COLORS[index],
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
                 height: "100%",
                 gap: 6,
-                margin: "0 8px",
               }}
             >
               {node.entity.label}

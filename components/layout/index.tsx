@@ -9,7 +9,7 @@ export interface LayoutProps<
   /** useEngine 返回的 nodes */
   nodes: LayoutNodes<Entity>;
   /** 自定义渲染每个 Entity 的内容 */
-  renderEntity?: (node: LayoutNode<Entity>) => ReactNode;
+  renderEntity?: (node: LayoutNode<Entity>, index: number) => ReactNode;
   /** 自定义每个 Entity 的样式 */
   tileStyle?: (node: LayoutNode<Entity>, index: number) => CSSProperties;
 }
@@ -51,7 +51,7 @@ export const Layout = forwardRef(
               node={layoutNode}
               style={tileStyle?.(layoutNode, index)}
             >
-              {renderEntity?.(layoutNode) ?? layoutNode.entity.label}
+              {renderEntity?.(layoutNode, index) ?? layoutNode.entity.label}
             </Entity>
           );
         })}

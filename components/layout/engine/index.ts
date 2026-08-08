@@ -1,4 +1,4 @@
-import type { FnReturn, Nullable } from "../../_std";
+
 import {
   type LayoutEntity,
   type LayoutNodes,
@@ -34,6 +34,7 @@ import { EntityStyleSheet } from "./stylesheet";
 import type { AnimationOptions, AnimationType, StyleOptions } from "../types";
 import { LayoutWorkerProxy } from "./worker/proxy";
 import type { WorkerProxyOptions } from "./worker/proxy";
+import type { FnReturn, Nullable } from "../../std";
 
 /**
  * # FromServer - 来自服务器的初始化数据
@@ -795,6 +796,11 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     this.state.fixedSize = fixed;
     this.computeAndCache();
     this.onUpdate();
+  }
+
+
+  isFullScreen() {
+    return this.state.fullScreen ?? false;
   }
 
   // --- 生命周期回调 ---------------------------------------------------------------------------------
