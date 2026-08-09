@@ -50,7 +50,7 @@ const { engine, size, nodes } = useEngine({
 | `delEntity(id)` | 删除实体 | id: string |
 | `nextPage()` | 下一页 | 无 |
 | `prevPage()` | 上一页 | 无 |
-| `setFullScreen(boolean)` | 设置全屏 | boolean |
+| `setFullScreen(id?)` | 设置全屏实体，传入 id 全屏对应实体，不传/传空退出全屏并恢复原布局 | id?: string |
 | `setDeviceType(type, auto)` | 设置设备类型 | type: 'mobile' \| 'desktop', auto?: boolean |
 | `setAnimationOptions(type)` | 设置动画选项 | type: 'enableFlip' \| 'normal' \| 'define' |
 

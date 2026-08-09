@@ -1,6 +1,6 @@
 //! 布局计算方式
 
-import type { Nullable } from "../../_std";
+import type { Nullable } from "../../std";
 import type {
   LayoutEntity,
   LayoutNode,
@@ -29,6 +29,8 @@ export interface ComputeConfig<Entity extends LayoutEntity = LayoutEntity> {
   width: number;
   focusEntity?: Nullable<Entity>;
   fullScreen: boolean;
+  /** 全屏模式下显示的实体，为 null 时回退到 focusEntity 或首页首个 */
+  fullScreenEntity?: Nullable<Entity>;
   deviceType: DeviceType;
   layoutType: LayoutType;
   pageSize: number;
@@ -80,9 +82,11 @@ export class LayoutCompute {
     ) {
       return new Map();
     }
-    // 如果是 全屏 模式，那么默认只会有一个布局节点，即 focusEntity（如果有的话，否则使用第一个实体），并且这个节点会占满整个容器。
+    // 如果是 全屏 模式，那么默认只会有一个布局节点，即 fullScreenEntity（若有），
+    // 否则回退到 focusEntity，再否则使用首页首个实体，并且这个节点会占满整个容器。
     if (config.fullScreen) {
       const fullScreenEntity =
+        config.fullScreenEntity ??
         activeFocusEntity ??
         this.getEntitiesForCurrentPage(
           config.entities,

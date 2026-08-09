@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { Button, type ButtonProps } from "../button";
-import { mergeClassNames } from "../std/util";
+import { useCls } from "../std/hooks/cls";
 import { Icon } from "../svg";
 import "./index.scss";
 import type { FnReturn } from "../std";
@@ -19,11 +19,11 @@ export type LeaveButtonAttr = Pick<
 
 export const LeaveButton = forwardRef<HTMLButtonElement, LeaveButtonProps>(
   ({ onBeforeLeave, onAfterLeave, ...props }: LeaveButtonProps, ref) => {
-    const className = mergeClassNames("leave-button")(props.className);
+    const { cls } = useCls("leave-button", props.className);
 
     return (
       <Button
-        className={className}
+        className={cls}
         {...props}
         ref={ref}
         onClick={(e) => {

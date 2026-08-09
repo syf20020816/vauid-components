@@ -12,7 +12,8 @@ order: 1
 ```typescript
 engine.focus(entity);           // 设置焦点
 engine.unFocus();               // 取消焦点
-engine.setFullScreen(true);     // 全屏模式
+engine.setFullScreen(entityId); // 全屏指定实体
+engine.setFullScreen();         // 退出全屏，恢复原布局
 engine.setPage(2);              // 切换页码
 engine.nextPage();              // 下一页
 engine.prevPage();              // 上一页

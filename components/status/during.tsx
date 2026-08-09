@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { mergeClassNames } from "../std/util";
+import { useCls } from "../std/hooks/cls";
 import "./index.scss";
 
 export interface DuringProps {
@@ -26,6 +26,7 @@ export const During = ({
   recordingStartTime,
   recordingElapsed = 0,
 }: DuringProps) => {
+  const { cls, vcls } = useCls("during");
   const getDisplay = useCallback(() => {
     const now = Date.now();
     if (recording && recordingStartTime) {
@@ -46,14 +47,11 @@ export const During = ({
   }, [getDisplay]);
 
   return (
-    <div className={mergeClassNames("during")()}>
+    <div className={cls}>
       <span
-        className={mergeClassNames([
-          "during__dot",
-          recording ? "during__dot--recording" : "during__dot--live",
-        ])()}
+        className={`${vcls("dot", true)} ${vcls(recording ? "dot--recording" : "dot--live", true)}`}
       />
-      <span className={mergeClassNames("during__time")()}>{display}</span>
+      <span className={vcls("time", true)}>{display}</span>
     </div>
   );
 };

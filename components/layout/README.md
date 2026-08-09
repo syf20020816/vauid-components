@@ -125,7 +125,8 @@ await engine.init(entities, container, {
 ```typescript
 engine.focus(entity);        // 设置焦点实体（进入 Focus 布局）
 engine.unFocus();            // 取消焦点（回到 Grid 布局）
-engine.setFullScreen(true);  // 全屏模式
+engine.setFullScreen(id);    // 全屏指定实体
+engine.setFullScreen();      // 退出全屏（恢复进入全屏前的布局）
 engine.setPage(2);           // 切换页码
 engine.nextPage();           // 下一页
 engine.prevPage();           // 上一页

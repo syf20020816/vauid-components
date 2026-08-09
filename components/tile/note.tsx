@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { mergeClassNames } from "../std/util";
+import { useCls } from "../std/hooks/cls";
 import Markdown from "react-markdown";
 import "./index.scss";
 
@@ -15,8 +15,9 @@ export interface NoteTileProps {
  * @returns
  */
 export const NoteTile = ({ value, children }: NoteTileProps) => {
+  const { cls } = useCls("basic_tile");
   return (
-    <div className={mergeClassNames("basic_tile")()}>
+    <div className={cls}>
       {children ? children : <Markdown>{value}</Markdown>}
     </div>
   );

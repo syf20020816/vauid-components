@@ -1,7 +1,7 @@
 import { type ReactNode, type HTMLAttributes } from "react";
 import RcTrigger from "@rc-component/trigger";
 import "@rc-component/trigger/assets/index.css";
-import { mergeClassNames } from "../std/util";
+import { useCls } from "../std/hooks/cls";
 import { getPopupContainer, builtinPlacements } from "../trigger/config";
 import "./index.scss";
 
@@ -23,11 +23,12 @@ export const Tooltip = ({
   children,
   placement = "top",
 }: TooltipProps) => {
+  const { vcls } = useCls("tooltip");
   return (
     <RcTrigger
       action={["hover"]}
       popup={
-        <div className={mergeClassNames("tooltip-content")()}>{content}</div>
+        <div className={vcls("content")}>{content}</div>
       }
       popupPlacement={placementMap[placement]}
       builtinPlacements={builtinPlacements}
@@ -35,7 +36,7 @@ export const Tooltip = ({
       mouseEnterDelay={0.2}
       mouseLeaveDelay={0.1}
     >
-      <div className={mergeClassNames("tooltip-trigger")()}>{children}</div>
+      <div className={vcls("trigger")}>{children}</div>
     </RcTrigger>
   );
 };
@@ -50,7 +51,7 @@ export const StatusTag = ({
   className,
   ...props
 }: StatusTagProps) => {
-  const cls = mergeClassNames("status-tag")(className);
+  const { cls } = useCls("status-tag", className);
   return (
     <div className={cls} {...props}>
       {icon}

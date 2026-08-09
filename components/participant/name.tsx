@@ -1,6 +1,6 @@
 import type { HTMLAttributes } from "react";
 import { Icon } from "../svg";
-import { mergeClassNames } from "../std/util";
+import { useCls } from "../std/hooks/cls";
 import "./index.scss";
 import type { Device } from "../std/media";
 import { useIcon } from "./hooks/icon";
@@ -48,6 +48,7 @@ export const ParticipantName = ({
 }: ParticipantNameProps) => {
   let icon: React.ReactNode;
   const { onClassName, offClassName, iconSize } = useIcon();
+  const { cls, vcls } = useCls("participant-name", className);
 
   if (device === "microphone") {
     icon = audioEnabled ? (
@@ -77,8 +78,8 @@ export const ParticipantName = ({
   }
 
   return (
-    <div className={mergeClassNames("participant-name")(className)} {...props}>
-      <span className={mergeClassNames("participant-name__status")()}>
+    <div className={cls} {...props}>
+      <span className={vcls("status", true)}>
         {icon}
       </span>
       <span>{name}</span>

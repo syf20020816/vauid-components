@@ -57,6 +57,8 @@ interface EngineState<Entity extends LayoutEntity = LayoutEntity> {
   focusEntity?: Nullable<Entity>;
   /** 是否全屏 */
   fullScreen?: boolean;
+  /** 全屏实体（全屏模式下显示的实体），为 null 时回退到 focusEntity 或首页首个 */
+  fullScreenEntity?: Nullable<Entity>;
   /** 设备类型 */
   deviceType?: DeviceType;
   /** 布局类型 */
@@ -133,6 +135,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     width: 0,
     focusEntity: null,
     fullScreen: false,
+    fullScreenEntity: null,
     deviceType: DeviceTypes.Desktop,
     layoutType: LayoutTypes.Grid,
     pageSize: DEFAULT_PAGE_SIZE[DeviceTypes.Desktop],
@@ -331,6 +334,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
       width,
       focusEntity,
       fullScreen,
+      fullScreenEntity,
       deviceType,
       layoutType,
       pageSize,
@@ -349,6 +353,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
       width,
       focusEntity: focusEntity ?? null,
       fullScreen: fullScreen ?? false,
+      fullScreenEntity: fullScreenEntity ?? null,
       deviceType: deviceType ?? DeviceTypes.Desktop,
       layoutType: layoutType ?? LayoutTypes.Grid,
       pageSize: pageSize ?? DEFAULT_PAGE_SIZE[deviceType ?? DeviceTypes.Desktop],
@@ -432,6 +437,8 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
       this.state.focusEntity = others.focusEntity;
     if (others.fullScreen !== undefined)
       this.state.fullScreen = others.fullScreen;
+    if (others.fullScreenEntity !== undefined)
+      this.state.fullScreenEntity = others.fullScreenEntity;
     if (others.deviceType !== undefined)
       this.state.deviceType = others.deviceType;
     if (others.layoutType !== undefined)
@@ -646,6 +653,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
 
   removeEntity(id: string) {
     const wasFocus = this.state.focusEntity?.id === id;
+    const wasFullScreen = this.state.fullScreenEntity?.id === id;
 
     // 智能填补：记录被删除实体的索引
     if (this.state.smart) {
@@ -658,6 +666,12 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     if (wasFocus) {
       this.state.focusEntity = null;
       this.state.layoutType = LayoutTypes.Grid;
+    }
+
+    // 如果删除的是当前全屏实体，清除全屏状态（focus/layoutType 已保留，退出后自然恢复）
+    if (wasFullScreen) {
+      this.state.fullScreen = false;
+      this.state.fullScreenEntity = null;
     }
 
     // 检查并调整页码，防止页码越界
@@ -710,8 +724,27 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     this.onUpdate();
   }
 
-  setFullScreen(fullScreen: boolean) {
-    this.state.fullScreen = fullScreen;
+  /**
+   * ## 设置全屏实体
+   * - 传入实体 id：将该实体设为全屏显示（类似 `focus(id)`）
+   * - 不传或传空字符串：退出全屏，恢复进入全屏前的布局
+   *   （focus 状态和 layoutType 在全屏期间不会被修改，退出后自然恢复）
+   */
+  setFullScreen(id?: string) {
+    if (id) {
+      const entity = this.state.entities.find((e) => e.id === id);
+      if (!entity) {
+        console.warn(
+          `[LayoutEngine] Entity with id "${id}" not found, cannot set fullscreen.`,
+        );
+        return;
+      }
+      this.state.fullScreenEntity = entity;
+      this.state.fullScreen = true;
+    } else {
+      this.state.fullScreenEntity = null;
+      this.state.fullScreen = false;
+    }
     this.computeAndCache();
     this.onUpdate();
   }
@@ -801,6 +834,11 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
 
   isFullScreen() {
     return this.state.fullScreen ?? false;
+  }
+
+  /** 获取当前全屏实体，未全屏时返回 null */
+  getFullScreenEntity(): Nullable<Entity> {
+    return this.state.fullScreenEntity ?? null;
   }
 
   // --- 生命周期回调 ---------------------------------------------------------------------------------

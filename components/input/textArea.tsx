@@ -2,7 +2,7 @@
 
 import { forwardRef, useEffect, useRef, useCallback } from "react";
 import type { HTMLAttributes } from "react";
-import { mergeClassNames } from "../std/util";
+import { useCls } from "../std/hooks/cls";
 import type { ValueType } from "./types";
 
 export interface TextAreaProps extends Omit<
@@ -43,15 +43,18 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     const internalRef = useRef<HTMLTextAreaElement>(null);
     const resolvedRef = ref || internalRef;
 
-    const className = mergeClassNames([
-      "input",
-      "textarea",
-      !bordered && "unbordered",
-      disabled && "disabled",
-      block && "block",
-      autoSize && "autosize",
-      !resize && "no-resize",
-    ])(externalClassName);
+    const { cls } = useCls(
+      [
+        "input",
+        "textarea",
+        !bordered && "unbordered",
+        disabled && "disabled",
+        block && "block",
+        autoSize && "autosize",
+        !resize && "no-resize",
+      ],
+      externalClassName,
+    );
 
     const adjustHeight = useCallback(
       (el: HTMLTextAreaElement) => {
@@ -100,7 +103,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
         value={value}
         disabled={disabled}
         rows={rows}
-        className={className}
+        className={cls}
         onChange={handleChange}
         ref={resolvedRef}
       />

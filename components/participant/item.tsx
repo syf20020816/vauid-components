@@ -2,7 +2,7 @@ import { type HTMLAttributes, type ReactNode } from "react";
 import { Avatar } from "./avatar";
 import { Role, type RoleType } from "./role";
 import { Icon } from "../svg";
-import { mergeClassNames } from "../std/util";
+import { useCls } from "../std/hooks/cls";
 import "./index.scss";
 import { useIcon } from "./hooks/icon";
 
@@ -28,27 +28,28 @@ export const ParticipantItem = ({
   ...props
 }: ParticipantItemProps) => {
   const { onClassName, offClassName, iconSize } = useIcon();
+  const { cls, vcls } = useCls("participant-item", className);
   return (
-    <div className={mergeClassNames("participant-item")(className)} {...props}>
-      <div className={mergeClassNames("participant-item__left")()}>
+    <div className={cls} {...props}>
+      <div className={vcls("left", true)}>
         <Avatar name={name} size={avatarSize} src={avatarSrc} />
       </div>
 
-      <div className={mergeClassNames("participant-item__center")()}>
-        <div className={mergeClassNames("participant-item__name-row")()}>
-          <span className={mergeClassNames("participant-item__name")()}>
+      <div className={vcls("center", true)}>
+        <div className={vcls("name-row", true)}>
+          <span className={vcls("name", true)}>
             {name}
           </span>
           {role && <Role role={role} />}
         </div>
         {extra && (
-          <span className={mergeClassNames("participant-item__extra")()}>
+          <span className={vcls("extra", true)}>
             {extra}
           </span>
         )}
       </div>
 
-      <div className={mergeClassNames("participant-item__right")()}>
+      <div className={vcls("right", true)}>
         {audioEnabled ? (
           <Icon.Microphone style={iconSize} className={onClassName} />
         ) : (

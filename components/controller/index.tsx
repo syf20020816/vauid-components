@@ -1,7 +1,7 @@
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
 import { DeviceTrigger } from "./device";
 import { LeaveButton, type LeaveButtonAttr } from "./leave";
-import { mergeClassNames } from "../std/util";
+import { useCls } from "../std/hooks/cls";
 import "./index.scss";
 import type { Option } from "../trigger/types";
 import type { TriggerProps } from "../trigger";
@@ -65,15 +65,16 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
     }: ControllerProps,
     ref,
   ) => {
-    const className = mergeClassNames("controller")(props.className);
+    const { cls } = useCls("controller", props.className);
+    const { cls: devicesCls } = useCls("devices");
     const showAudio = audio?.show ?? true;
     const showVideo = video?.show ?? true;
     const showScreenShare = screenShare?.show ?? true;
 
     return (
-      <footer className={className} ref={ref} {...props}>
+      <footer className={cls} ref={ref} {...props}>
         <div
-          className={mergeClassNames("devices")()}
+          className={devicesCls}
           style={{
             justifyContent: position,
           }}

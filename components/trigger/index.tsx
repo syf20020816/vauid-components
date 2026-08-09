@@ -2,7 +2,7 @@ import RcTrigger from "@rc-component/trigger";
 import "@rc-component/trigger/assets/index.css";
 import { Button } from "../button";
 import { Icon } from "../svg";
-import { mergeClassNames } from "../std/util";
+import { useCls } from "../std/hooks/cls";
 import "./index.scss";
 import type { Option } from "./types";
 import { useState, useMemo, type ReactNode, type MouseEvent } from "react";
@@ -12,7 +12,8 @@ import { getPopupContainer, builtinPlacements } from "./config";
 export interface TriggerProps {
   prefix?: ReactNode;
   options?: Option[];
-  activeKey?: string;
+  /** 当前选中的值（受控模式），不传则使用内部状态（非受控模式） */
+  value?: string;
   showLabel?: boolean;
   ellipsis?: boolean;
   placeholder?: string;
@@ -32,10 +33,30 @@ export interface TriggerProps {
   onChange?: (value: string) => FnReturn<void>;
 }
 
+/** 下拉项：选中态加 `active` 类以区分背景色 */
+const DropdownItem = ({
+  label,
+  value,
+  active,
+  onSelect,
+}: {
+  label: ReactNode;
+  value: string;
+  active: boolean;
+  onSelect: (value: string, e: MouseEvent) => void;
+}) => {
+  const { cls } = useCls(["dropdown-item", active && "active"]);
+  return (
+    <div className={cls} onClick={(e) => onSelect(value, e)}>
+      {label}
+    </div>
+  );
+};
+
 export const Trigger = ({
   prefix,
   options,
-  activeKey: controlledActiveKey,
+  value: controlledValue,
   showLabel = true,
   placeholder = "Select",
   styles,
@@ -45,43 +66,41 @@ export const Trigger = ({
   onChange,
 }: TriggerProps) => {
   const [open, setOpen] = useState(false);
-  const [internalActiveKey, setInternalActiveKey] = useState<
-    string | undefined
-  >(options?.[0]?.value);
+  const [internalValue, setInternalValue] = useState<string | undefined>();
 
-  const activeKey = controlledActiveKey ?? internalActiveKey;
+  // 非受控模式下，options 异步加载后自动选中第一个（渲染时派生，避免 effect 级联渲染）
+  const currentValue = controlledValue ?? internalValue ?? options?.[0]?.value;
+
+  const { cls, vcls } = useCls("toggle-trigger", classNames?.trigger);
 
   const label = useMemo(() => {
     const str =
-      options?.find(({ value }) => value === activeKey)?.label ||
+      options?.find(({ value }) => value === currentValue)?.label ||
       options?.[0]?.label ||
       placeholder;
     if (!ellipsis || str.length <= maxLength) return str;
     return `${str.slice(0, maxLength)}...`;
-  }, [options, activeKey, ellipsis, maxLength, placeholder]);
+  }, [options, currentValue, ellipsis, maxLength, placeholder]);
 
-  const handleSelect = (value: string, e: MouseEvent) => {
+  const handleSelect = (selectedValue: string, e: MouseEvent) => {
     e.stopPropagation();
     setOpen(false);
-    if (controlledActiveKey === undefined) {
-      setInternalActiveKey(value);
+    if (controlledValue === undefined) {
+      setInternalValue(selectedValue);
     }
-    onChange?.(value);
+    onChange?.(selectedValue);
   };
 
   const popup = (
-    <div
-      className={mergeClassNames("dropdown-content")(classNames?.dropdown)}
-      style={styles?.dropdown}
-    >
+    <div className={vcls("dropdown")} style={styles?.dropdown}>
       {options?.map(({ label, value }) => (
-        <div
+        <DropdownItem
           key={value}
-          className={mergeClassNames("dropdown-item")()}
-          onClick={(e) => handleSelect(value, e)}
-        >
-          {label}
-        </div>
+          label={label}
+          value={value}
+          active={value === currentValue}
+          onSelect={handleSelect}
+        />
       ))}
     </div>
   );
@@ -96,21 +115,11 @@ export const Trigger = ({
       popupVisible={open}
       onOpenChange={setOpen}
     >
-      <div
-        className={mergeClassNames("toggle-trigger")(classNames?.trigger)}
-        style={styles?.trigger}
-      >
-        <Button
-          icon={prefix}
-          className={mergeClassNames("toggle-button")(classNames?.button)}
-          style={styles?.button}
-        >
-          {(showLabel && label) ??  placeholder }
+      <div className={cls} style={styles?.trigger}>
+        <Button icon={prefix} className={vcls("button")} style={styles?.button}>
+          {(showLabel && label) ?? placeholder}
         </Button>
-        <div
-          className={mergeClassNames("toggle-icon")(classNames?.icon)}
-          style={styles?.icon}
-        >
+        <div className={vcls("icon")} style={styles?.icon}>
           <Icon.Arrow
             height={16}
             width={16}

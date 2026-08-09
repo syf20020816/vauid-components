@@ -1,13 +1,13 @@
 import { Tag, type TagProps } from "../tag";
 import { Icon } from "../svg";
-import { mergeClassNames } from "../std/util";
+import { useCls } from "../std/hooks/cls";
 
 export interface ParticipantNumProps extends Omit<TagProps, "children"> {
   count: number;
 }
 
 export const ParticipantNum = ({ count, ...props }: ParticipantNumProps) => {
-  const cls = mergeClassNames("participant-num")();
+  const { cls } = useCls("participant-num");
 
   return (
     <Tag

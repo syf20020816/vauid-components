@@ -120,11 +120,12 @@ export const Page = () => {
                 fullScreen: {
                   props: {
                     onClick: () => {
-                      const isFullScreen = engine.current.isFullScreen();
-                      if (!node.isFocus && !isFullScreen) {
-                        setFocus(node.entity.id);
+                      // 点击当前全屏实体则退出，否则全屏该实体
+                      if (engine.current?.getFullScreenEntity()?.id === node.entity.id) {
+                        engine.current?.setFullScreen();
+                      } else {
+                        engine.current?.setFullScreen(node.entity.id);
                       }
-                      engine.current?.setFullScreen(!isFullScreen);
                     },
                   },
                 },
@@ -167,10 +168,10 @@ export const Page = () => {
         <button onClick={() => delTrack()}>删除Track</button>
         <button onClick={() => engine.current?.prevPage()}>上一页</button>
         <button onClick={() => engine.current?.nextPage()}>下一页</button>
-        <button onClick={() => engine.current?.setFullScreen(true)}>
-          全屏
+        <button onClick={() => engine.current?.setFullScreen("1")}>
+          全屏1号
         </button>
-        <button onClick={() => engine.current?.setFullScreen(false)}>
+        <button onClick={() => engine.current?.setFullScreen()}>
           退出全屏
         </button>
         <button onClick={() => engine.current?.setAnimationOptions("normal")}>

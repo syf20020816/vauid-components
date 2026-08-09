@@ -1,5 +1,5 @@
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
-import { mergeClassNames } from "../std/util";
+import { useCls } from "../std/hooks/cls";
 import "./index.scss";
 
 export interface TagProps extends HTMLAttributes<HTMLSpanElement> {
@@ -20,12 +20,10 @@ export const Tag = forwardRef<HTMLSpanElement, TagProps>(
     }: TagProps,
     ref,
   ) => {
-    const className = mergeClassNames(["tag", round && "tag--round"])(
-      rest.className,
-    );
+    const { cls } = useCls(["tag", round && "tag--round"], rest.className);
 
     return (
-      <span {...rest} ref={ref} className={className}>
+      <span {...rest} ref={ref} className={cls}>
         {iconPosition === "left" && icon}
         {children}
         {iconPosition === "right" && icon}

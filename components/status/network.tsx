@@ -1,7 +1,7 @@
 import { type CSSProperties, type HTMLAttributes } from "react";
 import { StatusTag } from "./tooltip";
 import { Icon } from "../svg";
-import { mergeClassNames } from "../std/util";
+import { useCls } from "../std/hooks/cls";
 import { useState, useEffect } from "react";
 import "./index.scss";
 
@@ -71,6 +71,7 @@ export const NetworkStatus = ({
   className,
   ...props
 }: NetworkStatusProps) => {
+  const { cls, vcls } = useCls("network-status", className);
   const [internalRtt, setInternalRtt] = useState<number>(0);
   const currentRtt = rtt ?? internalRtt;
 
@@ -93,11 +94,11 @@ export const NetworkStatus = ({
 
   return (
     <StatusTag
-      className={mergeClassNames("network-status")(className)}
+      className={cls}
       icon={<SignalIcon level={level} />}
       {...props}
     >
-      <span className={mergeClassNames("network-status__label")()}>
+      <span className={vcls("label", true)}>
         {LevelLabel[level]}
       </span>
     </StatusTag>
@@ -151,6 +152,8 @@ export const NetworkSpeed = ({
   className,
   ...props
 }: NetworkSpeedProps) => {
+  const { cls } = useCls("network-speed", className);
+  const { cls: labelCls } = useCls("network-status__label");
   const [internalSpeed, setInternalSpeed] = useState<number>(0);
   const currentSpeed = speed ?? internalSpeed;
 
@@ -183,7 +186,7 @@ export const NetworkSpeed = ({
 
   return (
     <StatusTag
-      className={mergeClassNames("network-speed")(className)}
+      className={cls}
       icon={
         type === "upload" ? (
           <Icon.Upload width={16} height={16} />
@@ -193,7 +196,7 @@ export const NetworkSpeed = ({
       }
       {...props}
     >
-      <span className={mergeClassNames("network-status__label")()}>
+      <span className={labelCls}>
         {formatSpeed(currentSpeed)}
       </span>
     </StatusTag>

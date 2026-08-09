@@ -1,9 +1,10 @@
 import type { CSSProperties } from "react";
-import { mergeClassNames } from "../../std/util";
+import { useCls } from "../../std/hooks/cls";
 
 export const useIcon = () => {
-  const onClassName = mergeClassNames("participant-name__status--active")();
-  const offClassName = mergeClassNames("participant-name__status--inactive")();
+  const { vcls } = useCls("participant-name");
+  const onClassName = vcls("status--active", true);
+  const offClassName = vcls("status--inactive", true);
   const iconSize: CSSProperties = {
     width: 16,
     height: 16,

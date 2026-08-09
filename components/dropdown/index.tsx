@@ -1,6 +1,7 @@
 import RcTrigger from "@rc-component/trigger";
 import "@rc-component/trigger/assets/index.css";
 import { mergeClassNames } from "../std/util";
+import { useCls } from "../std/hooks/cls";
 import "./index.scss";
 import { useState, type ReactNode, type MouseEvent } from "react";
 import { getPopupContainer, builtinPlacements } from "../trigger/config";
@@ -62,6 +63,19 @@ export const Dropdown = ({
 }: DropdownProps) => {
   const [open, setOpen] = useState(false);
 
+  const { cls: menuCls } = useCls(
+    ["dropdown-menu", `dropdown-menu--${direction}`],
+    classNames?.dropdown,
+  );
+  const { cls: triggerCls } = useCls(
+    [
+      "dropdown-trigger",
+      open && "dropdown-trigger--open",
+      disabled && "dropdown-trigger--disabled",
+    ],
+    classNames?.trigger,
+  );
+
   const handleOpenChange = (next: boolean) => {
     if (disabled) return;
     setOpen(next);
@@ -72,10 +86,7 @@ export const Dropdown = ({
 
   const dropdownContent = popup ?? (
     <div
-      className={mergeClassNames([
-        "dropdown-menu",
-        `dropdown-menu--${direction}`,
-      ])(classNames?.dropdown)}
+      className={menuCls}
       style={styles?.dropdown}
     >
       {items?.map((item) => (
@@ -113,11 +124,7 @@ export const Dropdown = ({
       mouseLeaveDelay={0.1}
     >
       <div
-        className={mergeClassNames([
-          "dropdown-trigger",
-          open ? "dropdown-trigger--open" : "",
-          disabled ? "dropdown-trigger--disabled" : "",
-        ])(classNames?.trigger)}
+        className={triggerCls}
         style={styles?.trigger}
       >
         {children}

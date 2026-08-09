@@ -1,5 +1,5 @@
 import { type HTMLAttributes, useMemo } from "react";
-import { mergeClassNames } from "../std/util";
+import { useCls } from "../std/hooks/cls";
 import "./index.scss";
 
 export interface AvatarProps extends HTMLAttributes<HTMLDivElement> {
@@ -54,9 +54,11 @@ export const Avatar = ({
 
   const initial = useMemo(() => getInitial(name), [name]);
 
+  const { cls } = useCls("avatar", className);
+
   return (
     <div
-      className={mergeClassNames("avatar")(className)}
+      className={cls}
       style={{
         width: size,
         height: size,

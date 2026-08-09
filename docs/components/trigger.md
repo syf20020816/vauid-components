@@ -30,7 +30,7 @@ export default () => (
 | ------------- | ------------------------- | ---------- | ------------ |
 | `prefix`      | `ReactNode`               | -          | 前缀图标     |
 | `options`     | `{ label, value }[]`      | -          | 选项列表     |
-| `activeKey`   | `string`                  | -          | 当前选中值   |
+| `value`       | `string`                  | -          | 当前选中值（受控模式），不传则自动选中第一个选项 |
 | `showLabel`   | `boolean`                 | `true`     | 是否显示标签 |
 | `placeholder` | `string`                  | `"Select"` | 占位文本     |
 | `ellipsis`    | `boolean`                 | `true`     | 是否截断     |

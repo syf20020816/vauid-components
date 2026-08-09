@@ -1,19 +1,41 @@
 @use "../style/global.scss" as *;
 
-@include cmp("dropdown-content") {
-  background-color: color("bg-elevated");
+@include cmp("toggle-trigger") {
+  @include flex-center;
   border: 1px solid color("border-default");
   border-radius: radius("md");
-  padding: space("xs");
-  animation: fadeIn 150ms var(--vauid-ease-out);
-  max-height: 40vh;
-  overflow-y: auto;
-  pointer-events: auto;
+  width: fit-content;
+
+  &-button {
+    border-radius: radius("md") 0 0 radius("md");
+    box-shadow: none;
+    border: none;
+  }
+
+  &-icon {
+    background-color: transparent;
+    height: 100%;
+    width: fit-content;
+    padding: 0 space("xs");
+    transform: translateY(2px);
+  }
+
+  &-dropdown {
+    background-color: color("bg-elevated");
+    border: 1px solid color("border-default");
+    border-radius: radius("md");
+    padding: space("xs");
+    animation: fadeIn 150ms var(--vauid-ease-out);
+    max-height: 40vh;
+    overflow-y: auto;
+    pointer-events: auto;
+  }
 }
 
+// dropdown-item 是 trigger 和 dropdown 组件共用的类名，不通过 vcls 派生，保持独立
 @include cmp("dropdown-item") {
-  display: flex;
-  align-items: center;
+  @include flex-center;
+  justify-content: flex-start;
   padding: 0 space("md");
   border-radius: radius("sm");
   color: color("text-primary");
@@ -26,6 +48,11 @@
   &:hover {
     background-color: color("primary-hover");
   }
+
+  // 选中态：用更明显的背景色区分，放在 :hover 之后保证选中项 hover 时仍保持选中背景
+  &.vauid-active {
+    background-color: color("primary-active");
+  }
 }
 
 @keyframes fadeIn {
@@ -36,25 +63,5 @@
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-
-@include cmp("toggle-trigger") {
-  @include flex-center;
-  border: 1px solid color("border-default");
-  border-radius: radius("md");
-  width: fit-content;
-  @include cmp("toggle-button") {
-    border-radius: radius("md") 0 0 radius("md");
-    box-shadow: none;
-    border: none;
-  }
-  @include cmp("toggle-icon") {
-    background-color: transparent;
-    height: 100%;
-    width: fit-content;
-    padding: 0 space("xs");
-    transform: translateY(2px);
   }
 }

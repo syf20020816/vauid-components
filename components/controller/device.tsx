@@ -1,4 +1,4 @@
-import { mergeClassNames } from "../std/util";
+import { useCls } from "../std/hooks/cls";
 import { Button } from "../button";
 import { Icon } from "../svg";
 import { Trigger, type TriggerProps } from "../trigger";
@@ -54,13 +54,10 @@ const DeviceTriggerVideo = (props: TriggerProps) => {
 
 const DeviceScreenShare = (props: UseScreenShareProps) => {
   const { share, sharing, stop } = useScreenShare(props);
+  const { cls } = useCls(["screenShare", sharing && "active"]);
   return (
     <Button
-      className={
-        sharing
-          ? mergeClassNames(["screenShare", "active"])()
-          : mergeClassNames("screenShare")()
-      }
+      className={cls}
       onClick={() => {
         if (sharing) {
           stop();
