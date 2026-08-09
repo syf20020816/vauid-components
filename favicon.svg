@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#863bff"/>
+      <stop offset="100%" stop-color="#47bfff"/>
+    </linearGradient>
+    <!-- 蒙版：文字做遮罩，渐变铺满整块区域 -->
+    <mask id="textMask">
+      <g fill="#fff" font-family="system-ui, sans-serif" font-size="100" font-weight="900">
+        <text x="34" y="86" text-anchor="middle">V</text>
+        <text x="64" y="86" text-anchor="middle">A</text>
+      </g>
+    </mask>
+  </defs>
+  <!-- <rect width="100" height="100" rx="8" fill="#232144ff"/> -->
+  <!-- 渐变铺满，文字做遮罩，整体渐变完全一致 -->
+  <rect width="100" height="100" fill="url(#g)" mask="url(#textMask)"/>
+</svg>
+
