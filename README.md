@@ -20,6 +20,7 @@
 |------|------|
 | `Layout` | 虚拟布局容器，支持 Grid / Focus / Fullscreen 模式 |
 | `useEngine` | Layout 引擎 Hook，管理布局状态和操作 |
+| `Thumbnail` | 布局缩略图选择器，展示 Focus / Grid / Fullscreen 预览 |
 | `LayoutTypes` / `DeviceTypes` | 布局类型和设备类型枚举 |
 
 ### 媒体 Tile
@@ -66,8 +67,9 @@
 | `Button` | 按钮，支持图标、尺寸、圆角 |
 | `Tag` | 标签组件 |
 | `Input` | 输入框，支持 TextArea / Password / Number |
-| `Dropdown` | 下拉菜单，基于 @rc-component/trigger |
-| `Trigger` | 选择触发器，带下拉选项 |
+| `Dropdown` | 下拉菜单，基于 @rc-component/trigger，支持 forwardRef 暴露 className |
+| `Trigger` | 选择触发器，带下拉选项，支持受控/非受控模式 |
+| `Thumbnail` | 布局缩略图选择器，展示 Focus / Grid / Fullscreen 布局预览 |
 | `Icon` | 图标组件，基于 Lucide React |
 
 ### 工具
@@ -188,7 +190,8 @@ engine.init(entities, container, {
 // 状态操作
 engine.focus(entity);           // 设置焦点
 engine.unFocus();               // 取消焦点
-engine.setFullScreen(true);     // 全屏模式
+engine.setFullScreen(entityId); // 全屏指定实体
+engine.setFullScreen();         // 退出全屏，恢复原布局
 engine.setPage(2);              // 切换页码
 engine.nextPage();              // 下一页
 engine.prevPage();              // 上一页

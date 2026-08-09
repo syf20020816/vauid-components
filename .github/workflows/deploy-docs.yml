@@ -9,10 +9,14 @@ on:
       - 'components/**'
       - 'package.json'
       - '.dumirc.ts'
+      - '.github/workflows/**'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # GITHUB_TOKEN 默认只有 read 权限，需显式授予 write 才能推送 gh-pages
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4

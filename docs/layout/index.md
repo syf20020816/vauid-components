@@ -28,3 +28,4 @@ Vauid Components 的核心布局引擎，支持多种布局模式，专为音视
 
 - [使用指南](/layout/overview) — 快速上手和使用示例
 - [API 参考](/layout/api) — 完整的接口文档
+- [Thumbnail 布局缩略图](/layout/thumbnail) — 布局模式可视化选择器

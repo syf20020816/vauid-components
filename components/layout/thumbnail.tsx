@@ -3,6 +3,7 @@ import { Button } from "../button";
 import { Dropdown, type DropdownProps, type DropdownRef } from "../dropdown";
 import { useCls } from "../std/hooks/cls";
 import "./index.scss";
+import { LayoutDashboard } from "lucide-react";
 
 export interface ThumbnailProps extends DropdownProps {
   showLabel?: boolean;
@@ -12,7 +13,7 @@ export interface ThumbnailProps extends DropdownProps {
  * 布局缩略图用于展示各种布局效果，用户可以通过选择布局来修改组件的布局方式
  */
 export const Thumbnail = ({
-  showLabel = true,
+  showLabel = false,
   classNames,
   direction = "vertical",
   ...props
@@ -38,7 +39,9 @@ export const Thumbnail = ({
 
   return (
     <Dropdown {...props} direction={direction} popup={popup} ref={dropdownRef}>
-      <Button>{showLabel && <span>布局</span>}</Button>
+      <Button icon={<LayoutDashboard size={16} />}>
+        {showLabel && <span>布局</span>}
+      </Button>
     </Dropdown>
   );
 };
