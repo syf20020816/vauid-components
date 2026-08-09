@@ -29,14 +29,17 @@
     max-height: 40vh;
     overflow-y: auto;
     pointer-events: auto;
+    @include flex-start;
+    gap: space("xs");
+    flex-direction: column;
   }
 }
 
 // dropdown-item 是 trigger 和 dropdown 组件共用的类名，不通过 vcls 派生，保持独立
 @include cmp("dropdown-item") {
-  @include flex-center;
-  justify-content: flex-start;
-  padding: 0 space("md");
+  width: 100%;
+  @include flex-start;
+  padding: 0 space("sm") !important;
   border-radius: radius("sm");
   color: color("text-primary");
   font-size: 0.875rem;
@@ -44,7 +47,7 @@
   outline: none;
   line-height: 2rem;
   transition: background-color var(--vauid-duration-fast) var(--vauid-ease-out);
-
+  
   &:hover {
     background-color: color("primary-hover");
   }

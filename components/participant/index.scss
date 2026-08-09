@@ -91,6 +91,7 @@
   border-radius: radius("sm");
   max-width: 200px;
   width: fit-content;
+  white-space: nowrap;
 
   &__status {
     @include flex-center;

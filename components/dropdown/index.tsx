@@ -3,7 +3,13 @@ import "@rc-component/trigger/assets/index.css";
 import { mergeClassNames } from "../std/util";
 import { useCls } from "../std/hooks/cls";
 import "./index.scss";
-import { useState, type ReactNode, type MouseEvent } from "react";
+import {
+  useState,
+  forwardRef,
+  useImperativeHandle,
+  type ReactNode,
+  type MouseEvent,
+} from "react";
 import { getPopupContainer, builtinPlacements } from "../trigger/config";
 
 export type DropdownPlacement = "top" | "bottom" | "left" | "right";
@@ -42,6 +48,19 @@ export interface DropdownProps {
   onOpenChange?: (open: boolean) => void;
 }
 
+/**
+ * Dropdown 通过 ref 暴露已处理好的 className，
+ * 方便用户在自定义 popup / trigger 时复用统一样式，无需二次重写。
+ */
+export interface DropdownRef {
+  /** 触发器 className（含 --open / --disabled 修饰） */
+  triggerClassName: string;
+  /** 弹出菜单 className（含 --vertical / --horizontal 修饰） */
+  popupClassName: string;
+  /** 菜单项基础 className（未含 disabled / danger 修饰） */
+  itemClassName: string;
+}
+
 const placementMap: Record<DropdownPlacement, string> = {
   top: "topLeft",
   bottom: "bottomLeft",
@@ -49,86 +68,99 @@ const placementMap: Record<DropdownPlacement, string> = {
   right: "rightTop",
 };
 
-export const Dropdown = ({
-  trigger: triggerType = "click",
-  placement = "bottom",
-  direction = "vertical",
-  items,
-  popup,
-  disabled,
-  children,
-  classNames,
-  styles,
-  onOpenChange,
-}: DropdownProps) => {
-  const [open, setOpen] = useState(false);
+export const Dropdown = forwardRef<DropdownRef, DropdownProps>(
+  (
+    {
+      trigger: triggerType = "click",
+      placement = "bottom",
+      direction = "vertical",
+      items,
+      popup,
+      disabled,
+      children,
+      classNames,
+      styles,
+      onOpenChange,
+    },
+    ref,
+  ) => {
+    const [open, setOpen] = useState(false);
 
-  const { cls: menuCls } = useCls(
-    ["dropdown-menu", `dropdown-menu--${direction}`],
-    classNames?.dropdown,
-  );
-  const { cls: triggerCls } = useCls(
-    [
-      "dropdown-trigger",
-      open && "dropdown-trigger--open",
-      disabled && "dropdown-trigger--disabled",
-    ],
-    classNames?.trigger,
-  );
+    const { cls: menuCls } = useCls(
+      ["dropdown-menu", `dropdown-menu--${direction}`],
+      classNames?.dropdown,
+    );
+    const { cls: triggerCls } = useCls(
+      [
+        "dropdown-trigger",
+        open && "dropdown-trigger--open",
+        disabled && "dropdown-trigger--disabled",
+      ],
+      classNames?.trigger,
+    );
+    const itemClassName = mergeClassNames("dropdown-item")(classNames?.item);
 
-  const handleOpenChange = (next: boolean) => {
-    if (disabled) return;
-    setOpen(next);
-    onOpenChange?.(next);
-  };
+    // 暴露已处理好的 className，供外部自定义 popup / trigger 复用
+    useImperativeHandle(
+      ref,
+      () => ({
+        triggerClassName: triggerCls,
+        popupClassName: menuCls,
+        itemClassName,
+      }),
+      [triggerCls, menuCls, itemClassName],
+    );
 
-  const popupPlacement = placementMap[placement];
+    const handleOpenChange = (next: boolean) => {
+      if (disabled) return;
+      setOpen(next);
+      onOpenChange?.(next);
+    };
 
-  const dropdownContent = popup ?? (
-    <div
-      className={menuCls}
-      style={styles?.dropdown}
-    >
-      {items?.map((item) => (
-        <div
-          key={item.key}
-          className={mergeClassNames([
-            "dropdown-item",
-            item.disabled ? "dropdown-item--disabled" : "",
-            item.danger ? "dropdown-item--danger" : "",
-          ])(classNames?.item)}
-          style={styles?.item}
-          onClick={(e: MouseEvent) => {
-            e.stopPropagation();
-            if (item.disabled) return;
-            item.onClick?.();
-            setOpen(false);
-          }}
-        >
-          {item.label}
-        </div>
-      ))}
-    </div>
-  );
+    const popupPlacement = placementMap[placement];
 
-  return (
-    <RcTrigger
-      action={triggerType === "click" ? ["click"] : ["hover"]}
-      popup={disabled ? null : dropdownContent}
-      popupPlacement={popupPlacement}
-      builtinPlacements={builtinPlacements}
-      getPopupContainer={getPopupContainer}
-      popupVisible={open}
-      onOpenChange={handleOpenChange}
-      mouseEnterDelay={0.1}
-      mouseLeaveDelay={0.1}
-    >
-      <div
-        className={triggerCls}
-        style={styles?.trigger}
-      >
-        {children}
+    const dropdownContent = popup ?? (
+      <div className={menuCls} style={styles?.dropdown}>
+        {items?.map((item) => (
+          <div
+            key={item.key}
+            className={mergeClassNames([
+              "dropdown-item",
+              item.disabled ? "dropdown-item--disabled" : "",
+              item.danger ? "dropdown-item--danger" : "",
+            ])(classNames?.item)}
+            style={styles?.item}
+            onClick={(e: MouseEvent) => {
+              e.stopPropagation();
+              if (item.disabled) return;
+              item.onClick?.();
+              setOpen(false);
+            }}
+          >
+            {item.label}
+          </div>
+        ))}
       </div>
-    </RcTrigger>
-  );
-};
+    );
+
+    return (
+      <RcTrigger
+        action={triggerType === "click" ? ["click"] : ["hover"]}
+        popup={disabled ? null : dropdownContent}
+        popupPlacement={popupPlacement}
+        builtinPlacements={builtinPlacements}
+        getPopupContainer={getPopupContainer}
+        popupVisible={open}
+        onOpenChange={handleOpenChange}
+        mouseEnterDelay={0.1}
+        mouseLeaveDelay={0.1}
+      >
+        <div className={triggerCls} style={styles?.trigger}>
+          {children}
+        </div>
+      </RcTrigger>
+    );
+  },
+);
+
+Dropdown.displayName = "Dropdown";

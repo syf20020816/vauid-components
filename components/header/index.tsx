@@ -5,7 +5,7 @@ import { During } from "../status/during";
 import { useCls } from "../std/hooks/cls";
 import { Button } from "../button";
 import { Link } from "lucide-react";
-import { ParticipantNum } from "../participant/num";
+import { Thumbnail } from "../layout/thumbnail";
 
 export interface RoomHeaderProps extends HTMLAttributes<HTMLDivElement> {
   logo?: ReactNode;
@@ -52,11 +52,11 @@ export const RoomHeader = ({
         extra
       ) : (
         <div className={vcls("extra")}>
-           <ParticipantNum count={0} />
           <During roomStartTime={roomStartTime} />
           <Button onClick={copyInvite} icon={<Link height={16} width={16} />}>
             Copy Invite
           </Button>
+          <Thumbnail />
         </div>
       )}
     </div>

@@ -6,6 +6,7 @@ import "./index.scss";
 import type { Option } from "../trigger/types";
 import type { TriggerProps } from "../trigger";
 import type { UseScreenShareProps } from "./hooks/useScreenShare";
+import { ParticipantNum } from "../participant/num";
 
 export interface ControllerProps
   extends LeaveButtonAttr, HTMLAttributes<HTMLElement> {
@@ -73,6 +74,7 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
 
     return (
       <footer className={cls} ref={ref} {...props}>
+        <ParticipantNum count={0} />
         <div
           className={devicesCls}
           style={{

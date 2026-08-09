@@ -25,7 +25,7 @@ export { NetworkStatus, NetworkUpload, NetworkDownload } from './status/network'
 export { Button } from './button';
 export { Tag } from './tag';
 export { Input, TextArea, Password, NumberInput } from './input';
-export { Dropdown } from './dropdown';
+export { Dropdown, type DropdownRef } from './dropdown';
 export { Trigger } from './trigger';
 export { Icon } from './svg';
 export { DEFAULT_COLORS } from './style/global';
