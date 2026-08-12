@@ -11,6 +11,24 @@ export default defineConfig({
   outputPath: 'docs-dist',
   base: isProd ? '/vauid-components/' : '/',
   publicPath: isProd ? '/vauid-components/' : '/',
+  // 注入 SVG favicon，替换浏览器默认请求的 /favicon.ico
+  links: [
+    {
+      rel: 'icon',
+      type: 'image/svg+xml',
+      href: isProd ? '/vauid-components/favicon.svg' : '/favicon.svg',
+    },
+    {
+      rel: 'alternate icon',
+      type: 'image/svg+xml',
+      href: isProd ? '/vauid-components/favicon.svg' : '/favicon.svg',
+    },
+    {
+      rel: 'apple-touch-icon',
+      type: 'image/svg+xml',
+      href: isProd ? '/vauid-components/favicon.svg' : '/favicon.svg',
+    },
+  ],
   themeConfig: {
     prefersColor: { default: 'dark', switch: true },
     logo: '/favicon.svg',
