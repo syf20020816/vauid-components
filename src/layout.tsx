@@ -75,7 +75,7 @@ export const TabPage = ({
     return (
       <>
         <RoomHeader roomName="Will's room" />
-        <div style={{ width: "100vw", height: "calc(100vh - 124px)" }}>
+        <div style={{ width: "100vw", height: "calc(100vh - 116px)" }}>
           <Page />
         </div>
         <Controller position="center" audio={{props: {showLabel: false}}} />

@@ -167,8 +167,8 @@ $default-transitions: (
   ease-out: "cubic-bezier(0.16, 1, 0.3, 1)",
   ease-spring: "cubic-bezier(0.34, 1.56, 0.64, 1)",
   duration-fast: 150ms,
-  duration-normal: 250ms,
-  duration-slow: 400ms,
+  duration-normal: 300ms,
+  duration-slow: 450ms,
 ) !default;
 
 // Z-index tokens
@@ -303,7 +303,7 @@ $default-z-index: (
 @mixin link {
   color: var(--vauid-color-accent);
   text-decoration: none;
-  transition: color var(--vauid-duration-fast) var(--vauid-ease-out);
+  transition: color var(--vauid-duration-normal) var(--vauid-ease-out);
 
   &:hover {
     color: var(--vauid-color-accent-hover);
@@ -345,9 +345,9 @@ $default-z-index: (
   border: none;
   outline: none;
   transition:
-    transform var(--vauid-duration-fast) var(--vauid-ease-out),
-    background-color var(--vauid-duration-fast) var(--vauid-ease-out),
-    box-shadow var(--vauid-duration-fast) var(--vauid-ease-out);
+    transform var(--vauid-duration-normal) var(--vauid-ease-out),
+    background-color var(--vauid-duration-normal) var(--vauid-ease-out),
+    box-shadow var(--vauid-duration-normal) var(--vauid-ease-out);
 
   &:active {
     transform: scale(0.97);
@@ -370,8 +370,8 @@ $default-z-index: (
   border-radius: var(--vauid-radius-md);
   padding: var(--vauid-space-sm) var(--vauid-space-md);
   transition:
-    border-color var(--vauid-duration-fast) var(--vauid-ease-out),
-    box-shadow var(--vauid-duration-fast) var(--vauid-ease-out);
+    border-color var(--vauid-duration-normal) var(--vauid-ease-out),
+    box-shadow var(--vauid-duration-normal) var(--vauid-ease-out);
 
   &:focus {
     outline: none;

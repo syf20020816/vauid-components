@@ -21,7 +21,9 @@ const svgProps = {
 };
 
 const DeviceTriggerAudio = (props: TriggerProps) => {
-  const { devices } = useDevice({ deviceKind: "audioinput" });
+  const { devices, stop, start, inUsed } = useDevice({
+    deviceKind: "audioinput",
+  });
   const options = devices.map((device) => ({
     label: device.label,
     value: device.deviceId,
@@ -29,15 +31,33 @@ const DeviceTriggerAudio = (props: TriggerProps) => {
 
   return (
     <Trigger
-      prefix={<Icon.Microphone {...svgProps} />}
+      prefix={
+        inUsed ? (
+          <Icon.Microphone {...svgProps} />
+        ) : (
+          <Icon.MicrophoneOff
+            {...svgProps}
+            style={{
+              color: "var(--vauid-color-error)",
+            }}
+          />
+        )
+      }
       options={[...options, ...(props.options ?? [])]}
+      onClick={() => {
+        if (inUsed) {
+          stop();
+        } else {
+          start();
+        }
+      }}
       {...props}
     />
   );
 };
 
 const DeviceTriggerVideo = (props: TriggerProps) => {
-  const { devices } = useDevice({ deviceKind: "videoinput" });
+  const { devices, stop, start, inUsed } = useDevice({ deviceKind: "videoinput" });
   const options = devices.map((device) => ({
     label: device.label,
     value: device.deviceId,
@@ -45,8 +65,23 @@ const DeviceTriggerVideo = (props: TriggerProps) => {
 
   return (
     <Trigger
-      prefix={<Icon.Camera {...svgProps} />}
+      prefix={
+        inUsed ? (
+          <Icon.Camera {...svgProps} />
+        ) : (
+          <Icon.CameraOff {...svgProps} style={{
+            color: "var(--vauid-color-error)",
+          }} />
+        )
+      }
       options={[...options, ...(props.options ?? [])]}
+      onClick={() => {
+        if (inUsed) {
+          stop();
+        } else {
+          start();
+        }
+      }}
       {...props}
     />
   );

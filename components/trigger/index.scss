@@ -2,9 +2,9 @@
 
 @include cmp("toggle-trigger") {
   @include flex-center;
-  border: 1px solid color("border-default");
   border-radius: radius("md");
   width: fit-content;
+  background-color: color("bg-tertiary");
 
   &-button {
     border-radius: radius("md") 0 0 radius("md");
@@ -39,14 +39,15 @@
 @include cmp("dropdown-item") {
   width: 100%;
   @include flex-start;
+  gap: space("sm");
   padding: 0 space("sm") !important;
   border-radius: radius("sm");
   color: color("text-primary");
-  font-size: 0.875rem;
+  font-size: font-size(p);
   cursor: pointer;
   outline: none;
   line-height: 2rem;
-  transition: background-color var(--vauid-duration-fast) var(--vauid-ease-out);
+  transition: background-color var(--vauid-duration-normal) var(--vauid-ease-out);
   
   &:hover {
     background-color: color("primary-hover");

@@ -19,15 +19,18 @@ import {
   SignalZero,
   Upload,
   Download,
-  Users,
   Video,
   VideoOff,
+  UserRoundPlus,
+  Link,
+  UsersRound,
 } from "lucide-react";
 
 type IconComponent = FC<SVGProps<SVGSVGElement>> & {
   Arrow: FC<SVGProps<SVGSVGElement>>;
   Leave: FC<SVGProps<SVGSVGElement>>;
   Microphone: FC<SVGProps<SVGSVGElement>>;
+  MicrophoneOff: FC<SVGProps<SVGSVGElement>>;
   Volume: FC<SVGProps<SVGSVGElement>>;
   Camera: FC<SVGProps<SVGSVGElement>>;
   ScreenShare: FC<SVGProps<SVGSVGElement>>;
@@ -47,11 +50,13 @@ type IconComponent = FC<SVGProps<SVGSVGElement>> & {
   Upload: FC<SVGProps<SVGSVGElement>>;
   Download: FC<SVGProps<SVGSVGElement>>;
   Users: FC<SVGProps<SVGSVGElement>>;
+  Invite: FC<SVGProps<SVGSVGElement>>;
+  Link: FC<SVGProps<SVGSVGElement>>;
 };
 
 const defaultProps: Partial<SVGProps<SVGSVGElement>> = {
-  width: 24,
-  height: 24,
+  width: 16,
+  height: 16,
 };
 
 const BaseIcon: IconComponent = (props) => (
@@ -61,6 +66,7 @@ const BaseIcon: IconComponent = (props) => (
 BaseIcon.Arrow = (props) => <ChevronRight {...defaultProps} {...props} />;
 BaseIcon.Leave = (props) => <LogOut {...defaultProps} {...props} />;
 BaseIcon.Microphone = (props) => <Mic {...defaultProps} {...props} />;
+BaseIcon.MicrophoneOff = (props) => <MicOff {...defaultProps} {...props} />;
 BaseIcon.Volume = (props) => <Volume2 {...defaultProps} {...props} />;
 BaseIcon.Camera = (props) => <Video {...defaultProps} {...props} />;
 BaseIcon.ScreenShare = (props) => <MonitorUp {...defaultProps} {...props} />;
@@ -81,6 +87,9 @@ BaseIcon.SignalLow = (props) => <SignalLow {...defaultProps} {...props} />;
 BaseIcon.SignalZero = (props) => <SignalZero {...defaultProps} {...props} />;
 BaseIcon.Upload = (props) => <Upload {...defaultProps} {...props} />;
 BaseIcon.Download = (props) => <Download {...defaultProps} {...props} />;
-BaseIcon.Users = (props) => <Users {...defaultProps} {...props} />;
+BaseIcon.Users = (props) => <UsersRound {...defaultProps} {...props} />;
+BaseIcon.Invite = (props) => <UserRoundPlus {...defaultProps} {...props} />;
+BaseIcon.Link = (props) => <Link {...defaultProps} {...props} />;
+
 
 export { BaseIcon as Icon };

@@ -52,7 +52,7 @@ const LayoutFocusTb = ({ className }: { className?: string }) => {
   return (
     <div className={cls}>
       <aside className={vcls("aside")}>
-        {Array.from({ length: 3 }, (_, i) => (
+        {Array.from({ length: 4 }, (_, i) => (
           <div className={vcls("aside-item")} key={i}></div>
         ))}
       </aside>

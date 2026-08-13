@@ -6,7 +6,7 @@ import "./index.scss";
 import type { Option } from "../trigger/types";
 import type { TriggerProps } from "../trigger";
 import type { UseScreenShareProps } from "./hooks/useScreenShare";
-import { ParticipantNum } from "../participant/num";
+import { ParticipantNum, type ParticipantNumProps } from "../participant/num";
 
 export interface ControllerProps
   extends LeaveButtonAttr, HTMLAttributes<HTMLElement> {
@@ -28,6 +28,13 @@ export interface ControllerProps
     show?: boolean;
     props?: UseScreenShareProps;
     children?: ReactNode;
+  };
+  participant?: {
+    num?: {
+      show?: boolean;
+      props?: ParticipantNumProps;
+      children?: ReactNode;
+    };
   };
 }
 
@@ -62,6 +69,7 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
       audio,
       video,
       screenShare,
+      participant,
       ...props
     }: ControllerProps,
     ref,
@@ -71,10 +79,14 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
     const showAudio = audio?.show ?? true;
     const showVideo = video?.show ?? true;
     const showScreenShare = screenShare?.show ?? true;
+    const showParticipantNum = participant?.num?.show ?? true;
 
     return (
       <footer className={cls} ref={ref} {...props}>
-        <ParticipantNum count={0} />
+        {showParticipantNum &&
+          (participant?.num?.children ?? (
+            <ParticipantNum {...participant?.num?.props} />
+          ))}
         <div
           className={devicesCls}
           style={{

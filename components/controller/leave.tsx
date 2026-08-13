@@ -32,9 +32,9 @@ export const LeaveButton = forwardRef<HTMLButtonElement, LeaveButtonProps>(
           props?.onClick?.(e);
           onAfterLeave?.();
         }}
-        icon={<Icon.Leave height={16} width={16} />}
+        icon={<Icon.Leave height={16} width={16} strokeWidth={2.4} />}
       >
-        {props.children ?? "Leave"}
+        {props.children}
       </Button>
     );
   },

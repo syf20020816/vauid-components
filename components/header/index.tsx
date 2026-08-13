@@ -3,8 +3,6 @@ import logoIcon from "../../public/favicon.svg";
 import "./index.scss";
 import { During } from "../status/during";
 import { useCls } from "../std/hooks/cls";
-import { Button } from "../button";
-import { Link } from "lucide-react";
 import { Thumbnail } from "../layout/thumbnail";
 
 export interface RoomHeaderProps extends HTMLAttributes<HTMLDivElement> {
@@ -27,9 +25,7 @@ export const RoomHeader = ({
   const { cls, vcls } = useCls("room-header", className);
   const roomDesc = `vauid - meeting`;
   const [roomStartTime] = useState(() => Date.now());
-  const copyInvite = () => {
-    navigator.clipboard.writeText(window.location.href);
-  };
+  
 
   return (
     <div {...props} className={cls}>
@@ -53,9 +49,6 @@ export const RoomHeader = ({
       ) : (
         <div className={vcls("extra")}>
           <During roomStartTime={roomStartTime} />
-          <Button onClick={copyInvite} icon={<Link height={16} width={16} />}>
-            Copy Invite
-          </Button>
           <Thumbnail />
         </div>
       )}

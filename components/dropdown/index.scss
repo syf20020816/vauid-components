@@ -43,7 +43,7 @@
   outline: none;
   line-height: 2rem;
   white-space: nowrap;
-  transition: background-color var(--vauid-duration-fast) var(--vauid-ease-out);
+  transition: background-color var(--vauid-duration-normal) var(--vauid-ease-out);
 
   &:hover {
     background-color: color("primary-hover");

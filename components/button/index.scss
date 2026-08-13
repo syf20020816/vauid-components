@@ -1,10 +1,8 @@
 @use "../style/global.scss" as *;
 
 @mixin basic-button {
-  font-size: 1rem;
+  font-size: font-size("sm");
   background: color("bg-elevated");
-  border: 1px solid color("border-default");
-  line-height: 2.5rem;
   @include button;
   @include flex-center;
   gap: 4px;
@@ -21,15 +19,15 @@
     border-radius: radius("full");
   }
   &--small {
-    padding: 0 padding("sm");
+    padding: padding("xs") padding("sm");
     border-radius: radius("sm");
   }
   &--medium {
-    padding: 0 padding("md");
+    padding: padding("sm") padding("md");
     border-radius: radius("md");
   }
   &--large {
-    padding: 0 padding("lg");
+    padding: padding("md") padding("lg");
     border-radius: radius("lg");
   }
 }
@@ -45,11 +43,11 @@
     border-radius: radius("sm");
   }
   &--medium {
-    padding: padding("md");
+    padding: padding("sm");
     border-radius: radius("md");
   }
   &--large {
-    padding: padding("lg");
+    padding: padding("md");
     border-radius: radius("lg");
   }
 }

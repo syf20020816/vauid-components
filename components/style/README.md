@@ -250,7 +250,7 @@ $my-tokens: (
 ```css
 --vauid-ease-out        /* cubic-bezier(0.16, 1, 0.3, 1) */
 --vauid-ease-spring     /* cubic-bezier(0.34, 1.56, 0.64, 1) */
---vauid-duration-fast   /* 150ms */
+--vauid-duration-normal   /* 150ms */
 --vauid-duration-normal /* 250ms */
 --vauid-duration-slow   /* 400ms */
 ```

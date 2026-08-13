@@ -26,7 +26,8 @@
   background-color: color("bg-elevated");
   padding: padding("sm") padding("md");
   cursor: pointer;
-  transition: background-color var(--vauid-duration-fast) var(--vauid-ease-out);
+  transition: background-color var(--vauid-duration-normal)
+    var(--vauid-ease-out);
   width: 100%;
 
   &:hover {
@@ -109,5 +110,16 @@
 
 // ── Participant Num ─────────────────────────────────────────────────
 @include cmp("participant-num") {
-  font-size: font-size(p) !important;
+  &-icon {
+    position: relative;
+    height: 16px;
+    width: 16px;
+  }
+  &-count {
+    position: absolute;
+    right: 0;
+    top: 0;
+    transform: translate(60%, -50%);
+    font-size: 8px !important;
+  }
 }
