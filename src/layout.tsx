@@ -24,12 +24,9 @@ import { RoomHeader } from "../components/header";
 import { TileWrap } from "../components/tile/wrap";
 import { Areas } from "../components/layout/types";
 import type { LayoutNode } from "../components/layout/types";
+import { Prejoin } from "../components/prejoin";
 
-const mockNode = (
-  id: string,
-  label: string,
-  isFocus = false,
-): LayoutNode => ({
+const mockNode = (id: string, label: string, isFocus = false): LayoutNode => ({
   entity: { id, label },
   x: 0,
   y: 0,
@@ -78,9 +75,13 @@ export const TabPage = ({
         <div style={{ width: "100vw", height: "calc(100vh - 116px)" }}>
           <Page />
         </div>
-        <Controller position="center" audio={{props: {showLabel: false}}} />
+        <Controller position="center" audio={{ props: { showLabel: false } }} />
       </>
     );
+  } else if (tab === "prejoin") {
+    return <div style={{height: "100vh", width: "100vw", backgroundColor: "var(--vauid-color-bg-primary)"}}>
+      <Prejoin />
+    </div>;
   } else if (tab == "header") {
     return (
       <>
@@ -130,10 +131,16 @@ export const TabPage = ({
         >
           <NoteTile value={noteValue} />
         </TileWrap>
-        <TileWrap node={mockNode("audio", "Join")} style={{ height: 300, width: 300 }}>
+        <TileWrap
+          node={mockNode("audio", "Join")}
+          style={{ height: 300, width: 300 }}
+        >
           <AudioTile name="Join"></AudioTile>
         </TileWrap>
-        <TileWrap node={mockNode("video", "视频", true)} style={{ height: 300, width: 300 }}>
+        <TileWrap
+          node={mockNode("video", "视频", true)}
+          style={{ height: 300, width: 300 }}
+        >
           <VideoTile></VideoTile>
         </TileWrap>
       </div>

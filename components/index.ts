@@ -27,5 +27,6 @@ export { Tag } from './tag';
 export { Input, TextArea, Password, NumberInput } from './input';
 export { Dropdown, type DropdownRef } from './dropdown';
 export { Trigger } from './trigger';
+export { Slider } from './slider';
 export { Icon } from './svg';
 export { DEFAULT_COLORS } from './style/global';

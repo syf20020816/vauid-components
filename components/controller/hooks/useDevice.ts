@@ -97,6 +97,7 @@ export const useDevice = ({ deviceKind }: UseDeviceProps) => {
     devices,
     setDevices,
     inUsed,
+    streamRef,
     start,
     stop,
   };

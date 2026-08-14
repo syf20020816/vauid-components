@@ -1,0 +1,46 @@
+@use "../style/global.scss" as *;
+
+@include cmp("prejoin") {
+  @include flex-between;
+  flex-direction: column;
+  align-content: space-between;
+  gap: space("md");
+  height: 100%;
+  width: 100%;
+  &-header {
+    height: 120px;
+    @include flex-center;
+    align-items: flex-end;
+    padding: 0 space("md");
+  }
+  &-main {
+    flex: 1;
+    min-height: 300px;
+    @include flex-center;
+    width: 100%;
+  }
+  &-video {
+    height: calc(100% - space("lg"));
+    background-color: color("bg-secondary");
+    aspect-ratio: 16 / 9;
+    width: auto;
+    border-radius: radius("md");
+  }
+  &-footer {
+    height: 120px;
+    @include flex-between;
+    gap: space("md");
+    &-device {
+      @include flex-center;
+      gap: space("md");
+    }
+  }
+  &-input {
+    font-size: font-size("h2");
+  }
+  &-join-btn {
+    font-weight: bold;
+    background-color: color("success");
+    padding: space("sm") space("lg");
+  }
+}

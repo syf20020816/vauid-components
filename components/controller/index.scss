@@ -35,3 +35,13 @@
     color: color("text-secondary");
   }
 }
+
+
+@include cmp("device-slider") {
+  @include flex-center;
+  gap: space("sm");
+  background-color: color("bg-elevated");
+  padding: space("sm") ;
+  padding-right: space("md");
+  border-radius: radius("md");
+}

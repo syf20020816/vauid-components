@@ -3,7 +3,7 @@ name: Deploy Docs
 on:
   push:
     branches:
-      - main
+      - gh-pages
     paths:
       - 'docs/**'
       - 'components/**'
@@ -13,6 +13,8 @@ on:
 
 jobs:
   deploy:
+    # 避免 peaceiris/actions-gh-pages bot 推送到 gh-pages 后再次触发造成死循环
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     # GITHUB_TOKEN 默认只有 read 权限，需显式授予 write 才能推送 gh-pages
     permissions:

@@ -5,6 +5,13 @@ import { resolve } from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    // 与 .dumirc.ts / tsconfig.app.json paths 保持一致，
+    // 使 `vauid-components/...` 在 vite dev/build 下也能解析到 ./components/...
+    alias: {
+      'vauid-components': resolve(__dirname, './components'),
+    },
+  },
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),

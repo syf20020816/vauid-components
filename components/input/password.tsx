@@ -4,8 +4,8 @@ import { forwardRef, useState } from "react";
 import { Input } from ".";
 import type { InputProps } from ".";
 import { Eye, EyeOff } from "lucide-react";
-import { Button } from "vauid-components/button";
-import { useCls } from "vauid-components/std/hooks/cls";
+import { Button } from "../button";
+import { useCls } from "../std/hooks/cls";
 
 export interface PasswordProps extends InputProps {
   /** 是否显示切换可见性按钮 */
