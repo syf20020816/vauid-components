@@ -1,6 +1,7 @@
 //! 使用webrtc api 获取设备列表 ，包括麦克风和摄像头
 
 import { useEffect, useRef, useState } from "react";
+import type { Nullable } from "vauid-components/std";
 
 export interface UseDeviceProps {
   deviceKind: MediaDeviceKind;
@@ -11,7 +12,7 @@ export const useDevice = ({ deviceKind }: UseDeviceProps) => {
   // 设备是否正在使用
   const [inUsed, setInUsed] = useState(false);
   // 当前打开的媒体流，closeDevice / 卸载时需要停止其 track
-  const streamRef = useRef<MediaStream | null>(null);
+  const streamRef = useRef<Nullable<MediaStream>>(null);
 
   const fetchDevices = async () => {
     try {

@@ -5,6 +5,7 @@ import "./index.scss";
 import {
   DeviceSlider,
   DeviceTrigger,
+  type DeviceVideoTriggerExports,
 } from "../controller/device";
 import { useEffect, useRef, useState } from "react";
 
@@ -33,6 +34,7 @@ export const Prejoin = ({
 }: PrejoinProps) => {
   const { cls, vcls } = useCls("prejoin", className);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const videoTriggerRef = useRef<DeviceVideoTriggerExports>(null);
   const [footerWidth, setFooterWidth] = useState<number | undefined>();
   const [internalRoomName, setInternalRoomName] = useState(defaultRoomName);
 
@@ -78,7 +80,21 @@ export const Prejoin = ({
       >
         <div className={vcls("footer-device")}>
           <DeviceTrigger.Audio />
-          <DeviceTrigger.Video />
+          <DeviceTrigger.Video
+            ref={videoTriggerRef}
+            onClick={(_, open) => {
+              const el = videoRef.current;
+              if (!el) return;
+              // open = 点击后设备状态：true 表示摄像头已开启（流已就绪）
+              if (open) {
+                el.srcObject = videoTriggerRef.current?.mediaSrc ?? null;
+                el.play();
+              } else {
+                // el.srcObject = null;
+                el.pause();
+              }
+            }}
+          />
           <DeviceSlider.Microphone />
         </div>
         <Button
