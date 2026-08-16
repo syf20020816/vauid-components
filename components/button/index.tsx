@@ -8,6 +8,8 @@ export interface ButtonProps extends HTMLAttributes<HTMLButtonElement> {
   iconPosition?: "left" | "right";
   round?: boolean;
   size?: "small" | "medium" | "large";
+  /** 禁用状态 */
+  disabled?: boolean;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -18,6 +20,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       icon,
       iconPosition = "left",
       round = false,
+      disabled,
       ...rest
     }: ButtonProps,
     ref,
@@ -27,12 +30,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         icon && children ? "button" : icon ? "button--icon" : "button",
         round && "button--round",
         `button${icon && !children ? "--icon" : ""}--${size}`,
+        disabled && "button--disabled",
       ],
       rest.className,
     );
 
     return (
-      <button {...rest} ref={ref} className={cls}>
+      <button {...rest} ref={ref} className={cls} disabled={disabled}>
         {iconPosition === "left" && icon}
         {children}
         {iconPosition === "right" && icon}

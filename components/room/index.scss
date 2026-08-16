@@ -8,6 +8,8 @@
   background: color("bg-primary");
   .logo-icon {
     height: 36px;
+    width: 36px;
+    flex-shrink: 0;
   }
   &-content {
     @include flex-start;

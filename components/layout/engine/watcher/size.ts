@@ -1,4 +1,4 @@
-import type { Nullable } from "../../../_std";
+import type { Nullable } from "../../../std";
 
 const DEFAULT_RESIZE_DEBOUNCE_MS = 100;
 

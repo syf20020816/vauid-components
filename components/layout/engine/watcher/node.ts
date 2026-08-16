@@ -1,4 +1,4 @@
-import type { Nullable } from "../../../_std";
+import type { Nullable } from "../../../std";
 import type { LayoutEntity, LayoutNode, LayoutNodes, NodeUpdate } from "../../types";
 import { NodeUpdates } from "../../types";
 

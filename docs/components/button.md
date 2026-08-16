@@ -13,12 +13,12 @@ order: 1
 import { Button } from 'vauid-components';
 
 export default () => (
-  <>
+  <div style={{ display: 'flex', gap: 12 }}>
     <Button>普通按钮</Button>
     <Button round>圆角按钮</Button>
     <Button size="small">小按钮</Button>
     <Button size="large">大按钮</Button>
-  </>
+  </div>
 );
 ```
 
@@ -28,13 +28,13 @@ export default () => (
 import { Button, Icon } from 'vauid-components';
 
 export default () => (
-  <>
+  <div style={{ display: 'flex', gap: 12 }}>
     <Button icon={<Icon.Arrow width={16} height={16} />}>带图标</Button>
     <Button icon={<Icon.Arrow width={16} height={16} />} iconPosition="right">
       图标在右
     </Button>
     <Button icon={<Icon.Arrow width={16} height={16} />} size="small" />
-  </>
+  </div>
 );
 ```
 

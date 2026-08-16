@@ -30,6 +30,11 @@
     padding: padding("md") padding("lg");
     border-radius: radius("lg");
   }
+  &--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
 }
 
 @include cmp("button--icon") {

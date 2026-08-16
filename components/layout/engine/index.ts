@@ -171,7 +171,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   /** 生命周期回调映射 */
   private lifeTime: Map<LifeTime, LifeTimeEvent> = new Map();
   /** 样式表实例 */
-  private styleSheet: Nullable<EntityStyleSheet> = new EntityStyleSheet();
+  private styleSheet: EntityStyleSheet = new EntityStyleSheet();
   /** Web Worker 代理 */
   private workerProxy: Nullable<LayoutWorkerProxy> = null;
   /** Worker 配置 */
@@ -494,7 +494,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
       railPageSize,
       currentPage,
       this.state.fullScreen ?? false,
-      isFocus ? this.state.focusEntity : null,
+      isFocus ? (this.state.focusEntity ?? null) : null,
     );
     const hasNextPage = currentPage < totalPages;
 

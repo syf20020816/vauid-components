@@ -8,7 +8,7 @@
   height: 100%;
   width: 100%;
   &-header {
-    height: 120px;
+    height: 150px;
     @include flex-center;
     align-items: flex-end;
     padding: 0 space("md");
@@ -37,6 +37,10 @@
   }
   &-input {
     font-size: font-size("h2");
+    background-color: transparent;
+    text-align: center;
+    border-bottom: 2px solid color("border-default") !important;
+    border-radius: 0;
   }
   &-join-btn {
     font-weight: bold;

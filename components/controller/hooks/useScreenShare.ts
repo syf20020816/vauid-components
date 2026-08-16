@@ -41,7 +41,7 @@ export const useScreenShare = ({ element, option }: UseScreenShareProps) => {
       streamRef.current = null;
       setSharing(false);
     }
-    if (element.current) {
+    if (element?.current) {
       Object.assign(element.current, { srcObject: null });
     }
   };

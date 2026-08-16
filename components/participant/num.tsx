@@ -1,6 +1,7 @@
 import { Icon } from "../svg";
 import { useCls } from "../std/hooks/cls";
 import { Trigger, type TriggerProps } from "../trigger";
+import "./index.scss";
 
 export interface ParticipantNumProps extends TriggerProps {
   count?: number;

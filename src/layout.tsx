@@ -20,7 +20,7 @@ import {
   NetworkUpload,
   NetworkDownload,
 } from "../components/status/network";
-import { RoomHeader } from "../components/header";
+import { RoomHeader } from "../components/room";
 import { TileWrap } from "../components/tile/wrap";
 import { Areas } from "../components/layout/types";
 import type { LayoutNode } from "../components/layout/types";
