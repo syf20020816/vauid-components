@@ -30,5 +30,14 @@ export { Trigger } from './trigger';
 export { Slider } from './slider';
 export { Icon } from './svg';
 export { RoomHeader } from './room';
+export { MeetingRoom, RoomProvider, useRoomCtx } from './room';
+export { LiveKitAdapter } from './room/plugins/livekit';
+export type {
+  RoomAdapter,
+  RoomParticipant,
+  ConnectOptions,
+  RoomEventName,
+} from './room/types';
+export { RoomEvents } from './room/types';
 export { Prejoin } from './prejoin';
 export { DEFAULT_COLORS } from './style/global';

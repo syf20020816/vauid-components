@@ -1,5 +1,22 @@
 @use "../style/global.scss" as *;
 
+@include cmp("meeting-room") {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background: color("bg-primary");
+  color: color("text-primary");
+  overflow: hidden;
+
+  &-stage {
+    flex: 1;
+    min-height: 0;
+    padding: 16px;
+    box-sizing: border-box;
+  }
+}
+
 @include cmp("room-header") {
   @include flex-between;
   gap: 12px;
