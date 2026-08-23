@@ -175,18 +175,22 @@ DeviceTrigger.More = DeviceTriggerMore;
 
 export interface DeviceSliderComponent extends React.FC<SliderProps> {
   Microphone: React.FC<SliderProps>;
+  
 }
 
+export  interface DeviceSliderMicrophoneProps extends SliderProps {
+  format?: (v: number) => string;
+}
 /**
  * 麦克风音量滑块
  * - 启动麦克风流后，通过 Web Audio GainNode 实时调节音量（0~100）
  * - 卸载时自动停止麦克风流并释放 AudioContext
  */
-const DeviceSliderMicrophone = (props: SliderProps) => {
+const DeviceSliderMicrophone = ({ format, ...props }: DeviceSliderMicrophoneProps) => {
   const { inUsed, start, stop, streamRef } = useDevice({
     deviceKind: "audioinput",
   });
-  const { cls } = useCls("device-slider");
+  const { cls, vcls } = useCls("device-slider");
   const [volume, setVolume] = useState(props.defaultValue ?? 100);
   const gainRef = useRef<GainNode | null>(null);
   const ctxRef = useRef<AudioContext | null>(null);
@@ -245,6 +249,7 @@ const DeviceSliderMicrophone = (props: SliderProps) => {
         style={{ width: 120 }}
         {...props}
       />
+      <span className={vcls("num")}>{format?.(volume) ?? volume}</span>
     </div>
   );
 };
