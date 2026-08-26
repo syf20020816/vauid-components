@@ -19,14 +19,7 @@
     @include flex-center;
     width: 100%;
   }
-  &-video {
-    height: calc(100% - space("lg"));
-    background-color: color("bg-secondary");
-    aspect-ratio: 16 / 9;
-    width: auto;
-    border-radius: radius("md");
-    object-fit: cover;
-  }
+
   &-footer {
     height: 120px;
     @include flex-between;
@@ -48,4 +41,13 @@
     background-color: color("success");
     padding: space("sm") space("lg");
   }
+}
+
+@include cmp("preview-video") {
+  height: calc(100% - space("lg"));
+  background-color: color("bg-secondary");
+  aspect-ratio: 16 / 9;
+  width: auto;
+  border-radius: radius("md");
+  object-fit: cover;
 }

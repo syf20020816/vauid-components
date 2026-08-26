@@ -8,6 +8,8 @@ import {
   type DeviceVideoTriggerExports,
 } from "../controller/device";
 import { useEffect, useRef, useState } from "react";
+import { VideoPreview } from "./videoPreview";
+import { useVideoPreview } from "./hooks/useVideoPreview";
 
 export interface PrejoinProps {
   /** 房间名（受控），不传则组件内部维护 */
@@ -33,7 +35,7 @@ export const Prejoin = ({
   className,
 }: PrejoinProps) => {
   const { cls, vcls } = useCls("prejoin", className);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const { videoRef, play, pause, clear } = useVideoPreview();
   const videoTriggerRef = useRef<DeviceVideoTriggerExports>(null);
   const [footerWidth, setFooterWidth] = useState<number | undefined>();
   const [internalRoomName, setInternalRoomName] = useState(defaultRoomName);
@@ -48,8 +50,11 @@ export const Prejoin = ({
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+    return () => {
+      ro.disconnect();
+      clear();
+    };
+  }, [clear, videoRef]);
 
   const handleJoin = () => {
     onJoin?.(currentRoomName.trim());
@@ -70,7 +75,7 @@ export const Prejoin = ({
         ></Input>
       </header>
       <main className={vcls("main")}>
-        <video className={vcls("video")} ref={videoRef}></video>
+        <VideoPreview ref={videoRef} />
       </main>
       <footer
         className={vcls("footer")}
@@ -87,11 +92,9 @@ export const Prejoin = ({
               if (!el) return;
               // open = 点击后设备状态：true 表示摄像头已开启（流已就绪）
               if (open) {
-                el.srcObject = videoTriggerRef.current?.mediaSrc ?? null;
-                el.play();
+                play(videoTriggerRef.current?.mediaSrc);
               } else {
-                // el.srcObject = null;
-                el.pause();
+                pause();
               }
             }}
           />
