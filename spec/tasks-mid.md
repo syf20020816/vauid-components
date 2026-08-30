@@ -10,13 +10,12 @@
 | 5.2 | `ParticipantList` 参会者列表 | `components/participant/list.tsx`（新建） | 虚拟滚动；搜索/筛选；拖拽排序；批量静音/取消静音 | P0 |
 | 5.3 | `ScreenShare` 完善 | `components/controller/`、`components/tile/` | 共享源切换（屏幕/窗口/标签页）；共享者标识；共享画面录制 | P1 |
 
-## W7：插件生态 + 设置
+## W7：设置
 
 | # | 任务 | 涉及文件 | 验收标准 | 优先级 |
 |---|------|----------|----------|--------|
-| 7.1 | 插件系统完善 | `components/room/plugins/` | 生命周期（install/uninstall）、事件完善；声网/腾讯云适配示例 | P1 |
-| 7.2 | `SettingsPanel` 设置面板 | `components/settings/`（新建） | 设备管理（枚举/切换）；主题切换（CSS 变量）；暗色模式 | P1 |
-| 7.3 | `Toast` 通知 | `components/toast/`（新建） | 消息通知队列；类型（成功/错误/信息）；可配置位置 | P2 |
+| 7.1 | `SettingsPanel` 设置面板 | `components/settings/`（新建） | 设备管理（枚举/切换）；主题切换（CSS 变量）；暗色模式 | P1 |
+| 7.2 | `Toast` 通知 | `components/toast/`（新建） | 消息通知队列；类型（成功/错误/信息）；可配置位置 | P2 |
 
 ## W8：Layout 高级特性
 

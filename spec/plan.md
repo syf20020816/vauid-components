@@ -7,25 +7,25 @@
 
 | 阶段 | 建议工期 | 核心目标 | 状态 |
 |------|----------|----------|------|
-| 初期 | 4 周 | 业务层首版（Room 抽象 + MeetingRoom + RoomCtx）+ 核心层补缺 | ⬜ |
-| 中期 | 5 周 | 功能层完整化（聊天/参会者列表/设置）+ 插件生态 + Layout 高级特性 | ⬜ |
+| 初期 | 4 周 | 业务层首版（RoomCtx 布局引擎上下文 + 组件级 MeetingRoom）+ 核心层补缺 | ⬜ |
+| 中期 | 5 周 | 功能层完整化（聊天/参会者列表/设置）+ Layout 高级特性 | ⬜ |
 | 后期 | 6 周 | 业务层扩展（Classroom/LiveStream/RemoteSupport）+ 工程质量 + 发布 | ⬜ |
 
 ---
 
 ## 初期（第 1-4 周）
 
-**目标**：打通"加入 → 入会 → 离开"完整链路；`<MeetingRoom adapter={...} />` 一行接入；抽象层可扩展多音视频厂商。
+**目标**：打通"加入 → 入会 → 离开"完整链路；`<MeetingRoom entities={...} />` 组件级接入。组件库不感知音视频厂商，厂商对接由使用方完成。
 
-### W1：Room 抽象层
-- `RoomAdapter` 接口（connect / disconnect / on / off / 设备控制 / track 挂载）
-- `LiveKitAdapter` 插件（实现抽象接口，动态 import livekit-client，主 bundle 不包含 livekit）
-- `RoomCtx` + `useRoomCtx` + `RoomProvider`（挂载连接、卸载清理）
+### W1：RoomCtx（布局引擎上下文）
+- `RoomCtx` 类型（layout 引擎 + extra 额外数据）
+- `RoomCtxProvider` + `useRoomCtx`（Provider 创建/销毁引擎）
+- 组件库去除 livekit-client 依赖
 
-### W2：MeetingRoom v1
+### W2：MeetingRoom v1（组件级）
 - RoomHeader + Layout + Controller 组合组件
-- 本地/远端视频绑定、布局实体动态增删（engine.addEntity/delEntity）
-- `useRoom` hook：参与者、麦克风/摄像头状态管理
+- entities 驱动布局（useEngine 自动同步，支持动态增删）
+- renderEntity/renderHeader/controller/extra 可定制
 
 ### W3：核心层补缺
 - `Tile.Iframe`（沙箱嵌入、postMessage 通信、懒加载）
@@ -38,23 +38,21 @@
 - 初期 tasks 逐项验收
 
 **阶段性成果** ✅（验收后勾选）：
-- [ ] `<MeetingRoom adapter={new LiveKitAdapter(room)} />` 一行接入完整会议房间
-- [ ] 抽象层可扩展多音视频厂商（文档含自定义 adapter 示例）
-- [ ] 测试项目跑通 加入 → 入会 → 离开 全流程
+- [ ] `<MeetingRoom entities={...} renderEntity={...} />` 组件级接入完整会议房间
+- [ ] 测试项目跑通 加入 → 入会 → 离开 全流程（页面层对接 livekit）
 
 ---
 
 ## 中期（第 5-9 周）
 
-**目标**：开箱即用的标准视频会议套件；Layout 支持交互式调整；插件生态成型。
+**目标**：开箱即用的标准视频会议套件；Layout 支持交互式调整。
 
 ### W5-6：功能层完整化
 - `ChatPanel`（聊天面板：虚拟列表、@提及、消息回复）
 - `ParticipantList`（参会者列表：虚拟滚动、搜索/筛选、拖拽排序、批量静音）
 - `ScreenShare` 完善（共享源切换：屏幕/窗口/标签页；共享者标识）
 
-### W7：插件生态 + 设置
-- 插件系统完善（生命周期、事件、第三方适配示例如声网）
+### W7：设置
 - `SettingsPanel`（设备管理、主题切换、暗色模式）
 - `Toast` 通知
 
@@ -71,7 +69,6 @@
 **阶段性成果** ✅（验收后勾选）：
 - [ ] 标准视频会议套件（聊天 / 参会者列表 / 设置 / 通知）
 - [ ] Layout 支持交互式调整（拖拽、自定义模式、键盘导航）
-- [ ] 插件生态成型，第三方适配示例可用
 
 ---
 
