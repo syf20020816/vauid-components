@@ -35,7 +35,8 @@ export const Prejoin = ({
   className,
 }: PrejoinProps) => {
   const { cls, vcls } = useCls("prejoin", className);
-  const { videoRef, play, pause, clear } = useVideoPreview();
+  const { videoRef, showPlaceholder, play, pause, clear } = useVideoPreview();
+  const videoWrapRef = useRef<HTMLDivElement>(null);
   const videoTriggerRef = useRef<DeviceVideoTriggerExports>(null);
   const [footerWidth, setFooterWidth] = useState<number | undefined>();
   const [internalRoomName, setInternalRoomName] = useState(defaultRoomName);
@@ -44,7 +45,7 @@ export const Prejoin = ({
   const currentRoomName = roomNameProp ?? internalRoomName;
 
   useEffect(() => {
-    const el = videoRef.current;
+    const el = videoWrapRef.current;
     if (!el) return;
     const update = () => setFooterWidth(el.clientWidth);
     update();
@@ -54,7 +55,7 @@ export const Prejoin = ({
       ro.disconnect();
       clear();
     };
-  }, [clear, videoRef]);
+  }, [clear, videoWrapRef]);
 
   const handleJoin = () => {
     onJoin?.(currentRoomName.trim());
@@ -75,7 +76,11 @@ export const Prejoin = ({
         ></Input>
       </header>
       <main className={vcls("main")}>
-        <VideoPreview ref={videoRef} />
+        <VideoPreview
+          playerRef={videoRef}
+          ref={videoWrapRef}
+          showPlaceholder={showPlaceholder}
+        />
       </main>
       <footer
         className={vcls("footer")}
@@ -87,12 +92,12 @@ export const Prejoin = ({
           <DeviceTrigger.Audio />
           <DeviceTrigger.Video
             ref={videoTriggerRef}
-            onClick={(_, open) => {
+            onClick={async (_, open) => {
               const el = videoRef.current;
               if (!el) return;
               // open = 点击后设备状态：true 表示摄像头已开启（流已就绪）
               if (open) {
-                play(videoTriggerRef.current?.mediaSrc);
+                await play(videoTriggerRef.current?.mediaSrc);
               } else {
                 pause();
               }
