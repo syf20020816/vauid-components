@@ -1,6 +1,7 @@
 import { useRef, type HTMLAttributes, type ReactNode } from "react";
 import { RoomHeader } from "./header";
-import { RoomCtxProvider, type RoomCtx } from "../std/ctx";
+import { RoomCtxProvider } from "../std/ctx";
+import type { RoomCtx } from "../std/ctx/types";
 import { Layout } from "../layout";
 import { useEngine } from "../layout/hooks/useEngine";
 import { Controller, type ControllerProps } from "../controller";

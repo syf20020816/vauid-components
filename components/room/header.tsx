@@ -91,7 +91,7 @@ export const RoomHeader = ({
       ) : (
         <div className={vcls("extra")}>
           <During roomStartTime={roomStartTime} />
-          <Thumbnail onLayoutChange={() => {}} />
+          <Thumbnail />
         </div>
       )}
     </div>

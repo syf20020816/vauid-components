@@ -4,7 +4,7 @@ import { LifeTimes } from "../types";
 import { Engine } from "../engine";
 import type { LayoutEntity, LayoutNodes } from "../types";
 import type { Nullable } from "../../std";
-import { ROOM_CTX } from "../../std/ctx";
+import { ROOM_CTX } from "../../std/ctx/context";
 
 export interface UseEngineProps {
   container: RefObject<Nullable<HTMLDivElement>>;
