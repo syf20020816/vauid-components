@@ -116,6 +116,8 @@ export const LayoutTypes = {
   Grid: "grid",
   /** 焦点布局，主实体在主区展示，其他实体在缩略区展示，适合发言者聚焦等场景 */
   Focus: "focus",
+  /** 全屏布局，所有实体在全屏展示，适合仅单发言人场景 */
+  FullScreen: "full_screen",
 } as const;
 
 export type LayoutType = (typeof LayoutTypes)[keyof typeof LayoutTypes];

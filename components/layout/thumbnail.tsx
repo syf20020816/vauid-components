@@ -4,9 +4,12 @@ import { Dropdown, type DropdownProps, type DropdownRef } from "../dropdown";
 import { useCls } from "../std/hooks/cls";
 import "./index.scss";
 import { LayoutDashboard } from "lucide-react";
+import type { LayoutType } from "./types";
+import type { FnReturn } from "vauid-components/std";
 
 export interface ThumbnailProps extends DropdownProps {
   showLabel?: boolean;
+  onLayoutChange?: (layout: LayoutType) => FnReturn<void>;
 }
 
 /**
