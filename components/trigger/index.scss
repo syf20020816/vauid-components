@@ -17,7 +17,7 @@
     height: 100%;
     width: fit-content;
     padding: 0 space("xs");
-    transform: translateY(2px);
+    transform: translateY(3px);
   }
 
   &-dropdown {
@@ -32,6 +32,20 @@
     @include flex-start;
     gap: space("xs");
     flex-direction: column;
+  }
+
+  // 纵向模式：按钮与箭头垂直排列
+  &--vertical {
+    flex-direction: column;
+
+    .vauid-toggle-trigger-button {
+      border-radius: radius("md") radius("md") 0 0;
+    }
+
+    .vauid-toggle-trigger-icon {
+      padding: space("xs") 0;
+      transform: translateX(-3px) rotate(90deg);
+    }
   }
 }
 

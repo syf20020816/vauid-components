@@ -37,7 +37,8 @@ export const Thumbnail = ({
   }, [direction]);
 
   const clickTb = async (layout: LayoutType) => {
-    ctx.layout.setLayoutType(layout);
+    // useRoomCtx 可能返回 null（未在 RoomCtxProvider 内），需防护
+    ctx?.layout.setLayoutType(layout);
     onLayoutChange?.(layout);
   };
 

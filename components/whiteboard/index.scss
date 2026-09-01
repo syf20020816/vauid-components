@@ -1,0 +1,139 @@
+@use "../style/global.scss" as *;
+
+@include cmp("whiteboard") {
+  @include flex-center;
+  height: 100%;
+  width: 100%;
+
+  &-tool {
+    // 默认 portal 到 document.body，需 fixed 让 position 修饰类的坐标生效
+    position: fixed;
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: space("sm");
+    height: fit-content;
+    width: fit-content;
+    padding: space("sm") space("md");
+    background-color: color("bg-secondary");
+    border-radius: radius("md");
+    font-size: font-size("p");
+    gap: space("sm");
+    &--bottom-center {
+      bottom: space("sm");
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    &--top-center {
+      top: space("sm");
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    &--left-center {
+      left: space("sm");
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    &--right-center {
+      right: space("sm");
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    &--left-top {
+      top: space("sm");
+      left: space("sm");
+    }
+    &--right-top {
+      top: space("sm");
+      right: space("sm");
+    }
+    &--left-bottom {
+      bottom: space("sm");
+      left: space("sm");
+    }
+    &--right-bottom {
+      bottom: space("sm");
+      right: space("sm");
+    }
+
+    // 方向：纵向垂直堆叠（横向为默认 row）
+    &--vertical {
+      flex-direction: column;
+      padding: space("sm") ;
+    }
+
+    // 收缩/展开箭头
+    &-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: color("text-secondary");
+      &:hover {
+        color: color("text-primary");
+      }
+    }
+
+    // 收缩态：仅展示笔图标（纯展示）
+    &-collapsed {
+      @include flex-center;
+      color: color("text-secondary");
+    }
+
+    // 工具选中态：warning 色（lucide 图标 stroke 使用 currentColor）
+    &-btn-active {
+      color: color("warning");
+      .vauid-button {
+        color: color("warning");
+      }
+    }
+
+    &-main {
+      @include flex-center;
+      gap: space("sm");
+      &-tools {
+        @include flex-center;
+        gap: space("sm");
+      }
+      &-size {
+        @include flex-center;
+        gap: space("sm");
+        width: 160px;
+      }
+    }
+    &-footer {
+      @include flex-center;
+      gap: space("sm");
+    }
+    &-delete {
+      background-color: color("error");
+    }
+
+    // 纵向模式：尺寸区段改为纵向排列，Slider 给固定高度
+    &--vertical {
+      .vauid-whiteboard-tool-main {
+        flex-direction: column;
+      }
+      .vauid-whiteboard-tool-main-size {
+        flex-direction: column;
+        width: auto;
+        // Slider 纵向模式用 height: 100%，需父级给固定高度
+        height: 160px;
+      }
+    }
+  }
+}
+
+@include cmp("divider") {
+  background-color: color("border-default");
+  // 覆盖根容器的 align-items: center，沿交叉轴撑满
+  align-self: stretch;
+  &--horizontal {
+    height: 1px;
+    margin: space("xs") 0;
+  }
+  &--vertical {
+    width: 1px;
+    margin: 0 space("xs");
+  }
+}

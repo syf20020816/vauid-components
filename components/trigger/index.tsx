@@ -14,6 +14,8 @@ export interface TriggerProps {
   options?: Option[];
   /** 当前选中的值（受控模式），不传则使用内部状态（非受控模式） */
   value?: string | number;
+  /** 触发器方向：横向（默认）/ 纵向 */
+  direction?: "horizontal" | "vertical";
   showLabel?: boolean;
   ellipsis?: boolean;
   placeholder?: string;
@@ -79,6 +81,7 @@ export const Trigger = ({
   prefix,
   options,
   value: controlledValue,
+  direction = "horizontal",
   showLabel = true,
   placeholder = "Select",
   styles,
@@ -94,7 +97,10 @@ export const Trigger = ({
   // 非受控模式下，options 异步加载后自动选中第一个（渲染时派生，避免 effect 级联渲染）
   const currentValue = controlledValue ?? internalValue ?? options?.[0]?.value;
 
-  const { cls, vcls } = useCls("toggle-trigger", classNames?.trigger);
+  const { cls, vcls } = useCls(
+    ["toggle-trigger", `toggle-trigger--${direction}`],
+    classNames?.trigger,
+  );
 
   const label = useMemo(() => {
     const matched =
@@ -164,7 +170,7 @@ export const Trigger = ({
             width={16}
             strokeWidth={2}
             style={{
-              transform: "rotate(90deg)",
+              transform: direction === "vertical" ? "none" : "rotate(90deg)",
             }}
           />
         </div>

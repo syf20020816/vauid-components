@@ -25,6 +25,7 @@ import { TileWrap } from "../components/tile/wrap";
 import { Areas } from "../components/layout/types";
 import type { LayoutNode } from "../components/layout/types";
 import { Prejoin } from "../components/prejoin";
+import { WhiteboardTool } from "vauid-components/whiteboard/tool";
 
 const mockNode = (id: string, label: string, isFocus = false): LayoutNode => ({
   entity: { id, label },
@@ -79,10 +80,46 @@ export const TabPage = ({
       </>
     );
   } else if (tab === "prejoin") {
-    return <div style={{height: "100vh", width: "100vw", backgroundColor: "var(--vauid-color-bg-primary)"}}>
-      <Prejoin />
-    </div>;
-  } else if (tab == "header") {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          width: "100vw",
+          backgroundColor: "var(--vauid-color-bg-primary)",
+        }}
+      >
+        <Prejoin />
+      </div>
+    );
+  } else if (tab === "whiteboard-h") {
+    return (
+      <div style={{ height: "100vh", width: "100vw" }}>
+        <WhiteboardTool />
+        <WhiteboardTool position="top-center" />
+        <WhiteboardTool position="left-center" />
+        <WhiteboardTool position="right-center" />
+ 
+        <WhiteboardTool position="left-top" />
+        <WhiteboardTool position="right-top" />
+        <WhiteboardTool position="left-bottom" />
+        <WhiteboardTool position="right-bottom" />
+      </div>
+    );
+  } else if (tab === "whiteboard-v") {
+    return (
+      <div style={{ height: "100vh", width: "100vw" }}>
+        <WhiteboardTool direction="vertical" />
+        <WhiteboardTool position="top-center" direction="vertical" />
+        <WhiteboardTool position="left-center" direction="vertical" />
+        <WhiteboardTool position="right-center" direction="vertical" />
+    
+        <WhiteboardTool position="left-top" direction="vertical" />
+        <WhiteboardTool position="right-top" direction="vertical" />
+        <WhiteboardTool position="left-bottom" direction="vertical" />
+        <WhiteboardTool position="right-bottom" direction="vertical" />
+      </div>
+    );
+  }else if (tab == "header") {
     return (
       <>
         <RoomHeader roomName="Will's room" />
