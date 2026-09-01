@@ -27,6 +27,7 @@ import type { LayoutNode } from "../components/layout/types";
 import { Prejoin } from "../components/prejoin";
 import { WhiteboardTool } from "vauid-components/whiteboard/tool";
 import { Whiteboard } from "vauid-components";
+import { useRef, useState } from "react";
 
 const mockNode = (id: string, label: string, isFocus = false): LayoutNode => ({
   entity: { id, label },
@@ -67,6 +68,10 @@ export const TabPage = ({
 }: {
   searchParams?: URLSearchParams;
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [whiteboardRef, setWhiteboardRef] = useState<HTMLDivElement | null>(
+    null,
+  );
   const params = searchParams ?? new URLSearchParams(window.location.search);
   const tab = params.get("tab");
 
@@ -95,17 +100,41 @@ export const TabPage = ({
   } else if (tab === "whiteboard") {
     return (
       <div style={{ height: "100vh", width: "100vw" }}>
-        <Whiteboard />
+        <Whiteboard toolContainer={document.body} />
       </div>
     );
-  }else if (tab === "whiteboard-h") {
+  } else if (tab === "whiteboard-other") {
+    return (
+      <div style={{ height: "70vh", width: "70vw" }}>
+        <div
+          style={{
+            height: "60px",
+            width: "100vw",
+            backgroundColor: "red",
+            position: "relative",
+          }}
+          ref={(el) => {
+            containerRef.current = el;
+            setWhiteboardRef(el);
+          }}
+        ></div>
+        <Whiteboard toolContainer={whiteboardRef ?? undefined} />
+      </div>
+    );
+  } else if (tab === "whiteboard-self") {
+    return (
+      <div style={{ height: "80vh", width: "80vw" }}>
+        <Whiteboard toolContainer="self" />
+      </div>
+    );
+  } else if (tab === "whiteboard-h") {
     return (
       <div style={{ height: "100vh", width: "100vw" }}>
         <WhiteboardTool />
         <WhiteboardTool position="top-center" />
         <WhiteboardTool position="left-center" />
         <WhiteboardTool position="right-center" />
- 
+
         <WhiteboardTool position="left-top" />
         <WhiteboardTool position="right-top" />
         <WhiteboardTool position="left-bottom" />
@@ -119,14 +148,14 @@ export const TabPage = ({
         <WhiteboardTool position="top-center" direction="vertical" />
         <WhiteboardTool position="left-center" direction="vertical" />
         <WhiteboardTool position="right-center" direction="vertical" />
-    
+
         <WhiteboardTool position="left-top" direction="vertical" />
         <WhiteboardTool position="right-top" direction="vertical" />
         <WhiteboardTool position="left-bottom" direction="vertical" />
         <WhiteboardTool position="right-bottom" direction="vertical" />
       </div>
     );
-  }else if (tab == "header") {
+  } else if (tab == "header") {
     return (
       <>
         <RoomHeader roomName="Will's room" />

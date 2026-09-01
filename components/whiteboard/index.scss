@@ -33,7 +33,8 @@
   }
 
   &-tool {
-    // 默认 portal 到 document.body，需 fixed 让 position 修饰类的坐标生效
+    // 默认 portal 到 document.body，需 fixed 让 position 修饰类的坐标生效；
+    // self 模式下由 Whiteboard 附加 --tool-self 修饰类改为 absolute（相对白板容器定位）
     position: fixed;
     display: flex;
     justify-content: space-between;
@@ -46,6 +47,8 @@
     border-radius: radius("md");
     font-size: font-size("p");
     gap: space("sm");
+    border: 1px solid color("border-default");
+    z-index: 111;
     &--bottom-center {
       bottom: space("sm");
       left: 50%;
@@ -81,6 +84,11 @@
     &--right-bottom {
       bottom: space("sm");
       right: space("sm");
+    }
+
+    // self 模式：portal 进白板容器内，absolute 相对容器定位（容器为 position: relative）
+    &-self {
+      position: absolute;
     }
 
     // 方向：纵向垂直堆叠（横向为默认 row）

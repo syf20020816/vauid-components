@@ -43,6 +43,8 @@ export interface WhiteboardProps extends HTMLAttributes<HTMLDivElement> {
   iconSize?: number | string;
   /** 是否显示内置工具栏 */
   showTool?: boolean;
+  /** 内置工具栏渲染容器：undefined 绑到 document.body（fixed 定位）；"self" 绑到白板自身；或传具体元素（absolute 定位，容器需为 position: relative） */
+  toolContainer?: Element | DocumentFragment | "self";
   /** 图形集合变化回调（可用于持久化，注意绘制过程中会高频触发） */
   onShapesChange?: (shapes: WhiteboardShape[]) => void;
   /** 工具栏收缩回调（收缩后画布禁用绘制） */
@@ -92,6 +94,7 @@ export const Whiteboard = ({
   direction,
   iconSize,
   showTool = true,
+  toolContainer,
   onShapesChange,
   onCollapsed,
   className,
@@ -101,6 +104,8 @@ export const Whiteboard = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // 白板容器 DOM（callback ref 收集，供 toolContainer="self" 时渲染期使用；不能用渲染期读 ref）
+  const [mountContainer, setMountContainer] = useState<HTMLDivElement | null>(null);
 
   // 画布尺寸：跟随容器（ResizeObserver）
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -415,7 +420,10 @@ export const Whiteboard = ({
   return (
     <div
       {...props}
-      ref={containerRef}
+      ref={(el) => {
+        containerRef.current = el;
+        setMountContainer(el);
+      }}
       className={interactive ? `${cls} ${vcls("interactive")}` : cls}
       style={{ backgroundColor: background, ...props.style }}
     >
@@ -454,6 +462,12 @@ export const Whiteboard = ({
 
       {showTool && (
         <WhiteboardTool
+          // self / 自定义容器模式：附加修饰类将 fixed 改为 absolute（坐标相对容器定位，容器需 position: relative）
+          className={
+            toolContainer !== undefined && toolContainer !== document.body
+              ? vcls("tool-self")
+              : undefined
+          }
           position={position}
           direction={direction}
           iconSize={iconSize}
@@ -472,6 +486,8 @@ export const Whiteboard = ({
           onUndo={undo}
           onRedo={redo}
           onClear={clear}
+          // toolContainer：undefined → document.body（tool 默认）；"self" → 白板自身；否则为具体容器
+          container={toolContainer === "self" ? (mountContainer ?? undefined) : toolContainer}
         />
       )}
     </div>
