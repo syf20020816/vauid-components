@@ -2,8 +2,35 @@
 
 @include cmp("whiteboard") {
   @include flex-center;
+  position: relative;
+  overflow: hidden;
   height: 100%;
   width: 100%;
+
+  // 可绘制状态：十字光标
+  &-interactive {
+    cursor: crosshair;
+  }
+
+  // 文本编辑浮层（绝对定位于画布坐标，Stage 位于容器原点）
+  &-text-editor {
+    position: absolute;
+    min-width: 80px;
+    min-height: 1.5em;
+    padding: 0 2px;
+    margin: 0;
+    border: none;
+    // 虚线下划线提示输入位置（透明背景，与画布融合）
+    border-bottom: 1px dashed currentColor;
+    outline: none;
+    resize: none;
+    overflow: hidden;
+    background: transparent;
+    font-family: inherit;
+    line-height: 1.2;
+    white-space: pre;
+    caret-color: currentColor;
+  }
 
   &-tool {
     // 默认 portal 到 document.body，需 fixed 让 position 修饰类的坐标生效

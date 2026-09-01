@@ -26,6 +26,7 @@ import { Areas } from "../components/layout/types";
 import type { LayoutNode } from "../components/layout/types";
 import { Prejoin } from "../components/prejoin";
 import { WhiteboardTool } from "vauid-components/whiteboard/tool";
+import { Whiteboard } from "vauid-components";
 
 const mockNode = (id: string, label: string, isFocus = false): LayoutNode => ({
   entity: { id, label },
@@ -91,7 +92,13 @@ export const TabPage = ({
         <Prejoin />
       </div>
     );
-  } else if (tab === "whiteboard-h") {
+  } else if (tab === "whiteboard") {
+    return (
+      <div style={{ height: "100vh", width: "100vw" }}>
+        <Whiteboard />
+      </div>
+    );
+  }else if (tab === "whiteboard-h") {
     return (
       <div style={{ height: "100vh", width: "100vw" }}>
         <WhiteboardTool />

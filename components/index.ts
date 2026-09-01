@@ -35,4 +35,19 @@ export { RoomCtxProvider } from './std/ctx';
 export { useRoomCtx } from './std/ctx/hooks';
 export type { RoomCtx } from './std/ctx/types';
 export { Prejoin } from './prejoin';
+export { Whiteboard } from './whiteboard';
+export { WhiteboardTool, type WhiteboardToolProps } from './whiteboard/tool';
+export {
+  Tool,
+  PenType,
+  ShapeType,
+  Position,
+  Direction,
+  type WhiteboardShape,
+  type ToolValue,
+  type PenTypeValue,
+  type ShapeTypeValue,
+  type PositionType,
+  type DirectionType,
+} from './whiteboard/types';
 export { DEFAULT_COLORS } from './style/global';

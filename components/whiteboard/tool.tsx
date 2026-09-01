@@ -38,10 +38,26 @@ export interface WhiteboardToolProps extends HTMLAttributes<HTMLDivElement> {
   /** 工具栏方向：横向（默认）/ 纵向 */
   direction?: DirectionType;
   iconSize?: number | string;
+  /** 线条粗细（受控模式），不传则使用内部状态 */
   lineSize?: number;
   onLineSizeChange?: (lineSize: number) => void;
+  /** 当前选中工具（受控模式），不传则使用内部状态 */
+  tool?: ToolValue;
+  onToolChange?: (tool: ToolValue) => void;
+  /** 当前笔类型（受控模式），不传则使用内部状态 */
+  penType?: PenTypeValue;
+  onPenTypeChange?: (penType: PenTypeValue) => void;
+  /** 当前形状类型（受控模式），不传则使用内部状态 */
+  shapeType?: ShapeTypeValue;
+  onShapeTypeChange?: (shapeType: ShapeTypeValue) => void;
   /** 收缩/展开回调 */
   onCollapsed?: (collapsed: boolean) => void;
+  /** 撤销（由画布实现历史栈） */
+  onUndo?: () => void;
+  /** 重做 */
+  onRedo?: () => void;
+  /** 清空画布 */
+  onClear?: () => void;
   offset?: {
     top: CSSProperties["top"];
     left: CSSProperties["left"];
@@ -73,31 +89,39 @@ const getChevronRotate = (
   direction: DirectionType,
   position: PositionType,
 ): number => {
-  const [edge] = position.split("-");
+  const [edge, align] = position.split("-");
   if (direction === Direction.Horizontal) {
     // 横向：左右边缘的锚点指向对应侧，居中锚点指上下
     if (edge === "left") return -90;
     if (edge === "right") return 90;
-    return edge === "top" ? 0 : 180;
+    return align === "top" ? 0 : 180;
   }
   // 纵向：上下边缘的锚点指上下，居中锚点指左右
   if (edge === "top") return 0;
   if (edge === "bottom") return 180;
-
-  return edge === "top" ? 0 : 180;
-//   return align === "left" ? -90 : 90;
+  return align === "left" ? -90 : 90;
 };
 
 export const WhiteboardTool = ({
   container,
   className,
   direction = Direction.Horizontal,
-  lineSize = 4,
   iconSize = 16,
   offset,
   position = Position.BottomCenter,
   onCollapsed,
+  // 受控/非受控：外部值优先，否则使用内部状态
+  tool: toolProp,
+  onToolChange,
+  penType: penTypeProp,
+  onPenTypeChange,
+  shapeType: shapeTypeProp,
+  onShapeTypeChange,
+  lineSize: lineSizeProp,
   onLineSizeChange,
+  onUndo,
+  onRedo,
+  onClear,
   ...props
 }: WhiteboardToolProps) => {
   const { cls, vcls } = useCls(
@@ -109,10 +133,16 @@ export const WhiteboardTool = ({
     className,
   );
   const [collapsed, setCollapsed] = useState(false);
-  const [tool, setTool] = useState<ToolValue>(Tool.Pen);
-  const [penType, setPenType] = useState<PenTypeValue>(PenType.Brush);
-  const [shapeType, setShapeType] = useState<ShapeTypeValue>(ShapeType.Square);
-  const [iLineSize, setILineSize] = useState(lineSize);
+  const [iTool, setITool] = useState<ToolValue>(Tool.Pen);
+  const [iPenType, setIPenType] = useState<PenTypeValue>(PenType.Brush);
+  const [iShapeType, setIShapeType] = useState<ShapeTypeValue>(ShapeType.Square);
+  const [iLineSize, setILineSize] = useState(4);
+
+  const tool = toolProp ?? iTool;
+  const penType = penTypeProp ?? iPenType;
+  const shapeType = shapeTypeProp ?? iShapeType;
+  const lineSize = lineSizeProp ?? iLineSize;
+
   const flexDirection = direction === Direction.Vertical ? "column" : "row";
 
   // 收缩箭头：基础朝向 + 收缩后反转（指向展开方向）
@@ -123,6 +153,11 @@ export const WhiteboardTool = ({
     const next = !collapsed;
     setCollapsed(next);
     onCollapsed?.(next);
+  };
+
+  const switchTool = (next: ToolValue) => {
+    setITool(next);
+    onToolChange?.(next);
   };
 
   // 工具按钮类名：选中态追加 -active（warning 色，见 index.scss）
@@ -196,8 +231,11 @@ export const WhiteboardTool = ({
                 options={penOptions}
                 value={penType}
                 showLabel={false}
-                onChange={(value) => setPenType(value as PenTypeValue)}
-                onClick={() => setTool(Tool.Pen)}
+                onChange={(value) => {
+                  setIPenType(value as PenTypeValue);
+                  onPenTypeChange?.(value as PenTypeValue);
+                }}
+                onClick={() => switchTool(Tool.Pen)}
                 classNames={{ trigger: toolBtnCls(Tool.Pen) }}
               />
               <Trigger
@@ -206,19 +244,22 @@ export const WhiteboardTool = ({
                 options={shapeOptions}
                 value={shapeType}
                 showLabel={false}
-                onChange={(value) => setShapeType(value as ShapeTypeValue)}
-                onClick={() => setTool(Tool.Shape)}
+                onChange={(value) => {
+                  setIShapeType(value as ShapeTypeValue);
+                  onShapeTypeChange?.(value as ShapeTypeValue);
+                }}
+                onClick={() => switchTool(Tool.Shape)}
                 classNames={{ trigger: toolBtnCls(Tool.Shape) }}
               />
               <Button
                 icon={<Eraser size={iconSize} />}
                 className={toolBtnCls(Tool.Eraser)}
-                onClick={() => setTool(Tool.Eraser)}
+                onClick={() => switchTool(Tool.Eraser)}
               />
               <Button
                 icon={<Type size={iconSize} />}
                 className={toolBtnCls(Tool.Text)}
-                onClick={() => setTool(Tool.Text)}
+                onClick={() => switchTool(Tool.Text)}
               />
             </div>
             <Divider direction={anotherD(direction)} />
@@ -228,21 +269,22 @@ export const WhiteboardTool = ({
                 min={1}
                 max={10}
                 step={0.5}
-                value={iLineSize}
+                value={lineSize}
                 onChange={handleLineSizeChange}
                 direction={direction}
               ></Slider>
-              <span>{iLineSize}</span>
+              <span>{lineSize}</span>
             </div>
           </main>
           <Divider direction={anotherD(direction)} />
           <footer className={vcls("footer")} style={{ flexDirection }}>
-            <Button icon={<Undo size={iconSize} />}></Button>
-            <Button icon={<Redo size={iconSize} />}></Button>
+            <Button icon={<Undo size={iconSize} />} onClick={onUndo} />
+            <Button icon={<Redo size={iconSize} />} onClick={onRedo} />
             <Button
               className={vcls("delete")}
               icon={<Trash size={iconSize} />}
-            ></Button>
+              onClick={onClear}
+            />
           </footer>
         </>
       )}
