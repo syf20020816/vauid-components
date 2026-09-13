@@ -251,6 +251,8 @@ export const LifeTimes = {
   onResize: "onResize",
   /** 引擎中任何 state 出现更新时触发 */
   onUpdate: "onUpdate",
+  /** 布局选择状态（layoutType / fullScreen）变化时触发 */
+  onLayoutChange: "onLayoutChange",
   /** 引擎中监听实体更新触发, 包括实体的增加/删除/更新 */
   onEntityUpdate: "onEntityUpdate",
   /** 引擎销毁时触发 */
@@ -265,6 +267,7 @@ export interface LifeTimeEventMap {
   [LifeTimes.onRun]: () => FnReturn<void>;
   [LifeTimes.onResize]: (width: number, height: number) => FnReturn<void>;
   [LifeTimes.onUpdate]: () => FnReturn<void>;
+  [LifeTimes.onLayoutChange]: () => FnReturn<void>;
   [LifeTimes.onEntityUpdate]: (
     entities: LayoutNodes<LayoutEntity>,
     type: NodeUpdate,

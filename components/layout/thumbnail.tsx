@@ -1,10 +1,10 @@
-import { useRef, useState, useLayoutEffect } from "react";
+import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import { Button } from "../button";
 import { Dropdown, type DropdownProps, type DropdownRef } from "../dropdown";
 import { useCls } from "../std/hooks/cls";
 import "./index.scss";
 import { LayoutDashboard } from "lucide-react";
-import { LayoutTypes, type LayoutType } from "./types";
+import { LifeTimes, LayoutTypes, type LayoutType } from "./types";
 import type { FnReturn } from "vauid-components/std";
 import { useRoomCtx } from "vauid-components/std/ctx/hooks";
 
@@ -27,8 +27,29 @@ export const Thumbnail = ({
   const dropdownRef = useRef<DropdownRef>(null);
   const [popupClassName, setPopupClassName] = useState("");
   const [popupItemClassName, setPopupItemClassName] = useState("");
-
   const ctx = useRoomCtx();
+  // 引擎是命令式对象，改 layoutType/fullScreen 不会触发 React 重渲染：
+  // 用 state 镜像选中态，订阅 onLayoutChange 事件同步（渲染期直读引擎只会拿到旧值）
+  const [selectedLayout, setSelectedLayout] = useState<LayoutType>(
+    () => ctx?.layout.getLayoutType() ?? LayoutTypes.Grid,
+  );
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  useEffect(() => {
+    const engine = ctx?.layout;
+    if (!engine) return;
+    // 注意：引擎生命周期为单槽位回调（on 会整体覆盖），勿与其他订阅方共用 onLayoutChange
+    const sync = () => {
+      setSelectedLayout(engine.getLayoutType());
+      setIsFullScreen(engine.getState().fullScreen === true);
+    };
+    sync();
+    engine.on(LifeTimes.onLayoutChange, sync);
+    return () => engine.off(LifeTimes.onLayoutChange);
+  }, [ctx?.layout]);
+
+  // 全屏时选中 FullScreen 缩略图（fullScreenFirst 不改 layoutType）
+  const currentLayout = isFullScreen ? LayoutTypes.FullScreen : selectedLayout;
 
   // Dropdown ref 在 commit 阶段才赋值，需同步到 state 以驱动 popup 重新渲染
   useLayoutEffect(() => {
@@ -38,15 +59,34 @@ export const Thumbnail = ({
 
   const clickTb = async (layout: LayoutType) => {
     // useRoomCtx 可能返回 null（未在 RoomCtxProvider 内），需防护
-    ctx?.layout.setLayoutType(layout);
-    onLayoutChange?.(layout);
+    if (layout === LayoutTypes.Grid) {
+      ctx?.layout.grid();
+    } else if (layout === LayoutTypes.Focus) {
+      ctx?.layout.focusFirst();
+    } else if (layout === LayoutTypes.FullScreen) {
+      ctx?.layout.fullScreenFirst();
+    }
+
+    await onLayoutChange?.(layout);
   };
 
   const popup = (
     <div className={`${cls} ${popupClassName}`}>
-      <LayoutFocusTb className={popupItemClassName} onClick={clickTb} />
-      <LayoutGridTb className={popupItemClassName} onClick={clickTb} />
-      <LayoutFullScreenTb className={popupItemClassName} onClick={clickTb} />
+      <LayoutFocusTb
+        selected={currentLayout === LayoutTypes.Focus}
+        className={popupItemClassName}
+        onClick={clickTb}
+      />
+      <LayoutGridTb
+        selected={currentLayout === LayoutTypes.Grid}
+        className={popupItemClassName}
+        onClick={clickTb}
+      />
+      <LayoutFullScreenTb
+        selected={currentLayout === LayoutTypes.FullScreen}
+        className={popupItemClassName}
+        onClick={clickTb}
+      />
     </div>
   );
 
@@ -60,12 +100,16 @@ export const Thumbnail = ({
 };
 
 interface LayoutTbProps {
+  selected?: boolean;
   className?: string;
   onClick?: (layout: LayoutType) => FnReturn<void>;
 }
 
-const LayoutFocusTb = ({ className, onClick }: LayoutTbProps) => {
-  const { cls, vcls } = useCls("layout-focus-tb", className);
+const LayoutFocusTb = ({ selected, className, onClick }: LayoutTbProps) => {
+  const { cls, vcls } = useCls(
+    ["layout-focus-tb", selected && "layout-focus-tb-selected"],
+    className,
+  );
 
   return (
     <div className={cls} onClick={() => onClick?.(LayoutTypes.Focus)}>
@@ -78,8 +122,12 @@ const LayoutFocusTb = ({ className, onClick }: LayoutTbProps) => {
     </div>
   );
 };
-const LayoutGridTb = ({ className, onClick }: LayoutTbProps) => {
-  const { cls, vcls } = useCls("layout-grid-tb", className);
+
+const LayoutGridTb = ({ selected, className, onClick }: LayoutTbProps) => {
+  const { cls, vcls } = useCls(
+    ["layout-grid-tb", selected && "layout-grid-tb-selected"],
+    className,
+  );
 
   return (
     <div className={cls} onClick={() => onClick?.(LayoutTypes.Grid)}>
@@ -89,8 +137,15 @@ const LayoutGridTb = ({ className, onClick }: LayoutTbProps) => {
     </div>
   );
 };
-const LayoutFullScreenTb = ({ className, onClick }: LayoutTbProps) => {
-  const { cls, vcls } = useCls("layout-fullscreen-tb", className);
+const LayoutFullScreenTb = ({
+  selected,
+  className,
+  onClick,
+}: LayoutTbProps) => {
+  const { cls, vcls } = useCls(
+    ["layout-fullscreen-tb", selected && "layout-fullscreen-tb-selected"],
+    className,
+  );
 
   return (
     <div className={cls} onClick={() => onClick?.(LayoutTypes.FullScreen)}>

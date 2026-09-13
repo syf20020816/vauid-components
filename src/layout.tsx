@@ -26,7 +26,7 @@ import { Areas } from "../components/layout/types";
 import type { LayoutNode } from "../components/layout/types";
 import { Prejoin } from "../components/prejoin";
 import { WhiteboardTool } from "vauid-components/whiteboard/tool";
-import { Whiteboard } from "vauid-components";
+import { RoomCtxProvider, Whiteboard } from "vauid-components";
 import { useRef, useState } from "react";
 
 const mockNode = (id: string, label: string, isFocus = false): LayoutNode => ({
@@ -77,13 +77,13 @@ export const TabPage = ({
 
   if (!tab) {
     return (
-      <>
+      <RoomCtxProvider>
         <RoomHeader roomName="Will's room" />
         <div style={{ width: "100vw", height: "calc(100vh - 116px)" }}>
           <Page />
         </div>
         <Controller position="center" audio={{ props: { showLabel: false } }} />
-      </>
+      </RoomCtxProvider>
     );
   } else if (tab === "prejoin") {
     return (

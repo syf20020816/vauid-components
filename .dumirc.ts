@@ -36,6 +36,7 @@ export default defineConfig({
       { title: '首页', link: '/' },
       { title: '组件', link: '/components/' },
       { title: '布局引擎', link: '/layout/' },
+      { title: '上下文', link: '/ctx/' },
     ],
     sidebar: {
       '/components/': [
@@ -91,6 +92,14 @@ export default defineConfig({
             '/layout/overview',
             '/layout/api',
             '/layout/thumbnail',
+          ],
+        },
+      ],
+      '/ctx/': [
+        {
+          title: '上下文',
+          children: [
+            '/ctx',
           ],
         },
       ],

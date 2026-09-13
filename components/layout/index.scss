@@ -16,6 +16,9 @@
   gap: 0px;
   border-radius: radius("sm");
   padding: 0 !important;
+  &-selected {
+    background-color: color("border-strong");
+  }
   &-aside {
     width: 35%;
     height: 100%;
@@ -46,8 +49,10 @@
   gap: 2px;
   border-radius: radius("sm");
   padding: 2px !important;
+  &-selected {
+    background-color: color("border-strong");
+  }
   &-aside {
-    
     &-item {
       height: 100%;
       width: 100%;
@@ -63,6 +68,9 @@
   gap: 2px;
   border-radius: radius("sm");
   padding: 2px !important;
+  &-selected {
+    background-color: color("border-strong");
+  }
   &-main {
     background-color: color("border-default");
     flex: 1;

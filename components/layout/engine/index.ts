@@ -712,16 +712,37 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   focus(id: string) {
     const entity = this.state.entities.find((e) => e.id === id);
     this.state.focusEntity = entity ?? null;
-    this.state.layoutType = LayoutTypes.Focus;
-    this.computeAndCache();
-    this.onUpdate();
+    this.state.fullScreenEntity = null;
+    this.state.fullScreen = false;
+    this.setLayoutType(LayoutTypes.Focus);
   }
 
   unFocus() {
     this.state.focusEntity = null;
-    this.state.layoutType = LayoutTypes.Grid;
-    this.computeAndCache();
-    this.onUpdate();
+    this.setLayoutType(LayoutTypes.Grid);
+  }
+
+  focusFirst() {
+    this.focus(this.state.entities[0].id);
+  }
+
+  fullScreen(id: string) {
+    this.setFullScreen(id);
+  }
+
+  unFullScreen() {
+    this.setFullScreen();
+  }
+
+  fullScreenFirst() {
+    this.fullScreen(this.state.entities[0].id);
+  }
+
+  grid() {
+    this.state.focusEntity = null;
+    this.state.fullScreenEntity = null;
+    this.state.fullScreen = false;
+    this.setLayoutType(LayoutTypes.Grid);
   }
 
   /**
@@ -747,6 +768,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     }
     this.computeAndCache();
     this.onUpdate();
+    this.onLayoutChange();
   }
 
   setPage(page: number) {
@@ -815,6 +837,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     this.state.layoutType = layoutType;
     this.computeAndCache();
     this.onUpdate();
+    this.onLayoutChange();
   }
 
   setAspectRatio(w: number, h: number) {
@@ -841,10 +864,23 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     return this.state.fullScreenEntity ?? null;
   }
 
+  /** 获取当前布局类型 */
+  getLayoutType(): LayoutType {
+    return this.state.layoutType ?? LayoutTypes.Grid;
+  }
+
   // --- 生命周期回调 ---------------------------------------------------------------------------------
 
   private onUpdate() {
     const callback = this.lifeTime.get(LifeTimes.onUpdate) as
+      | (() => FnReturn<void>)
+      | undefined;
+    callback?.();
+  }
+
+  /** 布局选择状态（layoutType / fullScreen）变化时通知（单槽位回调） */
+  private onLayoutChange() {
+    const callback = this.lifeTime.get(LifeTimes.onLayoutChange) as
       | (() => FnReturn<void>)
       | undefined;
     callback?.();
