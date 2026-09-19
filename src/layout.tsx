@@ -27,6 +27,7 @@ import type { LayoutNode } from "../components/layout/types";
 import { Prejoin } from "../components/prejoin";
 import { WhiteboardTool } from "vauid-components/whiteboard/tool";
 import { RoomCtxProvider, Whiteboard } from "vauid-components";
+import { DeviceTrigger } from "../components/controller/device";
 import { useRef, useState } from "react";
 
 const mockNode = (id: string, label: string, isFocus = false): LayoutNode => ({
@@ -69,6 +70,8 @@ export const TabPage = ({
   searchParams?: URLSearchParams;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  // 屏幕共享演示：ScreenShare 按钮将 getDisplayMedia 流挂到该 video 元素上
+  const screenShareVideoRef = useRef<HTMLVideoElement>(null);
   const [whiteboardRef, setWhiteboardRef] = useState<HTMLDivElement | null>(
     null,
   );
@@ -192,30 +195,33 @@ export const TabPage = ({
     );
   } else if (tab === "tile") {
     return (
-      <div style={flexRowWrap}>
-        <TileWrap
-          node={mockNode("note", "公告")}
-          style={{ height: 300, width: 300 }}
-          float={{
-            leftTop: { show: false },
-            leftBottom: { show: false },
-            rightBottom: { show: false },
-          }}
-        >
-          <NoteTile value={noteValue} />
-        </TileWrap>
-        <TileWrap
-          node={mockNode("audio", "Join")}
-          style={{ height: 300, width: 300 }}
-        >
-          <AudioTile name="Join"></AudioTile>
-        </TileWrap>
-        <TileWrap
-          node={mockNode("video", "视频", true)}
-          style={{ height: 300, width: 300 }}
-        >
-          <VideoTile></VideoTile>
-        </TileWrap>
+      <div style={{ ...flexCol }}>
+        <div style={flexRowWrap}>
+          <TileWrap
+            node={mockNode("note", "公告")}
+            style={{ height: 300, width: 300 }}
+            float={{
+              leftTop: { show: false },
+              leftBottom: { show: false },
+              rightBottom: { show: false },
+            }}
+          >
+            <NoteTile value={noteValue} />
+          </TileWrap>
+          <TileWrap
+            node={mockNode("audio", "Join")}
+            style={{ height: 300, width: 300 }}
+          >
+            <AudioTile name="Join"></AudioTile>
+          </TileWrap>
+          <TileWrap
+            node={mockNode("video", "屏幕共享", true)}
+            style={{ height: 300, width: 300 }}
+          >
+            <VideoTile ref={screenShareVideoRef}></VideoTile>
+          </TileWrap>
+        </div>
+        <DeviceTrigger.ScreenShare element={screenShareVideoRef} />
       </div>
     );
   } else if (tab === "audio") {
