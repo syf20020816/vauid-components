@@ -7,6 +7,7 @@ import {
   type FC,
   type ForwardRefExoticComponent,
   type MouseEvent,
+  type ReactNode,
   type RefAttributes,
 } from "react";
 import { useCls } from "../std/hooks/cls";
@@ -128,12 +129,30 @@ const DeviceTriggerVideo = forwardRef<
   );
 });
 
+export interface DeviceScreenShareProps extends UseScreenShareProps {
+  onClick?: (e: MouseEvent<HTMLElement>, sharing: boolean) => FnReturn<void>;
+  label: {
+    start: string;
+    stop: string;
+  };
+  icon: {
+    start: ReactNode;
+    stop: ReactNode;
+  };
+}
+
 const DeviceScreenShare = ({
   onClick,
+  label = {
+    start: "Share Screen",
+    stop: "Stop Sharing",
+  },
+  icon = {
+    start: <Icon.ScreenShare {...svgProps} />,
+    stop: <Icon.ScreenShareOff  {...svgProps} color="var(--vauid-color-error)" />,
+  },
   ...props
-}: UseScreenShareProps & {
-  onClick?: (e: MouseEvent<HTMLElement>, sharing: boolean) => FnReturn<void>;
-}) => {
+}: DeviceScreenShareProps) => {
   const { share, sharing, stop } = useScreenShare(props);
   const { cls } = useCls(["screenShare", sharing && "active"]);
   return (
@@ -147,9 +166,9 @@ const DeviceScreenShare = ({
         }
         onClick?.(e, sharing);
       }}
-      icon={<Icon.ScreenShare {...svgProps} />}
+      icon={icon[sharing ? "stop" : "start"]}
     >
-      {sharing ? "Stop Sharing" : "Share Screen"}
+      {sharing ? label.stop : label.start}
     </Button>
   );
 };
@@ -175,10 +194,9 @@ DeviceTrigger.More = DeviceTriggerMore;
 
 export interface DeviceSliderComponent extends React.FC<SliderProps> {
   Microphone: React.FC<SliderProps>;
-  
 }
 
-export  interface DeviceSliderMicrophoneProps extends SliderProps {
+export interface DeviceSliderMicrophoneProps extends SliderProps {
   format?: (v: number) => string;
 }
 /**
@@ -186,7 +204,10 @@ export  interface DeviceSliderMicrophoneProps extends SliderProps {
  * - 启动麦克风流后，通过 Web Audio GainNode 实时调节音量（0~100）
  * - 卸载时自动停止麦克风流并释放 AudioContext
  */
-const DeviceSliderMicrophone = ({ format, ...props }: DeviceSliderMicrophoneProps) => {
+const DeviceSliderMicrophone = ({
+  format,
+  ...props
+}: DeviceSliderMicrophoneProps) => {
   const { inUsed, start, stop, streamRef } = useDevice({
     deviceKind: "audioinput",
   });

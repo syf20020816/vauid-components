@@ -24,6 +24,7 @@ import {
   UserRoundPlus,
   Link,
   UsersRound,
+  MonitorOff,
 } from "lucide-react";
 
 type IconComponent = FC<SVGProps<SVGSVGElement>> & {
@@ -34,6 +35,7 @@ type IconComponent = FC<SVGProps<SVGSVGElement>> & {
   Volume: FC<SVGProps<SVGSVGElement>>;
   Camera: FC<SVGProps<SVGSVGElement>>;
   ScreenShare: FC<SVGProps<SVGSVGElement>>;
+  ScreenShareOff: FC<SVGProps<SVGSVGElement>>;
   Add: FC<SVGProps<SVGSVGElement>>;
   User: FC<SVGProps<SVGSVGElement>>;
   MicOff: FC<SVGProps<SVGSVGElement>>;
@@ -70,6 +72,7 @@ BaseIcon.MicrophoneOff = (props) => <MicOff {...defaultProps} {...props} />;
 BaseIcon.Volume = (props) => <Volume2 {...defaultProps} {...props} />;
 BaseIcon.Camera = (props) => <Video {...defaultProps} {...props} />;
 BaseIcon.ScreenShare = (props) => <MonitorUp {...defaultProps} {...props} />;
+BaseIcon.ScreenShareOff = (props) => <MonitorOff {...defaultProps} {...props} />;
 BaseIcon.Add = (props) => <Plus {...defaultProps} {...props} />;
 BaseIcon.User = (props) => <User {...defaultProps} {...props} />;
 BaseIcon.MicOff = (props) => <MicOff {...defaultProps} {...props} />;
