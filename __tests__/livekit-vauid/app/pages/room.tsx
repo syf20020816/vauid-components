@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { MeetingRoom } from "vauid-components/room";
+import { TileWrap } from "vauid-components/tile/wrap";
+import { VideoTile } from "vauid-components/tile/video";
 import type { LayoutEntity, LayoutNode } from "vauid-components/layout/types";
 import { Room, RoomEvent, Track } from "../../lib/livekit";
 
@@ -18,64 +20,37 @@ const toEntity = (identity: string, name?: string): LayoutEntity => ({
   label: name || identity,
 });
 
-/** 参与者视频瓦片：将摄像头 track 挂载到 video 元素 */
-const ParticipantVideo = ({
-  room,
-  identity,
-  label,
-}: {
-  room: Room;
-  identity: string;
-  label?: string;
-}) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
+/** 查找参与者的摄像头 track */
+const getCameraTrack = (room: Room, identity: string) => {
+  const participant =
+    identity === room.localParticipant.identity
+      ? room.localParticipant
+      : room.remoteParticipants.get(identity);
+  return participant?.getTrackPublication(Track.Source.Camera)?.track;
+};
 
-  useEffect(() => {
-    const el = videoRef.current;
-    if (!el) return;
-    const participant =
-      identity === room.localParticipant.identity
-        ? room.localParticipant
-        : room.remoteParticipants.get(identity);
-    const track = participant?.getTrackPublication(Track.Source.Camera)?.track;
-    if (track) {
-      track.attach(el);
-    }
-    return () => {
-      track?.detach(el);
-    };
-  }, [room, identity]);
+/** 参与者视频瓦片：TileWrap 悬浮层（名称等） + VideoTile 承载摄像头 track */
+const ParticipantVideo = ({ room, node }: { room: Room; node: LayoutNode }) => {
+  const identity = node.entity.id;
+
+  const bind = useCallback(
+    (el: HTMLVideoElement) => {
+      getCameraTrack(room, identity)?.attach(el);
+    },
+    [room, identity],
+  );
+
+  const unbind = useCallback(
+    (el: HTMLVideoElement) => {
+      getCameraTrack(room, identity)?.detach(el);
+    },
+    [room, identity],
+  );
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%" }}>
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          display: "block",
-        }}
-      />
-      {label && (
-        <span
-          style={{
-            position: "absolute",
-            bottom: 8,
-            left: 8,
-            fontSize: 12,
-            color: "#fff",
-            background: "rgba(0,0,0,.5)",
-            padding: "2px 8px",
-            borderRadius: 8,
-          }}
-        >
-          {label}
-        </span>
-      )}
-    </div>
+    <TileWrap node={node}>
+      <VideoTile bind={bind} unbind={unbind} />
+    </TileWrap>
   );
 };
 
@@ -114,11 +89,7 @@ export const RoomPage = ({ room, roomName, onLeave }: RoomPageProps) => {
   }, [room]);
 
   const renderEntity = (node: LayoutNode) => (
-    <ParticipantVideo
-      room={room}
-      identity={node.entity.id}
-      label={node.entity.label}
-    />
+    <ParticipantVideo room={room} node={node} />
   );
 
   return (
