@@ -7,6 +7,7 @@ import type { Option } from "../trigger/types";
 import type { TriggerProps } from "../trigger";
 import type { UseScreenShareProps } from "./hooks/useScreenShare";
 import { ParticipantNum, type ParticipantNumProps } from "../participant/num";
+import { useRoomCtxLayout } from "vauid-components/std/ctx/hooks";
 
 export interface ControllerProps
   extends LeaveButtonAttr, HTMLAttributes<HTMLElement> {
@@ -16,16 +17,19 @@ export interface ControllerProps
   moreOptions?: Option[];
   audio?: {
     show?: boolean;
+    showLabel?: boolean;
     props?: TriggerProps;
     children?: ReactNode;
   };
   video?: {
     show?: boolean;
+    showLabel?: boolean;
     props?: TriggerProps;
     children?: ReactNode;
   };
   screenShare?: {
     show?: boolean;
+    showLabel?: boolean;
     props?: UseScreenShareProps;
     children?: ReactNode;
   };
@@ -74,6 +78,8 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
     }: ControllerProps,
     ref,
   ) => {
+    const { deviceType } = useRoomCtxLayout();
+    const isMobile = deviceType === "mobile";
     const { cls } = useCls("controller", props.className);
     const { cls: devicesCls } = useCls("devices");
     const showAudio = audio?.show ?? true;
@@ -94,12 +100,19 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
           }}
         >
           {showAudio &&
-            (audio?.children ?? <DeviceTrigger.Audio {...audio?.props} />)}
+            (audio?.children ?? (
+              <DeviceTrigger.Audio showLabel={!isMobile} {...audio?.props} />
+            ))}
           {showVideo &&
-            (video?.children ?? <DeviceTrigger.Video {...video?.props} />)}
+            (video?.children ?? (
+              <DeviceTrigger.Video showLabel={!isMobile} {...video?.props} />
+            ))}
           {showScreenShare &&
             (screenShare?.children ?? (
-              <DeviceTrigger.ScreenShare {...screenShare?.props} />
+              <DeviceTrigger.ScreenShare
+                showLabel={!isMobile}
+                {...screenShare?.props}
+              />
             ))}
           {showMore && moreOptions.length > 0 && (
             <DeviceTrigger.More options={moreOptions} />

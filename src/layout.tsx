@@ -175,9 +175,12 @@ export const TabPage = ({
     );
   } else if (tab === "ctr") {
     return (
-      <div style={flexCenter}>
-        <Controller />
-      </div>
+      <RoomCtxProvider>
+        {" "}
+        <div style={flexCenter}>
+          <Controller />
+        </div>
+      </RoomCtxProvider>
     );
   } else if (tab === "btn") {
     return (

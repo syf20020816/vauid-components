@@ -25,6 +25,9 @@ const DEFAULT_ASPECT_RATIO: Record<DeviceType, { w: number; h: number }> = {
   [DeviceTypes.Desktop]: { w: 16, h: 9 },
   [DeviceTypes.Mobile]: { w: 9, h: 16 },
 };
+
+/** 自动切换设备类型的默认断点（px）：容器宽度小于该值判定为移动端 */
+const DEFAULT_MOBILE_BREAKPOINT = 768;
 import { LayoutCompute } from "./compute";
 import { LayoutSizeWatcher } from "./watcher/size";
 import { LayoutNodeWatcher } from "./watcher/node";
@@ -44,6 +47,16 @@ interface FromServer {
   room: string;
   /** 服务器地址，默认为本地127.0.0.1 */
   serverUrl?: string;
+}
+
+/**
+ * # EngineConfig - Engine 附加配置（非布局计算输入）
+ */
+interface EngineConfig {
+  /** 是否根据容器宽度自动切换设备类型，默认 true；显式指定 deviceType 时默认关闭 */
+  autoDeviceType?: boolean;
+  /** 自动切换断点（px），容器宽度小于该值判定为移动端，默认 768 */
+  mobileBreakpoint?: number;
 }
 
 interface EngineState<Entity extends LayoutEntity = LayoutEntity> {
@@ -79,6 +92,10 @@ interface EngineState<Entity extends LayoutEntity = LayoutEntity> {
   aspectRatio?: { w: number; h: number };
   /** 是否开启智能末尾填补算法，默认 true */
   smart?: boolean;
+  /** 是否根据容器宽度自动切换设备类型，默认 true */
+  autoDeviceType?: boolean;
+  /** 自动切换断点（px）：宽度小于该值判定为移动端，默认 768 */
+  mobileBreakpoint?: number;
 }
 
 /**
@@ -148,6 +165,8 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     gridFixedSize: false,
     aspectRatio: DEFAULT_ASPECT_RATIO[DeviceTypes.Desktop],
     smart: true,
+    autoDeviceType: true,
+    mobileBreakpoint: DEFAULT_MOBILE_BREAKPOINT,
   };
 
   /** 计算出的布局节点 */
@@ -187,7 +206,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   async init(
     entities: Entity[],
     container: HTMLElement,
-    others?: Partial<ComputeConfig<Entity>> & { worker?: WorkerProxyOptions },
+    others?: Partial<ComputeConfig<Entity>> & EngineConfig & { worker?: WorkerProxyOptions },
     _fromServer?: FromServer,
   ) {
     console.warn("服务器分发暂未实现: ", _fromServer);
@@ -206,6 +225,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     const { height, width } = this.getSize();
     this.state.height = height;
     this.state.width = width;
+    this.syncDeviceType(width);
 
     this.computeAndCache();
     const onInit = this.lifeTime.get(LifeTimes.onInit) as
@@ -217,7 +237,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   async initFromNodes(
     nodes: LayoutNodes<Entity>,
     container: HTMLElement,
-    others?: Partial<ComputeConfig<Entity>>,
+    others?: Partial<ComputeConfig<Entity>> & EngineConfig,
     _fromServer?: FromServer,
   ) {
     console.warn("服务器分发暂未实现: ", _fromServer);
@@ -234,6 +254,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     const { height, width } = this.getSize();
     this.state.height = height;
     this.state.width = width;
+    this.syncDeviceType(width);
 
     const onInit = this.lifeTime.get(LifeTimes.onInit) as
       | (() => FnReturn<void>)
@@ -246,6 +267,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     this.sizeWatcher.onResize = (width: number, height: number) => {
       this.state.width = width;
       this.state.height = height;
+      this.syncDeviceType(width);
       this.computeAndCache();
       const callback = this.lifeTime.get(LifeTimes.onResize) as
         | ((width: number, height: number) => FnReturn<void>)
@@ -256,6 +278,22 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     const { height, width } = container.getBoundingClientRect();
     this.state.width = width;
     this.state.height = height;
+  }
+
+  /**
+   * ## 根据容器宽度自动同步设备类型
+   * 仅在 `autoDeviceType` 开启时生效；切换时同步应用该设备类型的
+   * 默认 pageSize / aspectRatio（与 `setDeviceType(type, true)` 行为一致）
+   */
+  private syncDeviceType(width: number) {
+    if (!this.state.autoDeviceType) return;
+    const breakpoint = this.state.mobileBreakpoint ?? DEFAULT_MOBILE_BREAKPOINT;
+    const next: DeviceType =
+      width < breakpoint ? DeviceTypes.Mobile : DeviceTypes.Desktop;
+    if (next === this.state.deviceType) return;
+    this.state.deviceType = next;
+    this.state.pageSize = DEFAULT_PAGE_SIZE[next];
+    this.state.aspectRatio = DEFAULT_ASPECT_RATIO[next];
   }
 
   private initNodeWatcher() {
@@ -432,15 +470,18 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   /**
    * ## 应用配置到状态
    */
-  private applyConfig(others: Partial<ComputeConfig<Entity>>) {
+  private applyConfig(others: Partial<ComputeConfig<Entity>> & EngineConfig) {
     if (others.focusEntity !== undefined)
       this.state.focusEntity = others.focusEntity;
     if (others.fullScreen !== undefined)
       this.state.fullScreen = others.fullScreen;
     if (others.fullScreenEntity !== undefined)
       this.state.fullScreenEntity = others.fullScreenEntity;
-    if (others.deviceType !== undefined)
+    if (others.deviceType !== undefined) {
       this.state.deviceType = others.deviceType;
+      // 显式指定设备类型视为手动接管，关闭自动切换（除非显式开启 autoDeviceType）
+      this.state.autoDeviceType = false;
+    }
     if (others.layoutType !== undefined)
       this.state.layoutType = others.layoutType;
     if (others.pageSize !== undefined) this.state.pageSize = others.pageSize;
@@ -452,6 +493,10 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     if (others.aspectRatio !== undefined)
       this.state.aspectRatio = others.aspectRatio;
     if (others.smart !== undefined) this.state.smart = others.smart;
+    if (others.autoDeviceType !== undefined)
+      this.state.autoDeviceType = others.autoDeviceType;
+    if (others.mobileBreakpoint !== undefined)
+      this.state.mobileBreakpoint = others.mobileBreakpoint;
   }
 
   // --- 生命周期回调 ---------------------------------------------------------------------------------
@@ -824,11 +869,29 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   }
 
   setDeviceType(deviceType: DeviceType, auto?: boolean) {
+    // 手动指定设备类型后关闭自动切换，避免尺寸变化覆盖手动设置
+    this.state.autoDeviceType = false;
     this.state.deviceType = deviceType;
     if (auto) {
       this.state.pageSize = DEFAULT_PAGE_SIZE[deviceType];
       this.state.aspectRatio = DEFAULT_ASPECT_RATIO[deviceType];
     }
+    this.computeAndCache();
+    this.onUpdate();
+  }
+
+  /**
+   * ## 设置自动设备类型切换
+   * - 开启后根据容器宽度自动切换 deviceType（宽度 < mobileBreakpoint 为移动端）
+   * - 断点不传时保留当前断点（默认 768）
+   */
+  setAutoDeviceType(enabled: boolean, mobileBreakpoint?: number) {
+    this.state.autoDeviceType = enabled;
+    if (mobileBreakpoint !== undefined) {
+      this.state.mobileBreakpoint = mobileBreakpoint;
+    }
+    const { width } = this.getSize();
+    this.syncDeviceType(width);
     this.computeAndCache();
     this.onUpdate();
   }

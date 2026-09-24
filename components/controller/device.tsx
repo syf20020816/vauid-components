@@ -28,7 +28,7 @@ export interface DeviceTriggerComponent extends FC<TriggerProps> {
   Video: ForwardRefExoticComponent<
     DeviceTriggerProps & RefAttributes<DeviceVideoTriggerExports>
   >;
-  ScreenShare: FC<UseScreenShareProps>;
+  ScreenShare: FC<DeviceScreenShareProps>;
   More: FC<TriggerProps>;
 }
 
@@ -131,14 +131,16 @@ const DeviceTriggerVideo = forwardRef<
 
 export interface DeviceScreenShareProps extends UseScreenShareProps {
   onClick?: (e: MouseEvent<HTMLElement>, sharing: boolean) => FnReturn<void>;
-  label: {
-    start: string;
-    stop: string;
+  label?: {
+    start?: string;
+    stop?: string;
   };
-  icon: {
-    start: ReactNode;
-    stop: ReactNode;
+  icon?: {
+    start?: ReactNode;
+    stop?: ReactNode;
   };
+  /** 是否显示共享按钮的文本 */
+  showLabel?: boolean;
 }
 
 const DeviceScreenShare = ({
@@ -149,8 +151,11 @@ const DeviceScreenShare = ({
   },
   icon = {
     start: <Icon.ScreenShare {...svgProps} />,
-    stop: <Icon.ScreenShareOff  {...svgProps} color="var(--vauid-color-error)" />,
+    stop: (
+      <Icon.ScreenShareOff {...svgProps} color="var(--vauid-color-error)" />
+    ),
   },
+  showLabel = true,
   ...props
 }: DeviceScreenShareProps) => {
   const { share, sharing, stop } = useScreenShare(props);
@@ -168,7 +173,7 @@ const DeviceScreenShare = ({
       }}
       icon={icon[sharing ? "stop" : "start"]}
     >
-      {sharing ? label.stop : label.start}
+      {showLabel && (sharing ? label.stop : label.start)}
     </Button>
   );
 };

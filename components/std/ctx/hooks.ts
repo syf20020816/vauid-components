@@ -12,3 +12,19 @@ export const useRoomCtx = () => {
   }
   return ctx;
 };
+
+/**
+ * # useRoomCtxLayout - 获取房间布局
+ * 暴露：
+ * -
+ */
+export const useRoomCtxLayout = () => {
+  const layout = useRoomCtx()?.layout;
+  const { deviceType } = layout?.getState() ?? {};
+
+  console.warn("[vauid] useRoomCtxLayout", deviceType);
+
+  return {
+    deviceType,
+  };
+};
