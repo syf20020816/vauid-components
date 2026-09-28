@@ -80,12 +80,13 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
   ) => {
     const { deviceType } = useRoomCtxLayout();
     const isMobile = deviceType === "mobile";
+    console.log(isMobile, deviceType);
     const { cls } = useCls("controller", props.className);
     const { cls: devicesCls } = useCls("devices");
     const showAudio = audio?.show ?? true;
     const showVideo = video?.show ?? true;
     const showScreenShare = screenShare?.show ?? true;
-    const showParticipantNum = participant?.num?.show ?? true;
+    const showParticipantNum = isMobile ? false : participant?.num?.show ?? true;
 
     return (
       <footer className={cls} ref={ref} {...props}>

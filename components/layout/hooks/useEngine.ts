@@ -49,29 +49,39 @@ export const useEngine = ({ container, entities }: UseEngineProps) => {
     engineRef.current = engine;
 
     // 注册尺寸变化回调
-    engine.on(LifeTimes.onResize, () => {
+    const handleResize = () => {
       setSize(engine.getSize());
       setNodes(engine.getNodes());
-    });
+    };
 
     // 注册状态更新回调
-    engine.on(LifeTimes.onUpdate, () => {
+    const handleUpdate = () => {
       setNodes(engine.getNodes());
-    });
+    };
 
-    // 初始化引擎（init 内部已包含首份 entities）
-    engine.init(entities, container.current).then(() => {
-      setSize(engine.getSize());
-      setNodes(engine.getNodes());
-    });
+    engine.on(LifeTimes.onResize, handleResize);
+    engine.on(LifeTimes.onUpdate, handleUpdate);
 
-    // 启动引擎
-    engine.watch();
+    if (engine.isInitialized) {
+      // Provider 已完成兜底初始化（视口模式）：
+      // 将尺寸监听换绑到真实布局容器，bindContainer 会以一次 onResize
+      // 事件通知订阅方（handleResize 内更新 size/nodes），entities 由下方 effect 同步
+      engine.bindContainer(container.current);
+    } else {
+      // 初始化引擎（init 内部已包含首份 entities）
+      engine.init(entities, container.current).then(() => {
+        setSize(engine.getSize());
+        setNodes(engine.getNodes());
+      });
 
-    // 清理函数：解绑回调，避免污染 ctx 中的共享引擎
+      // 启动引擎
+      engine.watch();
+    }
+
+    // 清理函数：精确解绑自身回调，避免污染 ctx 中的共享引擎
     return () => {
-      engine.off(LifeTimes.onResize);
-      engine.off(LifeTimes.onUpdate);
+      engine.off(LifeTimes.onResize, handleResize);
+      engine.off(LifeTimes.onUpdate, handleUpdate);
       if (ownedRef.current) {
         engine.destroy();
       }

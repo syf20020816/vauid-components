@@ -38,14 +38,13 @@ export const Thumbnail = ({
   useEffect(() => {
     const engine = ctx?.layout;
     if (!engine) return;
-    // 注意：引擎生命周期为单槽位回调（on 会整体覆盖），勿与其他订阅方共用 onLayoutChange
     const sync = () => {
       setSelectedLayout(engine.getLayoutType());
       setIsFullScreen(engine.getState().fullScreen === true);
     };
     sync();
     engine.on(LifeTimes.onLayoutChange, sync);
-    return () => engine.off(LifeTimes.onLayoutChange);
+    return () => engine.off(LifeTimes.onLayoutChange, sync);
   }, [ctx?.layout]);
 
   // 全屏时选中 FullScreen 缩略图（fullScreenFirst 不改 layoutType）

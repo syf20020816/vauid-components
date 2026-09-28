@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useRef, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from "react";
 import { Engine } from "../../layout/engine";
 import { ROOM_CTX } from "./context";
 import type { RoomCtx } from "./types";
@@ -31,6 +37,22 @@ export const RoomCtxProvider = ({
   useEffect(() => {
     return () => {
       layout.destroy();
+    };
+  }, [layout]);
+
+  // 统一初始化：包裹 Provider 即获得可用引擎（以视口 documentElement 作为兜底容器），
+  // 无布局组件时（如单独使用 Controller）deviceType 依然响应式。
+  // useLayoutEffect 保证先于子组件的 useEffect（useEngine）执行；
+  // 布局挂载后 useEngine 会通过 bindContainer 将尺寸监听换绑到真实容器。
+  useLayoutEffect(() => {
+    let active = true;
+    if (!layout.isInitialized) {
+      layout.init([], document.documentElement).then(() => {
+        if (active) layout.watch();
+      });
+    }
+    return () => {
+      active = false;
     };
   }, [layout]);
 

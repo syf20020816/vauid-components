@@ -187,8 +187,8 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   private container: Nullable<HTMLElement> = null;
   /** 布局缓存 */
   private cache: Nullable<LayoutCache<Entity>> = null;
-  /** 生命周期回调映射 */
-  private lifeTime: Map<LifeTime, LifeTimeEvent> = new Map();
+  /** 生命周期回调映射（同一生命周期支持多个订阅者） */
+  private lifeTime: Map<LifeTime, LifeTimeEvent[]> = new Map();
   /** 样式表实例 */
   private styleSheet: EntityStyleSheet = new EntityStyleSheet();
   /** Web Worker 代理 */
@@ -197,6 +197,8 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   private workerOptions: Nullable<WorkerProxyOptions> = null;
   /** 是否正在异步计算中 */
   private isComputingAsync = false;
+  /** 是否已执行过 init / initFromNodes（destroy 后重置） */
+  private initialized = false;
 
   constructor() {}
 
@@ -211,6 +213,8 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   ) {
     console.warn("服务器分发暂未实现: ", _fromServer);
 
+    // 同步标记，避免 Provider 兜底初始化与布局初始化竞争导致双重 init
+    this.initialized = true;
     this.state.entities = entities;
     this.container = container;
     if (others) {
@@ -228,10 +232,10 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     this.syncDeviceType(width);
 
     this.computeAndCache();
-    const onInit = this.lifeTime.get(LifeTimes.onInit) as
-      | (() => FnReturn<void>)
-      | undefined;
-    await onInit?.();
+    const inits = this.lifeTime.get(LifeTimes.onInit);
+    for (const callback of [...(inits ?? [])]) {
+      await (callback as () => FnReturn<void>)();
+    }
   }
 
   async initFromNodes(
@@ -242,6 +246,8 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   ) {
     console.warn("服务器分发暂未实现: ", _fromServer);
 
+    // 同步标记，避免 Provider 兜底初始化与布局初始化竞争导致双重 init
+    this.initialized = true;
     this.layoutNodes = nodes;
     this.state.entities = Array.from(nodes.values()).map((node) => node.entity);
     this.container = container;
@@ -256,23 +262,22 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     this.state.width = width;
     this.syncDeviceType(width);
 
-    const onInit = this.lifeTime.get(LifeTimes.onInit) as
-      | (() => FnReturn<void>)
-      | undefined;
-    await onInit?.();
+    const onInit = this.lifeTime.get(LifeTimes.onInit);
+    for (const callback of [...(onInit ?? [])]) {
+      await (callback as () => FnReturn<void>)();
+    }
   }
 
   private initSizeWatcher(container: HTMLElement) {
+    // 重复 init 时先解绑旧监听，避免观察器泄漏
+    this.sizeWatcher?.unwatch();
     this.sizeWatcher = new LayoutSizeWatcher();
     this.sizeWatcher.onResize = (width: number, height: number) => {
       this.state.width = width;
       this.state.height = height;
       this.syncDeviceType(width);
       this.computeAndCache();
-      const callback = this.lifeTime.get(LifeTimes.onResize) as
-        | ((width: number, height: number) => FnReturn<void>)
-        | undefined;
-      callback?.(width, height);
+      this.emit(LifeTimes.onResize, width, height);
     };
     // 初始化尺寸
     const { height, width } = container.getBoundingClientRect();
@@ -503,14 +508,30 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
 
   /**
    * ## 生命周期回调
+   * 同一生命周期可注册多个回调，按注册顺序触发
    */
   on<T extends LifeTime>(lifeTime: T, callback: LifeTimeEvent<T>) {
-    this.lifeTime.set(lifeTime, callback as LifeTimeEvent);
+    const list = this.lifeTime.get(lifeTime);
+    if (list) {
+      list.push(callback as LifeTimeEvent);
+    } else {
+      this.lifeTime.set(lifeTime, [callback as LifeTimeEvent]);
+    }
   }
 
-  /** ## 取消监听请求 */
-  off(time: LifeTime) {
-    this.lifeTime?.delete(time);
+  /**
+   * ## 取消监听请求
+   * 传 callback 时精确移除该回调；否则移除该生命周期的全部回调
+   */
+  off(time: LifeTime, callback?: LifeTimeEvent) {
+    if (!callback) {
+      this.lifeTime.delete(time);
+      return;
+    }
+    const list = this.lifeTime.get(time);
+    if (!list) return;
+    const index = list.indexOf(callback);
+    if (index !== -1) list.splice(index, 1);
   }
 
   // --- 引擎控制 ---------------------------------------------------------------------------------
@@ -600,6 +621,25 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   }
 
   /**
+   * ## 绑定/更换尺寸监听容器
+   * Provider 已用视口完成兜底初始化后，布局挂载时由 useEngine 调用，
+   * 将尺寸监听从视口换绑到真实布局容器（自动解绑旧监听，无需重新 init）。
+   * 换绑后以一次 onResize 事件通知所有订阅方。
+   */
+  bindContainer(container: HTMLElement) {
+    this.container = container;
+    this.initSizeWatcher(container);
+    this.sizeWatcher?.watch(container);
+    // 同步一次尺寸与设备类型并重算布局
+    const { height, width } = this.getSize();
+    this.state.height = height;
+    this.state.width = width;
+    this.syncDeviceType(width);
+    this.computeAndCache();
+    this.emit(LifeTimes.onResize, width, height);
+  }
+
+  /**
    * ## 运行布局引擎
    */
   run() {
@@ -611,13 +651,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
    */
   private workflow() {
     this.computeAndCache();
-    this.onRun()?.();
-  }
-
-  private onRun() {
-    return this.lifeTime.get(LifeTimes.onRun) as
-      | (() => FnReturn<void>)
-      | undefined;
+    this.emit(LifeTimes.onRun);
   }
 
   /**
@@ -638,6 +672,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     this.layoutNodes.clear();
     this.cache?.clear();
     this.lifeTime.clear();
+    this.initialized = false;
   }
 
   // --- 数据访问 ---------------------------------------------------------------------------------
@@ -677,6 +712,11 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
    */
   get isComputing(): boolean {
     return this.isComputingAsync;
+  }
+
+  /** 引擎是否已初始化（init / initFromNodes 后为 true，destroy 后为 false） */
+  get isInitialized(): boolean {
+    return this.initialized;
   }
 
   /**
@@ -934,25 +974,26 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
 
   // --- 生命周期回调 ---------------------------------------------------------------------------------
 
-  private onUpdate() {
-    const callback = this.lifeTime.get(LifeTimes.onUpdate) as
-      | (() => FnReturn<void>)
-      | undefined;
-    callback?.();
+  /** 触发指定生命周期的全部回调（拷贝后遍历，允许回调内 on/off） */
+  private emit(lifeTime: LifeTime, ...args: unknown[]) {
+    const list = this.lifeTime.get(lifeTime);
+    if (!list || list.length === 0) return;
+    const callbacks = [...list] as ((...cbArgs: unknown[]) => unknown)[];
+    for (const callback of callbacks) {
+      callback(...args);
+    }
   }
 
-  /** 布局选择状态（layoutType / fullScreen）变化时通知（单槽位回调） */
+  private onUpdate() {
+    this.emit(LifeTimes.onUpdate);
+  }
+
+  /** 布局选择状态（layoutType / fullScreen）变化时通知 */
   private onLayoutChange() {
-    const callback = this.lifeTime.get(LifeTimes.onLayoutChange) as
-      | (() => FnReturn<void>)
-      | undefined;
-    callback?.();
+    this.emit(LifeTimes.onLayoutChange);
   }
 
   private onEntityUpdate(type: NodeUpdate) {
-    const callback = this.lifeTime.get(LifeTimes.onEntityUpdate) as
-      | ((entities: LayoutNodes<Entity>, type: NodeUpdate) => FnReturn<void>)
-      | undefined;
-    callback?.(this.layoutNodes, type);
+    this.emit(LifeTimes.onEntityUpdate, this.layoutNodes, type);
   }
 }
