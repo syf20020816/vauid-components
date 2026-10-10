@@ -3,7 +3,7 @@ import { DeviceTrigger } from "./device";
 import { LeaveButton, type LeaveButtonAttr } from "./leave";
 import { useCls } from "../std/hooks/cls";
 import "./index.scss";
-import type { Option } from "../trigger/types";
+import type { DropdownProps } from "../dropdown";
 import type { TriggerProps } from "../trigger";
 import type { UseScreenShareProps } from "./hooks/useScreenShare";
 import { ParticipantNum, type ParticipantNumProps } from "../participant/num";
@@ -14,7 +14,8 @@ export interface ControllerProps
   other?: ReactNode;
   position?: "start" | "end" | "center";
   showMore?: boolean;
-  moreOptions?: Option[];
+  /** 更多菜单选项（Dropdown items） */
+  moreOptions?: DropdownProps["items"];
   audio?: {
     show?: boolean;
     showLabel?: boolean;
@@ -115,8 +116,8 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
                 {...screenShare?.props}
               />
             ))}
-          {showMore && moreOptions.length > 0 && (
-            <DeviceTrigger.More options={moreOptions} />
+          {showMore && moreOptions && moreOptions.length > 0 && (
+            <DeviceTrigger.More items={moreOptions} />
           )}
           {other}
         </div>

@@ -74,6 +74,42 @@ export default () => (
 
 `direction="vertical"` 时触发器按钮与下拉箭头纵向堆叠，适配纵向工具栏。
 
+```tsx
+import { Trigger } from "vauid-components";
+
+export default () => (
+  <Trigger
+    direction="vertical"
+    showLabel={false}
+    prefix={<span>🌨</span>}
+    options={[
+      { label: "雪", value: "snow" },
+      { label: "雨", value: "rain" },
+      { label: "晴", value: "sunny" },
+    ]}
+  />
+);
+```
+
+## 禁用与危险项
+
+Option 支持 `disabled`（置灰不可点击）与 `danger`（红色强调），适配「退出房间」「删除」等操作项。选中项通过 `active` 高亮显示。
+
+```tsx
+import { Trigger } from "vauid-components";
+
+export default () => (
+  <Trigger
+    value="member"
+    options={[
+      { label: "成员列表", value: "member" },
+      { label: "房间设置", value: "settings", disabled: true },
+      { label: "退出房间", value: "leave", danger: true },
+    ]}
+  />
+);
+```
+
 ## API
 
 ### Trigger
@@ -100,5 +136,8 @@ export default () => (
 | `label`    | `ReactNode`          | 选项标签（仅字符串可截断）   |
 | `value`    | `string` \| `number` | 选项值                       |
 | `icon`     | `ReactNode`          | 选项图标                     |
+| `disabled` | `boolean`            | 禁用该项（置灰不可点击）     |
+| `danger`   | `boolean`            | 危险项（红色强调）           |
+| `active`   | `boolean`            | 选中态（Dropdown 自定义 popup 时可复用） |
 | `onClick`  | `(value, e) => void` | 点击选项回调（每次点击都触发） |
 | `onSelect` | `(value, e) => void` | 选中回调（仅切换时触发）     |

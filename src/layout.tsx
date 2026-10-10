@@ -29,6 +29,7 @@ import { WhiteboardTool } from "vauid-components/whiteboard/tool";
 import { RoomCtxProvider, Whiteboard } from "vauid-components";
 import { DeviceTrigger } from "../components/controller/device";
 import { useRef, useState } from "react";
+import { Settings } from "lucide-react";
 
 const mockNode = (id: string, label: string, isFocus = false): LayoutNode => ({
   entity: { id, label },
@@ -175,14 +176,17 @@ export const TabPage = ({
     );
   } else if (tab === "ctr") {
     return (
-      <>
-        <RoomCtxProvider>
-          {" "}
-          <Controller />
-        </RoomCtxProvider>
+      <RoomCtxProvider>
+        {" "}
+        <Controller />
         <hr />
-        {/* <Controller /> */}
-      </>
+        <Controller
+          moreOptions={[
+            { label: "participant", value: "participant" },
+            { label: "setting", value: "setting", icon: <Settings size={14} /> },
+          ]}
+        />
+      </RoomCtxProvider>
     );
   } else if (tab === "btn") {
     return (

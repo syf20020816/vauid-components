@@ -11,6 +11,7 @@ import {
   type MouseEvent,
 } from "react";
 import { getPopupContainer, builtinPlacements } from "../trigger/config";
+import type { Option } from "../trigger/types";
 
 export type DropdownPlacement = "top" | "bottom" | "left" | "right";
 export type DropdownDirection = "vertical" | "horizontal";
@@ -22,14 +23,11 @@ export interface DropdownProps {
   placement?: DropdownPlacement;
   /** 选项排列方向（horizontal 时自动转为横向排列的菜单） */
   direction?: DropdownDirection;
-  /** 选项列表 */
-  items?: {
-    key: string;
-    label: ReactNode;
-    disabled?: boolean;
-    danger?: boolean;
-    onClick?: () => void;
-  }[];
+  /**
+   * 选项列表（与 Trigger 的 Option 同构）。
+   * onSelect 为 Trigger 的选中语义，Dropdown 不消费，故从类型上排除
+   */
+  items?: Omit<Option, "onSelect">[];
   /** 自定义下拉内容（优先级高于 items） */
   popup?: ReactNode;
   /** 禁用 */
@@ -123,20 +121,22 @@ export const Dropdown = forwardRef<DropdownRef, DropdownProps>(
       <div className={menuCls} style={styles?.dropdown}>
         {items?.map((item) => (
           <div
-            key={item.key}
+            key={item.value}
             className={mergeClassNames([
               "dropdown-item",
+              item.active ? "dropdown-item--active" : "",
               item.disabled ? "dropdown-item--disabled" : "",
               item.danger ? "dropdown-item--danger" : "",
             ])(classNames?.item)}
             style={styles?.item}
-            onClick={(e: MouseEvent) => {
+            onClick={(e: MouseEvent<HTMLElement>) => {
               e.stopPropagation();
               if (item.disabled) return;
-              item.onClick?.();
+              item.onClick?.(item.value, e);
               setOpen(false);
             }}
           >
+            {item.icon}
             {item.label}
           </div>
         ))}

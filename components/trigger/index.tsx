@@ -46,21 +46,29 @@ type DropdownItemProps = Option & {
   ) => void;
 };
 
-/** 下拉项：选中态加 `active` 类以区分背景色 */
+/** 下拉项：选中态加 `active` 类以区分背景色；danger 红色强调；disabled 不可点击 */
 const DropdownItem = ({
   icon,
   label,
   value,
   active,
+  disabled,
+  danger,
   onClick,
   onSelect,
   onInternalClick,
 }: DropdownItemProps) => {
-  const { cls } = useCls(["dropdown-item", active && "active"]);
+  const { cls } = useCls([
+    "dropdown-item",
+    active && "active",
+    disabled && "disabled",
+    danger && "danger",
+  ]);
   return (
     <div
       className={cls}
       onClick={(e) => {
+        if (disabled) return;
         // 内部处理：关闭下拉、状态更新、onChange
         onInternalClick(value, e, !active);
         // 用户回调：每次点击都触发
@@ -131,13 +139,15 @@ export const Trigger = ({
 
   const popup = (
     <div className={vcls("dropdown")} style={styles?.dropdown}>
-      {options?.map(({ icon, label, value, onClick, onSelect }) => (
+      {options?.map(({ icon, label, value, disabled, danger, onClick, onSelect }) => (
         <DropdownItem
           key={value}
           icon={icon}
           label={label}
           value={value}
           active={value === currentValue}
+          disabled={disabled}
+          danger={danger}
           onClick={onClick}
           onSelect={onSelect}
           onInternalClick={handleItemClick}

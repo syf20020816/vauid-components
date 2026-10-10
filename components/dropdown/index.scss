@@ -49,6 +49,11 @@
     background-color: color("primary-hover");
   }
 
+  // 选中态：放在 :hover 之后，保证选中项 hover 时仍保持选中背景
+  &--active {
+    background-color: color("primary-active");
+  }
+
   &--disabled {
     color: color("text-tertiary");
     cursor: not-allowed;

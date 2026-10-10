@@ -21,6 +21,8 @@ import {
   type UseScreenShareProps,
 } from "./hooks/useScreenShare";
 import type { FnReturn, Nullable } from "vauid-components/std";
+import { Dropdown, type DropdownProps } from "vauid-components";
+import { MoreHorizontal } from "lucide-react";
 
 export interface DeviceTriggerComponent extends FC<TriggerProps> {
   Audio: FC<TriggerProps>;
@@ -29,7 +31,7 @@ export interface DeviceTriggerComponent extends FC<TriggerProps> {
     DeviceTriggerProps & RefAttributes<DeviceVideoTriggerExports>
   >;
   ScreenShare: FC<DeviceScreenShareProps>;
-  More: FC<TriggerProps>;
+  More: FC<DeviceTriggerMoreProps>;
 }
 
 const svgProps = {
@@ -178,8 +180,18 @@ const DeviceScreenShare = ({
   );
 };
 
-const DeviceTriggerMore = (props: TriggerProps) => {
-  return <Trigger options={props.options} placeholder="More" />;
+/** More 触发器 props：透传 Dropdown（触发节点固定为更多图标按钮） */
+export type DeviceTriggerMoreProps = Omit<DropdownProps, "children">;
+
+const DeviceTriggerMore = ({
+  placement = "top",
+  ...props
+}: DeviceTriggerMoreProps) => {
+  return (
+    <Dropdown placement={placement} {...props}>
+      <Button icon={<MoreHorizontal {...svgProps} />}></Button>
+    </Dropdown>
+  );
 };
 
 export interface DeviceTriggerProps extends Omit<TriggerProps, "onClick"> {
