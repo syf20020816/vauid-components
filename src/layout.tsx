@@ -4,7 +4,7 @@ import { LeaveButton } from "../components/controller/leave";
 import { Controller } from "../components/controller";
 import { Trigger } from "../components/trigger/index";
 import { NoteTile } from "../components/tile/note";
-import { AudioTile } from "../components/tile/auido";
+import { AudioTile } from "../components/tile/audio";
 import { VideoTile } from "../components/tile/video";
 import { Avatar } from "../components/participant/avatar";
 import { ParticipantName } from "../components/participant/name";
@@ -180,10 +180,21 @@ export const TabPage = ({
         {" "}
         <Controller />
         <hr />
+        <Controller position="center" />
+        <hr />
+        <Controller position="end" leaveLabel="退出房间" />
+        <hr />
+        <Controller participant={{ num: { show: false } }} />
+        <hr />
         <Controller
+          leaveLabel={<span style={{ fontWeight: 700 }}>Leave!</span>}
           moreOptions={[
             { label: "participant", value: "participant" },
-            { label: "setting", value: "setting", icon: <Settings size={14} /> },
+            {
+              label: "setting",
+              value: "setting",
+              icon: <Settings size={14} />,
+            },
           ]}
         />
       </RoomCtxProvider>

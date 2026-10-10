@@ -8,8 +8,9 @@ export {
 } from './layout/types';
 export { TileWrap } from './tile/wrap';
 export { VideoTile } from './tile/video';
-export { AudioTile } from './tile/auido';
+export { AudioTile } from './tile/audio';
 export { NoteTile } from './tile/note';
+export { AudioLevel, type AudioLevelProps, type AudioLevelSource, type AudioLevelVariant } from './tile/audio';
 // export { IframeTile } from './tile/iframe'; // TODO: 实现
 export { Controller } from './controller';
 export { ParticipantItem } from './participant/item';

@@ -28,9 +28,9 @@
 
 | #   | 任务                        | 涉及文件                             | 验收标准                                            | 优先级 | 状态                                                |
 | --- | --------------------------- | ------------------------------------ | --------------------------------------------------- | ------ | --------------------------------------------------- |
-| 3.1 | `Tile.Iframe`               | `components/tile/iframe.tsx`         | sandbox 隔离、postMessage 通信、非可视区懒加载/暂停 | P1     | ⏳ 未完成                                           |
-| 3.2 | `AudioLevel` 音频电平指示器 | `components/status/` 或新目录        | AnalyserNode + rAF 驱动，条形/圆形/波形模式         | P1     | ⏳ 未完成                                           |
-| 3.3 | `VideoPreview` 本地预览     | `components/preview/` 或复用 prejoin | getUserMedia 预览、镜像切换、分辨率切换             | P2     | 🔶 部分完成（prejoin/useVideoPreview 已有基础预览） |
+| 3.1 | `Tile.Iframe`               | `components/tile/iframe.tsx`         | sandbox 隔离、postMessage 通信、非可视区懒加载/暂停 | P1     | ⏳ 未完成（文件已建但为空）                          |
+| 3.2 | `AudioLevel` 音频电平指示器 | `components/tile/audio.tsx`         | AnalyserNode + rAF 驱动，条形/圆形/波形模式         | P1     | ✅ 已完成（bars/circle/wave 三形态；AudioTile 波形已改用 AudioLevel 驱动，旧 useAudioWave 已删除） |
+| 3.3 | `VideoPreview` 本地预览     | `components/preview/` 或复用 prejoin | getUserMedia 预览、镜像切换、分辨率切换             | P2     | ✅ 已关闭（决策：不抽独立组件，维持 prejoin/videoPreview.tsx 内实现） |
 
 ## W4：串联与验收
 

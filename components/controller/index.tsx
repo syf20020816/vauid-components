@@ -41,6 +41,7 @@ export interface ControllerProps
       children?: ReactNode;
     };
   };
+  leaveLabel?: ReactNode;
 }
 
 export interface ControllerComponent extends React.ForwardRefExoticComponent<
@@ -75,6 +76,7 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
       video,
       screenShare,
       participant,
+      leaveLabel,
       ...props
     }: ControllerProps,
     ref,
@@ -87,7 +89,9 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
     const showAudio = audio?.show ?? true;
     const showVideo = video?.show ?? true;
     const showScreenShare = screenShare?.show ?? true;
-    const showParticipantNum = isMobile ? false : participant?.num?.show ?? true;
+    const showParticipantNum = isMobile
+      ? false
+      : (participant?.num?.show ?? true);
 
     return (
       <footer className={cls} ref={ref} {...props}>
@@ -125,7 +129,9 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
           onClick={onLeave}
           onBeforeLeave={onBeforeLeave}
           onAfterLeave={onAfterLeave}
-        />
+        >
+          {leaveLabel}
+        </LeaveButton>
         {other}
       </footer>
     );

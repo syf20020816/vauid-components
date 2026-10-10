@@ -7,7 +7,7 @@
 
 | 阶段 | 建议工期 | 核心目标 | 状态 |
 |------|----------|----------|------|
-| 初期 | 4 周 | 业务层首版（RoomCtx 布局引擎上下文 + 组件级 MeetingRoom）+ 核心层补缺 | ⬜ |
+| 初期 | 4 周 | 业务层首版（RoomCtx 布局引擎上下文 + 组件级 MeetingRoom）+ 核心层补缺 | 🔶 进行中（W1/W2/W4 主体已完成，W3 剩 AudioLevel/Iframe） |
 | 中期 | 5 周 | 功能层完整化（聊天/参会者列表/设置）+ Layout 高级特性 | ⬜ |
 | 后期 | 6 周 | 业务层扩展（Classroom/LiveStream/RemoteSupport）+ 工程质量 + 发布 | ⬜ |
 
@@ -17,25 +17,29 @@
 
 **目标**：打通"加入 → 入会 → 离开"完整链路；`<MeetingRoom entities={...} />` 组件级接入。组件库不感知音视频厂商，厂商对接由使用方完成。
 
-### W1：RoomCtx（布局引擎上下文）
-- `RoomCtx` 类型（layout 引擎 + extra 额外数据）
-- `RoomCtxProvider` + `useRoomCtx`（Provider 创建/销毁引擎）
-- 组件库去除 livekit-client 依赖
+### W1：RoomCtx（布局引擎上下文）✅
 
-### W2：MeetingRoom v1（组件级）
-- RoomHeader + Layout + Controller 组合组件
-- entities 驱动布局（useEngine 自动同步，支持动态增删）
-- renderEntity/renderHeader/controller/extra 可定制
+- ✅ `RoomCtx` 类型（layout 引擎 + extra 额外数据）
+- ✅ `RoomCtxProvider` + `useRoomCtx`（Provider 创建/销毁引擎；后续增强：Provider 统一兜底初始化引擎、useRoomCtxLayout 响应式订阅 deviceType）
+- ✅ 组件库去除 livekit-client 依赖
+
+### W2：MeetingRoom v1（组件级）✅
+
+- ✅ RoomHeader + Layout + Controller 组合组件
+- ✅ entities 驱动布局（useEngine 自动同步，支持动态增删）
+- ✅ renderEntity/renderHeader/controller/extra 可定制
 
 ### W3：核心层补缺
-- `Tile.Iframe`（沙箱嵌入、postMessage 通信、懒加载）
-- `AudioLevel`（音频电平指示器：AnalyserNode + rAF，条形/圆形/波形模式）
-- `VideoPreview`（本地摄像头预览：镜像、分辨率切换、设备枚举）
+
+- ⏳ `Tile.Iframe`（沙箱嵌入、postMessage 通信、懒加载）——文件已建但为空
+- 🔜 `AudioLevel`（音频电平指示器：AnalyserNode + rAF，条形/圆形/波形模式）——下一项；useAudioWave（tile/hooks）已有真实频谱驱动基础
+- ✅ ~~`VideoPreview`（本地摄像头预览）~~ —— 已决策不抽独立组件，维持 prejoin/videoPreview.tsx 内实现
 
 ### W4：串联与验收
-- Prejoin ↔ MeetingRoom 状态机串联
-- 测试项目端到端替换验证
-- 初期 tasks 逐项验收
+
+- ✅ Prejoin ↔ MeetingRoom 状态机串联（测试项目加入 → 入会 → 离开全流程）
+- ✅ 测试项目端到端替换验证（room 页已组件级接入 `<MeetingRoom entities renderEntity>`）
+- ⏳ 初期 tasks 逐项验收（剩余：docs:build 全链路验证、meeting-room.md 文档）
 
 **阶段性成果** ✅（验收后勾选）：
 - [ ] `<MeetingRoom entities={...} renderEntity={...} />` 组件级接入完整会议房间
