@@ -9,7 +9,7 @@ import {
 import { useCls } from "../std/hooks/cls";
 import { mergeClassNames } from "../std/util";
 import { getPopupContainer, builtinPlacements } from "../trigger/config";
-import "./select.scss";
+import "./index.scss";
 
 export interface SelectOption {
   label: ReactNode;

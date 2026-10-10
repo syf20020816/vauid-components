@@ -1,6 +1,6 @@
 import { useState, type CSSProperties } from "react";
 import { useCls } from "../std/hooks/cls";
-import { useSettings } from "./types";
+import { useSettings } from "./hooks/useSettings";
 import { NormalSettings } from "./normal";
 import { AudioSettings } from "./audio";
 import { VideoSettings } from "./video";
