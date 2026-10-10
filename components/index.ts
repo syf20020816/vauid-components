@@ -58,10 +58,11 @@ export type {
   VideoStats,
 } from './settings/cards';
 export {
-  useSettings,
+  
   DEFAULT_SETTINGS,
   type SettingsState,
 } from './settings/types';
+export { useSettings } from './settings/hooks/useSettings';
 export { Icon } from './svg';
 export { RoomHeader } from './room';
 export { MeetingRoom } from './room';
