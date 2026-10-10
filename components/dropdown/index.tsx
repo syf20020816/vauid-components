@@ -15,10 +15,11 @@ import type { Option } from "../trigger/types";
 
 export type DropdownPlacement = "top" | "bottom" | "left" | "right";
 export type DropdownDirection = "vertical" | "horizontal";
+export type DropdownTrigger = "click" | "hover" | "contextMenu";
 
 export interface DropdownProps {
-  /** 触发方式，默认 click */
-  trigger?: "click" | "hover";
+  /** 触发方式，默认 click；contextMenu 为右键弹出在鼠标位置（placement 仅决定防溢出方向） */
+  trigger?: DropdownTrigger;
   /** 弹出方向 */
   placement?: DropdownPlacement;
   /** 选项排列方向（horizontal 时自动转为横向排列的菜单） */
@@ -116,6 +117,7 @@ export const Dropdown = forwardRef<DropdownRef, DropdownProps>(
     };
 
     const popupPlacement = placementMap[placement];
+    const isContextMenu = triggerType === "contextMenu";
 
     const dropdownContent = popup ?? (
       <div className={menuCls} style={styles?.dropdown}>
@@ -145,7 +147,8 @@ export const Dropdown = forwardRef<DropdownRef, DropdownProps>(
 
     return (
       <RcTrigger
-        action={triggerType === "click" ? ["click"] : ["hover"]}
+        action={[triggerType]}
+        alignPoint={isContextMenu}
         popup={disabled ? null : dropdownContent}
         popupPlacement={popupPlacement}
         builtinPlacements={builtinPlacements}

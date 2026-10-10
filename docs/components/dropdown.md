@@ -46,7 +46,7 @@ export default () => (
 
 ## 触发方式
 
-`trigger` 支持两种触发方式，默认 `"click"`，设为 `"hover"` 时鼠标悬停即可展开（有 100ms 延迟防误触）。
+`trigger` 支持三种触发方式，默认 `"click"`，设为 `"hover"` 时鼠标悬停即可展开（有 100ms 延迟防误触），设为 `"contextMenu"` 时右键宿主元素在鼠标位置弹出。
 
 ```tsx
 import { Dropdown, Button } from 'vauid-components';
@@ -69,9 +69,43 @@ export default () => (
     >
       <Button>悬停触发</Button>
     </Dropdown>
+    <Dropdown
+      trigger="contextMenu"
+      items={[
+        { value: '1', label: 'Context Option' },
+      ]}
+    >
+      <Button>右键触发</Button>
+    </Dropdown>
   </div>
 );
 ```
+
+> `contextMenu` 模式下弹层定位在鼠标坐标（alignPoint），`placement` 仅作为防溢出调整方向；在空白处再次右键可移动菜单位置。
+
+## 右键菜单（RightCtxMenu）
+
+`RightCtxMenu` 是 Dropdown 的音视频场景预设：默认右键触发，用于参与者列表项、画面、白板等宿主的操作菜单（静音 / 设为焦点 / 移出房间等，items 由使用方传入）；`trigger="click"` 时可作为 more 按钮的展开层。
+
+```tsx
+import { RightCtxMenu, ParticipantItem } from 'vauid-components';
+
+const items = [
+  { value: 'mute', label: '静音' },
+  { value: 'focus', label: '设为焦点' },
+  { value: 'remove', label: '移出房间', danger: true },
+];
+
+export default () => (
+  <div style={{ width: 300 }}>
+    <RightCtxMenu items={items}>
+      <ParticipantItem name="张三" audioEnabled videoEnabled />
+    </RightCtxMenu>
+  </div>
+);
+```
+
+试试在上方列表项上点击右键。
 
 ## 弹出位置
 
@@ -168,7 +202,7 @@ export default () => {
 
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `trigger` | `"click" \| "hover"` | `"click"` | 触发方式 |
+| `trigger` | `"click" \| "hover" \| "contextMenu"` | `"click"` | 触发方式；`contextMenu` 为右键在鼠标位置弹出 |
 | `placement` | `"top" \| "bottom" \| "left" \| "right"` | `"bottom"` | 弹出方向 |
 | `direction` | `"vertical" \| "horizontal"` | `"vertical"` | 排列方向 |
 | `items` | `Omit<Option, "onSelect">[]`（`{ value, label, icon?, disabled?, danger?, active?, onClick? }`） | - | 选项列表，与 Trigger 的 Option 同构（onSelect 不适用） |
@@ -185,6 +219,15 @@ export default () => {
 | `triggerClassName` | `string` | 触发器 className（含 `--open` / `--disabled` 修饰） |
 | `popupClassName` | `string` | 弹出菜单 className（含 `--vertical` / `--horizontal` 修饰） |
 | `itemClassName` | `string` | 菜单项基础 className |
+
+### RightCtxMenuProps
+
+`Omit<DropdownProps, "trigger">`，仅调整默认值：
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `trigger` | `"contextMenu" \| "click"` | `"contextMenu"` | 右键触发（默认）；`click` 用于 more 按钮展开 |
+| `placement` | 同 Dropdown | `"bottom"` | 右键模式下仅作为防溢出方向 |
 
 ref 需在组件内通过 hook 获取（dumi demo 同样遵守 Rules of Hooks）。ref 在 commit 阶段才赋值，需配合 `useLayoutEffect` 读取：
 

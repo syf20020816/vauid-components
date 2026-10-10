@@ -1,0 +1,38 @@
+@use "../style/global.scss" as *;
+
+@include cmp("select") {
+  @include flex-center;
+  min-width: 120px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: radius("md");
+  border: 1px solid color("border-default");
+  background-color: color("bg-primary");
+  color: color("text-primary");
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: color("primary-hover");
+  }
+
+  // 选中值（placeholder 态由使用方传 label 处理）
+  &-value {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &.vauid-open {
+    border-color: color("primary");
+  }
+
+  &.vauid-disabled {
+    color: color("text-tertiary");
+    cursor: not-allowed;
+    background-color: color("bg-secondary");
+  }
+}

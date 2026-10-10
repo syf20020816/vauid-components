@@ -31,8 +31,37 @@ export {
   type DropdownProps,
   type DropdownRef,
 } from './dropdown';
+export {
+  RightCtxMenu,
+  type RightCtxMenuProps,
+} from './dropdown/rightCtxMenu';
 export { Trigger } from './trigger';
 export { Slider } from './slider';
+export { Select } from './select';
+export type { SelectProps, SelectOption } from './select';
+export { Checkbox } from './checkbox';
+export type { CheckboxProps } from './checkbox';
+export { SettingsPanel } from './settings';
+export type { SettingsPanelProps, SettingsTab } from './settings';
+export { LangSelect, LANG_OPTIONS } from './settings/langSelect';
+export {
+  StatCard,
+  LoadCard,
+  NetworkCard,
+  AudioStatsCard,
+  VideoStatsCard,
+} from './settings/cards';
+export type {
+  LoadStats,
+  NetworkStats,
+  AudioStats,
+  VideoStats,
+} from './settings/cards';
+export {
+  useSettings,
+  DEFAULT_SETTINGS,
+  type SettingsState,
+} from './settings/types';
 export { Icon } from './svg';
 export { RoomHeader } from './room';
 export { MeetingRoom } from './room';

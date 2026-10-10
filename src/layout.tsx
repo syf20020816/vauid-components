@@ -26,7 +26,7 @@ import { Areas } from "../components/layout/types";
 import type { LayoutNode } from "../components/layout/types";
 import { Prejoin } from "../components/prejoin";
 import { WhiteboardTool } from "vauid-components/whiteboard/tool";
-import { RoomCtxProvider, Whiteboard } from "vauid-components";
+import { RoomCtxProvider, Whiteboard, RightCtxMenu, SettingsPanel } from "vauid-components";
 import { DeviceTrigger } from "../components/controller/device";
 import { useRef, useState } from "react";
 import { Settings } from "lucide-react";
@@ -317,34 +317,48 @@ export const TabPage = ({
       </div>
     );
   } else if (tab === "item") {
+    const ctxItems = [
+      { value: "mute", label: "静音" },
+      { value: "focus", label: "设为焦点" },
+      { value: "pin", label: "置顶" },
+      { value: "remove", label: "移出房间", danger: true },
+    ];
     return (
       <div style={{ width: 300, ...flexCol, padding: 12 }}>
-        <ParticipantItem
-          name="张三"
-          role="participant"
-          audioEnabled
-          videoEnabled
-        />
-        <ParticipantItem
-          name="John"
-          extra="主持人"
-          audioEnabled
-          videoEnabled={false}
-          role="host"
-        />
-        <ParticipantItem
-          name="Alice"
-          extra="静音中"
-          audioEnabled={false}
-          videoEnabled
-          role="manager"
-        />
-        <ParticipantItem
-          name="Bob"
-          role="guest"
-          audioEnabled={false}
-          videoEnabled={false}
-        />
+        <RightCtxMenu items={ctxItems}>
+          <ParticipantItem
+            name="张三"
+            role="participant"
+            audioEnabled
+            videoEnabled
+          />
+        </RightCtxMenu>
+        <RightCtxMenu items={ctxItems}>
+          <ParticipantItem
+            name="John"
+            extra="主持人"
+            audioEnabled
+            videoEnabled={false}
+            role="host"
+          />
+        </RightCtxMenu>
+        <RightCtxMenu items={ctxItems}>
+          <ParticipantItem
+            name="Alice"
+            extra="静音中"
+            audioEnabled={false}
+            videoEnabled
+            role="manager"
+          />
+        </RightCtxMenu>
+        <RightCtxMenu items={ctxItems}>
+          <ParticipantItem
+            name="Bob"
+            role="guest"
+            audioEnabled={false}
+            videoEnabled={false}
+          />
+        </RightCtxMenu>
       </div>
     );
   } else if (tab === "num") {
@@ -396,6 +410,24 @@ export const TabPage = ({
         <NetworkUpload />
         <NetworkDownload />
       </div>
+    );
+  } else if (tab === "settings") {
+    return (
+      <RoomCtxProvider>
+        <div style={{ ...flexCenter }}>
+          <SettingsPanel
+            network={{
+              bandwidth: 2048,
+              lossRate: 0.2,
+              jitter: 12,
+              rtt: 45,
+              networkType: "wifi",
+            }}
+            audio={{ bitrate: 48, inputVolume: 80, outputVolume: 60 }}
+            video={{ resolution: "1280×720", frameRate: 30, bitrate: 1200 }}
+          />
+        </div>
+      </RoomCtxProvider>
     );
   } else if (tab === "status") {
     return (
