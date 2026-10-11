@@ -1,10 +1,21 @@
-export { Layout } from './layout';
+export { Layout, type LayoutDragSort } from './layout';
 export { useEngine } from './layout/hooks/useEngine';
+export { useKeyboardNav, type UseKeyboardNavOptions } from './layout/hooks/useKeyboardNav';
+export { saveEntityOrder, loadEntityOrder } from './layout/hooks/useDragSort';
+export type { LayoutModeDefinition } from './layout/engine/layoutMode';
+export type { ComputeConfig } from './layout/engine/compute';
+export {
+  DEFAULT_SHORTCUTS,
+  type ShortcutAction,
+  type ShortcutBindings,
+} from './layout/shortcut';
 export {
   Areas,
   LayoutTypes,
   DeviceTypes,
   type Area,
+  type LayoutType,
+  type LayoutTypeId,
 } from './layout/types';
 export { TileWrap } from './tile/wrap';
 export { VideoTile } from './tile/video';
@@ -43,7 +54,8 @@ export { Checkbox } from './checkbox';
 export type { CheckboxProps } from './checkbox';
 export { SettingsPanel } from './settings';
 export type { SettingsPanelProps, SettingsTab } from './settings';
-export { LangSelect, LANG_OPTIONS } from './settings/langSelect';
+export { LangSelect } from './settings/langSelect';
+export type { LangType } from './settings/langSelect';
 export {
   StatCard,
   LoadCard,
@@ -57,12 +69,11 @@ export type {
   AudioStats,
   VideoStats,
 } from './settings/cards';
+export { useSettings } from './settings/hooks/useSettings';
 export {
-  
   DEFAULT_SETTINGS,
   type SettingsState,
 } from './settings/types';
-export { useSettings } from './settings/hooks/useSettings';
 export { Icon } from './svg';
 export { RoomHeader } from './room';
 export { MeetingRoom } from './room';

@@ -30,6 +30,7 @@ export interface SelectProps
   disabled?: boolean;
   classNames?: {
     trigger?: string;
+    dropdown?: string;
     option?: string;
   };
 }
@@ -64,13 +65,18 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
       ["select", open && "select--open", disabled && "select--disabled"],
       classNames?.trigger,
     );
+    // 基类携带 pointer-events:auto（popup root 为 none，点击全靠它），方向由 --vertical 修饰符控制
+    const { cls: menuCls } = useCls(
+      ["dropdown-menu", "dropdown-menu--vertical"],
+      classNames?.dropdown,
+    );
 
     return (
       <div {...props} className={triggerCls} ref={ref}>
         <RcTrigger
           action={disabled ? [] : ["click"]}
           popup={
-            <div className="vauid-dropdown-menu">
+            <div className={menuCls}>
               {options.map((option) => (
                 <div
                   key={option.value}

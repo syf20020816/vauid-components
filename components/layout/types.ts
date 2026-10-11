@@ -122,6 +122,12 @@ export const LayoutTypes = {
 
 export type LayoutType = (typeof LayoutTypes)[keyof typeof LayoutTypes];
 
+/**
+ * 布局类型标识：内建 LayoutType 或自定义注册类型的字符串。
+ * `(string & {})` 兜底保留任意自定义类型的可写性，同时内建值仍有自动补全。
+ */
+export type LayoutTypeId = LayoutType | (string & {});
+
 export const DeviceTypes = {
   /** 移动端 */
   Mobile: "mobile",
@@ -200,7 +206,7 @@ export interface LayoutState<Entity extends LayoutEntity = LayoutEntity> {
   /** 总页数 */
   totalPages: number;
   /** 布局类型 */
-  layoutType: LayoutType;
+  layoutType: LayoutTypeId;
   /** 布局宽度 */
   width: number;
   /** 布局高度 */
@@ -253,6 +259,8 @@ export const LifeTimes = {
   onUpdate: "onUpdate",
   /** 布局选择状态（layoutType / fullScreen）变化时触发 */
   onLayoutChange: "onLayoutChange",
+  /** 自定义布局模式注册表变化（注册 / 注销）时触发 */
+  onLayoutModesChange: "onLayoutModesChange",
   /** 引擎中监听实体更新触发, 包括实体的增加/删除/更新 */
   onEntityUpdate: "onEntityUpdate",
   /** 引擎销毁时触发 */
@@ -268,6 +276,7 @@ export interface LifeTimeEventMap {
   [LifeTimes.onResize]: (width: number, height: number) => FnReturn<void>;
   [LifeTimes.onUpdate]: () => FnReturn<void>;
   [LifeTimes.onLayoutChange]: () => FnReturn<void>;
+  [LifeTimes.onLayoutModesChange]: () => FnReturn<void>;
   [LifeTimes.onEntityUpdate]: (
     entities: LayoutNodes<LayoutEntity>,
     type: NodeUpdate,

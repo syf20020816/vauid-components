@@ -1,3 +1,8 @@
+import {
+  DEFAULT_SHORTCUTS,
+  type ShortcutBindings,
+} from "../layout/shortcut";
+
 /** 性能模式 */
 export type PerformanceMode = "standard" | "powerSaving" | "audioOnly";
 
@@ -32,6 +37,11 @@ export interface SettingsState {
   mirror: boolean;
   /** 布局单页人数（1-9，联动 engine.setPageSize） */
   pageSize: number;
+  /** 允许长按拖拽调整画面位置（仅 Grid 布局可见 Tile 生效） */
+  enableDragSort: boolean;
+  // 快捷键
+  /** 键盘导航键位绑定（一键多绑，空数组 = 禁用该动作） */
+  shortcuts: ShortcutBindings;
 }
 
 export const DEFAULT_SETTINGS: SettingsState = {
@@ -48,6 +58,8 @@ export const DEFAULT_SETTINGS: SettingsState = {
   autoStartCamera: false,
   mirror: false,
   pageSize: 6,
+  enableDragSort: false,
+  shortcuts: DEFAULT_SHORTCUTS,
 };
 
 /** 设置分区组件共享 props */

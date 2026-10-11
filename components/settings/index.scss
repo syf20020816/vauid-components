@@ -138,3 +138,76 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+// 快捷键键位容器（快捷键分区）
+@include cmp("shortcut-keys") {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+// 键位 chip：点击改键，捕获态呼吸高亮，冲突红框提示
+@include cmp("shortcut-key") {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid color("border-default");
+  border-radius: radius("sm");
+  background-color: color("bg-secondary");
+  font-size: 12px;
+  color: color("text-secondary");
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: color("border-strong");
+  }
+
+  &.vauid-capturing {
+    border-color: color("accent");
+    color: color("accent");
+    animation: vauid-shortcut-breath 1.2s ease-in-out infinite;
+  }
+
+  &.vauid-conflict {
+    border-color: color("error");
+    color: color("error");
+  }
+
+  &--add {
+    border-style: dashed;
+    color: color("text-tertiary");
+  }
+
+  &-del {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    margin-right: -2px;
+    border-radius: radius("sm");
+    font-size: 12px;
+    line-height: 1;
+    color: color("text-tertiary");
+
+    &:hover {
+      background-color: color("border-subtle");
+      color: color("text-primary");
+    }
+  }
+}
+
+@keyframes vauid-shortcut-breath {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}

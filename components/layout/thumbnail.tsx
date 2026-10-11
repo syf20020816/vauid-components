@@ -3,14 +3,19 @@ import { Button } from "../button";
 import { Dropdown, type DropdownProps, type DropdownRef } from "../dropdown";
 import { useCls } from "../std/hooks/cls";
 import "./index.scss";
-import { LayoutDashboard } from "lucide-react";
-import { LifeTimes, LayoutTypes, type LayoutType } from "./types";
+import { LayoutDashboard, LayoutTemplate } from "lucide-react";
+import {
+  LifeTimes,
+  LayoutTypes,
+  type LayoutTypeId,
+} from "./types";
+import type { LayoutModeDefinition } from "./engine/layoutMode";
 import type { FnReturn } from "vauid-components/std";
 import { useRoomCtx } from "vauid-components/std/ctx/hooks";
 
 export interface ThumbnailProps extends DropdownProps {
   showLabel?: boolean;
-  onLayoutChange?: (layout: LayoutType) => FnReturn<void>;
+  onLayoutChange?: (layout: LayoutTypeId) => FnReturn<void>;
 }
 
 /**
@@ -30,10 +35,14 @@ export const Thumbnail = ({
   const ctx = useRoomCtx();
   // 引擎是命令式对象，改 layoutType/fullScreen 不会触发 React 重渲染：
   // 用 state 镜像选中态，订阅 onLayoutChange 事件同步（渲染期直读引擎只会拿到旧值）
-  const [selectedLayout, setSelectedLayout] = useState<LayoutType>(
+  const [selectedLayout, setSelectedLayout] = useState<LayoutTypeId>(
     () => ctx?.layout.getLayoutType() ?? LayoutTypes.Grid,
   );
   const [isFullScreen, setIsFullScreen] = useState(false);
+  // 已注册的自定义布局模式，注册/注销时经 onLayoutModesChange 刷新
+  const [customModes, setCustomModes] = useState<
+    readonly LayoutModeDefinition[]
+  >([]);
 
   useEffect(() => {
     const engine = ctx?.layout;
@@ -41,10 +50,15 @@ export const Thumbnail = ({
     const sync = () => {
       setSelectedLayout(engine.getLayoutType());
       setIsFullScreen(engine.getState().fullScreen === true);
+      setCustomModes(engine.getLayoutModes());
     };
     sync();
     engine.on(LifeTimes.onLayoutChange, sync);
-    return () => engine.off(LifeTimes.onLayoutChange, sync);
+    engine.on(LifeTimes.onLayoutModesChange, sync);
+    return () => {
+      engine.off(LifeTimes.onLayoutChange, sync);
+      engine.off(LifeTimes.onLayoutModesChange, sync);
+    };
   }, [ctx?.layout]);
 
   // 全屏时选中 FullScreen 缩略图（fullScreenFirst 不改 layoutType）
@@ -56,16 +70,9 @@ export const Thumbnail = ({
     setPopupItemClassName(dropdownRef.current?.itemClassName ?? "");
   }, [direction]);
 
-  const clickTb = async (layout: LayoutType) => {
-    // useRoomCtx 可能返回 null（未在 RoomCtxProvider 内），需防护
-    if (layout === LayoutTypes.Grid) {
-      ctx?.layout.grid();
-    } else if (layout === LayoutTypes.Focus) {
-      ctx?.layout.focusFirst();
-    } else if (layout === LayoutTypes.FullScreen) {
-      ctx?.layout.fullScreenFirst();
-    }
-
+  // 内建与自定义模式统一走 activateLayout（引擎内部按类型分发激活逻辑）
+  const clickTb = async (layout: LayoutTypeId) => {
+    ctx?.layout.activateLayout(layout);
     await onLayoutChange?.(layout);
   };
 
@@ -86,6 +93,15 @@ export const Thumbnail = ({
         className={popupItemClassName}
         onClick={clickTb}
       />
+      {customModes.map((def) => (
+        <LayoutCustomTb
+          key={def.type}
+          def={def}
+          selected={currentLayout === def.type}
+          className={popupItemClassName}
+          onClick={clickTb}
+        />
+      ))}
     </div>
   );
 
@@ -101,7 +117,7 @@ export const Thumbnail = ({
 interface LayoutTbProps {
   selected?: boolean;
   className?: string;
-  onClick?: (layout: LayoutType) => FnReturn<void>;
+  onClick?: (layout: LayoutTypeId) => FnReturn<void>;
 }
 
 const LayoutFocusTb = ({ selected, className, onClick }: LayoutTbProps) => {
@@ -149,6 +165,31 @@ const LayoutFullScreenTb = ({
   return (
     <div className={cls} onClick={() => onClick?.(LayoutTypes.FullScreen)}>
       <main className={vcls("main")}></main>
+    </div>
+  );
+};
+
+/**
+ * 自定义布局模式缩略图：渲染注册定义的 icon，缺省时用占位图标，label 走 title 提示
+ */
+const LayoutCustomTb = ({
+  def,
+  selected,
+  className,
+  onClick,
+}: LayoutTbProps & { def: LayoutModeDefinition }) => {
+  const { cls, vcls } = useCls(
+    ["layout-custom-tb", selected && "layout-custom-tb-selected"],
+    className,
+  );
+
+  return (
+    <div
+      className={cls}
+      title={def.label}
+      onClick={() => onClick?.(def.type)}
+    >
+      {def.icon ?? <LayoutTemplate size={16} className={vcls("icon")} />}
     </div>
   );
 };

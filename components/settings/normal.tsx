@@ -1,5 +1,5 @@
 import { Checkbox } from "../checkbox";
-import { Select } from "../select";
+import { Select, type SelectOption } from "../select";
 import { LangSelect } from "./langSelect";
 import { SettingsRow } from "./row";
 import type {
@@ -16,8 +16,17 @@ const PERFORMANCE_OPTIONS: {
   { label: "仅音频", value: "audioOnly" },
 ];
 
+export interface NormalSettingsProps extends SettingsSectionProps {
+  /** 语言选项（库内不内置语言列表，由使用方传入；不传则不展示语言行） */
+  langOptions?: SelectOption[];
+}
+
 /** 常规设置：通知 / 性能模式 / 语言 */
-export const NormalSettings = ({ settings, update }: SettingsSectionProps) => {
+export const NormalSettings = ({
+  settings,
+  update,
+  langOptions,
+}: NormalSettingsProps) => {
   return (
     <div className="vauid-settings-section">
       <SettingsRow label="通知">
@@ -39,12 +48,15 @@ export const NormalSettings = ({ settings, update }: SettingsSectionProps) => {
           onChange={(v) => update("performanceMode", v as PerformanceMode)}
         />
       </SettingsRow>
-      <SettingsRow label="语言">
-        <LangSelect
-          value={settings.lang}
-          onChange={(lang) => update("lang", lang)}
-        />
-      </SettingsRow>
+      {langOptions && (
+        <SettingsRow label="语言">
+          <LangSelect
+            options={langOptions}
+            value={settings.lang}
+            onChange={(lang) => update("lang", lang)}
+          />
+        </SettingsRow>
+      )}
     </div>
   );
 };

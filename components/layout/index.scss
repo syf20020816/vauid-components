@@ -78,3 +78,35 @@
     border-radius: 2px;
   }
 }
+
+@include cmp("layout-custom-tb") {
+  cursor: pointer;
+  @include flex-center;
+  border-radius: radius("sm");
+  padding: 2px !important;
+  &-selected {
+    background-color: color("border-strong");
+  }
+  &-icon {
+    color: color("border-default");
+  }
+}
+
+/** 拖拽中的源 Tile：半透明提示 + 禁用触摸默认手势 */
+.vauid-dragging {
+  opacity: 0.5;
+  touch-action: none;
+}
+
+/** 拖拽指示器：目标 tile 左缘竖线 */
+@include cmp("layout-drag-indicator") {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  border-radius: 2px;
+  background-color: color("primary");
+  z-index: 10;
+  pointer-events: none;
+}

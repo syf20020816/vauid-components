@@ -42,6 +42,13 @@ export const VideoSettings = ({ settings, update }: SettingsSectionProps) => {
         />
         <span className="vauid-settings-row-tip">{settings.pageSize} 人/页</span>
       </SettingsRow>
+      <SettingsRow label="拖拽排序">
+        <Checkbox
+          label="允许长按拖拽调整画面位置"
+          checked={settings.enableDragSort}
+          onChange={(v) => update("enableDragSort", v)}
+        />
+      </SettingsRow>
     </div>
   );
 };

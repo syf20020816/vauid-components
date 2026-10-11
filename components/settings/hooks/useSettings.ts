@@ -1,6 +1,7 @@
 
 import { useCallback, useState } from "react";
 import { DEFAULT_SETTINGS, type SettingsState } from "../types";
+import { DEFAULT_SHORTCUTS } from "../../layout/shortcut";
 
 const STORAGE_KEY = "vauid-settings";
 /**
@@ -11,7 +12,14 @@ export const useSettings = () => {
   const [settings, setSettings] = useState<SettingsState>(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : DEFAULT_SETTINGS;
+      if (!raw) return DEFAULT_SETTINGS;
+      const stored = JSON.parse(raw) as Partial<SettingsState>;
+      return {
+        ...DEFAULT_SETTINGS,
+        ...stored,
+        // 嵌套对象深合并：老版本存储缺失 shortcuts 或缺单项时逐 action 兜底
+        shortcuts: { ...DEFAULT_SHORTCUTS, ...(stored.shortcuts ?? {}) },
+      };
     } catch {
       return DEFAULT_SETTINGS;
     }

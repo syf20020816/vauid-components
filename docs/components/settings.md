@@ -12,12 +12,19 @@ order: 21
 左侧分区导航 + 右侧内容区。内部需在 `RoomCtxProvider` 内使用（视频分区的"布局单页人数"联动 `engine.setPageSize`）。
 
 ```tsx
-import { RoomCtxProvider, SettingsPanel } from 'vauid-components';
+import { RoomCtxProvider, SettingsPanel, type SelectOption } from 'vauid-components';
+
+const LANG_OPTIONS: SelectOption[] = [
+  { value: 'zh-CN', label: '简体中文' },
+  { value: 'en-US', label: 'English' },
+  { value: 'ja-JP', label: '日本語' },
+];
 
 export default () => (
   <RoomCtxProvider>
     <SettingsPanel
       style={{ width: 680, height: 440 }}
+      langOptions={LANG_OPTIONS}
       network={{ bandwidth: 2048, lossRate: 0.2, jitter: 12, rtt: 45, networkType: 'wifi' }}
       audio={{ bitrate: 48, inputVolume: 80, outputVolume: 60 }}
       video={{ resolution: '1280×720', frameRate: 30, bitrate: 1200 }}
@@ -76,13 +83,28 @@ export default () => (
 
 ## LangSelect 语言选择
 
-基于 Select 的语言预设，内置常用语言列表（默认 `zh-CN`）。
+基于 Select 的语言选择器，`value` / `onChange` 收窄为 `LangType`（BCP 47 语言代码，预置常用项自动补全，兼容任意自定义语言）。语言列表不内置，由使用方传入：
 
 ```tsx
-import { LangSelect } from 'vauid-components';
+import { LangSelect, type SelectOption } from 'vauid-components';
+
+const LANG_OPTIONS: SelectOption[] = [
+  { value: 'zh-CN', label: '简体中文' },
+  { value: 'zh-TW', label: '繁體中文' },
+  { value: 'en-US', label: 'English' },
+  { value: 'ja-JP', label: '日本語' },
+  { value: 'ko-KR', label: '한국어' },
+  { value: 'fr-FR', label: 'Français' },
+  { value: 'de-DE', label: 'Deutsch' },
+  { value: 'es-ES', label: 'Español' },
+];
 
 export default () => (
-  <LangSelect defaultValue="zh-CN" onChange={(lang) => console.log(lang)} />
+  <LangSelect
+    options={LANG_OPTIONS}
+    defaultValue="zh-CN"
+    onChange={(lang) => console.log(lang)}
+  />
 );
 ```
 
@@ -129,6 +151,7 @@ const { settings, update } = useSettings();
 | `network` | `NetworkStats` | - | 网络统计（RTCStats 驱动） |
 | `audio` | `AudioStats` | - | 音频统计（RTCStats 驱动） |
 | `video` | `VideoStats` | - | 视频统计（RTCStats 驱动） |
+| `langOptions` | `SelectOption[]` | - | 语言选项（传入后常规分区才展示语言行） |
 | `className` / `style` | - | - | 根元素样式 |
 
 `SettingsTab = "general" | "audio" | "video" | "system"`
@@ -163,7 +186,7 @@ const { settings, update } = useSettings();
 
 ### LangSelectProps
 
-继承 SelectProps（去掉 options/value/onChange），`value` 收窄为 `string`，`onChange(lang: string)`；`defaultValue` 默认 `"zh-CN"`。
+继承 SelectProps（去掉 `value` / `defaultValue` / `onChange`），`options` 必传（语言列表由使用方提供）；`value` / `defaultValue` 收窄为 `LangType`，`onChange(lang: LangType)`。`LangType` 为 BCP 47 语言代码联合类型（`"zh-CN" | "en-US" | ...`），保留字符串兜底可扩展自定义语言。
 
 ### 统计卡片
 

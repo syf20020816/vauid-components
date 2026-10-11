@@ -1,19 +1,22 @@
 import { useState, type CSSProperties } from "react";
 import { useCls } from "../std/hooks/cls";
+import type { SelectOption } from "../select";
 import { useSettings } from "./hooks/useSettings";
 import { NormalSettings } from "./normal";
 import { AudioSettings } from "./audio";
 import { VideoSettings } from "./video";
 import { SystemSettings } from "./system";
+import { ShortcutSettings } from "./shortcuts";
 import type { LoadStats, NetworkStats, AudioStats, VideoStats } from "./cards";
 import "./index.scss";
 
-export type SettingsTab = "general" | "audio" | "video" | "system";
+export type SettingsTab = "general" | "audio" | "video" | "shortcuts" | "system";
 
 const TABS: { key: SettingsTab; label: string }[] = [
   { key: "general", label: "常规" },
   { key: "audio", label: "音频" },
   { key: "video", label: "视频" },
+  { key: "shortcuts", label: "快捷键" },
   { key: "system", label: "系统" },
 ];
 
@@ -32,6 +35,8 @@ export interface SettingsPanelProps {
   audio?: AudioStats;
   /** 视频统计（RTCStats 驱动） */
   video?: VideoStats;
+  /** 语言选项（传入后常规分区才展示语言行） */
+  langOptions?: SelectOption[];
   className?: string;
   style?: CSSProperties;
 }
@@ -48,6 +53,7 @@ export const SettingsPanel = ({
   network,
   audio,
   video,
+  langOptions,
   className,
   style,
 }: SettingsPanelProps) => {
@@ -79,13 +85,20 @@ export const SettingsPanel = ({
       </div>
       <div className={vcls("content")}>
         {current === "general" && (
-          <NormalSettings settings={settings} update={update} />
+          <NormalSettings
+            settings={settings}
+            update={update}
+            langOptions={langOptions}
+          />
         )}
         {current === "audio" && (
           <AudioSettings settings={settings} update={update} />
         )}
         {current === "video" && (
           <VideoSettings settings={settings} update={update} />
+        )}
+        {current === "shortcuts" && (
+          <ShortcutSettings settings={settings} update={update} />
         )}
         {current === "system" && (
           <SystemSettings load={load} network={network} audio={audio} video={video} />

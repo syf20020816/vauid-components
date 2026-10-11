@@ -26,7 +26,20 @@ import { Areas } from "../components/layout/types";
 import type { LayoutNode } from "../components/layout/types";
 import { Prejoin } from "../components/prejoin";
 import { WhiteboardTool } from "vauid-components/whiteboard/tool";
-import { RoomCtxProvider, Whiteboard, RightCtxMenu, SettingsPanel } from "vauid-components";
+import {
+  RoomCtxProvider,
+  Whiteboard,
+  RightCtxMenu,
+  SettingsPanel,
+  type SelectOption,
+} from "vauid-components";
+
+const LANG_OPTIONS: SelectOption[] = [
+  { value: "zh-CN", label: "简体中文" },
+  { value: "zh-TW", label: "繁體中文" },
+  { value: "en-US", label: "English" },
+  { value: "ja-JP", label: "日本語" },
+];
 import { DeviceTrigger } from "../components/controller/device";
 import { useRef, useState } from "react";
 import { Settings } from "lucide-react";
@@ -425,6 +438,7 @@ export const TabPage = ({
             }}
             audio={{ bitrate: 48, inputVolume: 80, outputVolume: 60 }}
             video={{ resolution: "1280×720", frameRate: 30, bitrate: 1200 }}
+            langOptions={LANG_OPTIONS}
           />
         </div>
       </RoomCtxProvider>

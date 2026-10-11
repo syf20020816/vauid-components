@@ -91,6 +91,7 @@ export default defineConfig({
           children: [
             '/layout/overview',
             '/layout/api',
+            '/layout/custom-layout',
             '/layout/thumbnail',
           ],
         },

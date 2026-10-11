@@ -1,6 +1,6 @@
 import { forwardRef, useState, type HTMLAttributes, type ReactNode } from "react";
 import { useCls } from "../std/hooks/cls";
-import "./checkbox.scss";
+import "./index.scss";
 
 export interface CheckboxProps
   extends Omit<HTMLAttributes<HTMLLabelElement>, "onChange"> {

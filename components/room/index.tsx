@@ -4,6 +4,12 @@ import { RoomCtxProvider } from "../std/ctx";
 import type { RoomCtx } from "../std/ctx/types";
 import { Layout } from "../layout";
 import { useEngine } from "../layout/hooks/useEngine";
+import {
+  saveEntityOrder,
+  useEntityOrderRestore,
+} from "../layout/hooks/useDragSort";
+import { useSettings } from "../settings/hooks/useSettings";
+import { useKeyboardNav } from "../layout/hooks/useKeyboardNav";
 import { Controller, type ControllerProps } from "../controller";
 import { ParticipantNum } from "../participant/num";
 import { useCls } from "../std/hooks/cls";
@@ -65,7 +71,23 @@ const MeetingRoomInner = ({
   const { cls, vcls } = useCls("meeting-room", className);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { nodes } = useEngine({ container: containerRef, entities });
+  const { nodes, engine } = useEngine({ container: containerRef, entities });
+  const { settings } = useSettings();
+  // 键盘导航：方向键翻页、Ctrl+←/→ 聚焦 Tile、Ctrl+/ 切布局（键位经设置分区可改）
+  useKeyboardNav({ bindings: settings.shortcuts });
+  // 实体首次就绪时恢复持久化的显示顺序（每次挂载最多一次）
+  useEntityOrderRestore(engine.current, entities);
+
+  const dragSort = {
+    enabled: settings.enableDragSort,
+    onDrop: (id: string, toIndex: number) => {
+      engine.current?.moveEntity(id, toIndex);
+      const order = engine.current
+        ?.getState()
+        .entities.map((e) => e.id);
+      if (order) saveEntityOrder(order);
+    },
+  };
 
   const mergedController: ControllerProps = {
     ...controller,
@@ -89,6 +111,7 @@ const MeetingRoomInner = ({
         <Layout
           ref={containerRef}
           nodes={nodes}
+          dragSort={dragSort}
           tileStyle={() => ({
             borderRadius: 12,
             overflow: "hidden",

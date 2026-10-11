@@ -38,11 +38,13 @@
 
 ## W8：Layout 高级特性
 
-| # | 任务 | 涉及文件 | 验收标准 | 优先级 |
-|---|------|----------|----------|--------|
-| 8.1 | 拖拽排序 | `components/layout/engine/` | 用户手动调整实体位置并持久化 | P1 |
-| 8.2 | 自定义布局模式 | `components/layout/` | 支持 Sidebar / Custom Grid 扩展注册 | P1 |
-| 8.3 | 键盘导航 | `components/layout/` | Tab / 方向键切换焦点实体 | P2 |
+> **2026-10 形态调整**：拖拽排序做成设置开关（勾选才允许长按拖拽，仅 Grid 可见 Tile）；自定义布局模式做成注册器模式（`LayoutModeDefinition` interface 注册到引擎，Thumbnail 自动渲染切换项）；键盘导航做成独立"快捷键"设置分区（游戏键位绑定式 UI，支持改键与拒绝式冲突检测）。
+
+| # | 任务 | 涉及文件 | 验收标准 | 优先级 | 状态 |
+|---|------|----------|----------|--------|------|
+| 8.1 | 拖拽排序 | `components/layout/`、`components/settings/video.tsx` | 设置勾选后 Grid Tile 长按 250ms 拖拽换位（指示器提示），`moveEntity`/`reorderEntities` 重排并持久化 `vauid-layout-order`，刷新恢复 | P1 | ✅ 已完成 |
+| 8.2 | 自定义布局模式 | `components/layout/engine/layoutMode.ts`、`engine/index.ts`、`thumbnail.tsx` | `registerLayoutMode` 注册自定义 compute（内建拒绝/重复覆盖），Thumbnail 动态渲染注册项，`activateLayout`/`cycleLayoutMode` 统一激活 | P1 | ✅ 已完成 |
+| 8.3 | 键盘导航 | `components/layout/shortcut.ts`、`hooks/useKeyboardNav.ts`、`settings/shortcuts.tsx` | 默认键位（←/→ 翻页、Ctrl+←/→ 聚焦、Ctrl+/ 切布局）；快捷键分区可改键，冲突拒绝式保存；输入控件内不触发 | P2 | ✅ 已完成 |
 
 ## W9：性能专项
 

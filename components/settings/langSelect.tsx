@@ -1,43 +1,47 @@
 import { Select, type SelectProps } from "../select";
-import type { SelectOption } from "../select";
 
-/** 内置语言列表 */
-export const LANG_OPTIONS: SelectOption[] = [
-  { value: "zh-CN", label: "简体中文" },
-  { value: "zh-TW", label: "繁體中文" },
-  { value: "en-US", label: "English" },
-  { value: "ja-JP", label: "日本語" },
-  { value: "ko-KR", label: "한국어" },
-  { value: "fr-FR", label: "Français" },
-  { value: "de-DE", label: "Deutsch" },
-  { value: "es-ES", label: "Español" },
-];
+/**
+ * i18n 语言代码（BCP 47）。
+ * 预置常用项提供编辑器自动补全，`(string & {})` 兜底允许任意自定义语言。
+ */
+export type LangType =
+  | "zh-CN"
+  | "zh-TW"
+  | "en-US"
+  | "ja-JP"
+  | "ko-KR"
+  | "fr-FR"
+  | "de-DE"
+  | "es-ES"
+  | (string & {});
 
 export interface LangSelectProps
-  extends Omit<SelectProps, "options" | "value" | "onChange"> {
+  extends Omit<SelectProps, "value" | "defaultValue" | "onChange"> {
   /** 语言代码（BCP 47），受控 */
-  value?: string;
-  defaultValue?: string;
-  onChange?: (lang: string) => void;
+  value?: LangType;
+  /** 非受控默认语言 */
+  defaultValue?: LangType;
+  /** 选中语言回调 */
+  onChange?: (lang: LangType) => void;
 }
 
 /**
  * # LangSelect - 语言选择
- * 基于 Select 的语言预设（内置常用语言列表），可经 options 扩展由外部覆盖。
+ * 基于 Select 的语言选择器，value/onChange 收窄为 LangType；
+ * 语言选项由使用方传入（示例列表见文档 / 测试）。
  */
 export const LangSelect = ({
   value,
-  defaultValue = "zh-CN",
+  defaultValue,
   onChange,
   ...props
 }: LangSelectProps) => {
   return (
     <Select
-      options={LANG_OPTIONS}
+      {...props}
       value={value}
       defaultValue={defaultValue}
-      onChange={(v) => onChange?.(String(v))}
-      {...props}
+      onChange={(v) => onChange?.(v as LangType)}
     />
   );
 };
