@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { LangSelect, type LangType } from "../langSelect";
-import type { SelectOption } from "../../select";
+import type { Option } from "../../trigger/types";
 
 /** 语言列表示例（库内不内置，文档 demo 与测试共用此形态） */
-const LANG_OPTIONS: SelectOption[] = [
+const LANG_OPTIONS: Option[] = [
   { value: "zh-CN", label: "简体中文" },
   { value: "zh-TW", label: "繁體中文" },
   { value: "en-US", label: "English" },

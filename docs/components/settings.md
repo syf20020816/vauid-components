@@ -12,9 +12,9 @@ order: 21
 左侧分区导航 + 右侧内容区。内部需在 `RoomCtxProvider` 内使用（视频分区的"布局单页人数"联动 `engine.setPageSize`）。
 
 ```tsx
-import { RoomCtxProvider, SettingsPanel, type SelectOption } from 'vauid-components';
+import { RoomCtxProvider, SettingsPanel, type Option } from 'vauid-components';
 
-const LANG_OPTIONS: SelectOption[] = [
+const LANG_OPTIONS: Option[] = [
   { value: 'zh-CN', label: '简体中文' },
   { value: 'en-US', label: 'English' },
   { value: 'ja-JP', label: '日本語' },
@@ -86,9 +86,9 @@ export default () => (
 基于 Select 的语言选择器，`value` / `onChange` 收窄为 `LangType`（BCP 47 语言代码，预置常用项自动补全，兼容任意自定义语言）。语言列表不内置，由使用方传入：
 
 ```tsx
-import { LangSelect, type SelectOption } from 'vauid-components';
+import { LangSelect, type Option } from 'vauid-components';
 
-const LANG_OPTIONS: SelectOption[] = [
+const LANG_OPTIONS: Option[] = [
   { value: 'zh-CN', label: '简体中文' },
   { value: 'zh-TW', label: '繁體中文' },
   { value: 'en-US', label: 'English' },
@@ -151,7 +151,7 @@ const { settings, update } = useSettings();
 | `network` | `NetworkStats` | - | 网络统计（RTCStats 驱动） |
 | `audio` | `AudioStats` | - | 音频统计（RTCStats 驱动） |
 | `video` | `VideoStats` | - | 视频统计（RTCStats 驱动） |
-| `langOptions` | `SelectOption[]` | - | 语言选项（传入后常规分区才展示语言行） |
+| `langOptions` | `Option[]` | - | 语言选项（传入后常规分区才展示语言行） |
 | `className` / `style` | - | - | 根元素样式 |
 
 `SettingsTab = "general" | "audio" | "video" | "system"`
@@ -169,7 +169,7 @@ const { settings, update } = useSettings();
 |------|------|--------|------|
 | `value` | `string \| number` | - | 受控选中值 |
 | `defaultValue` | `string \| number` | - | 非受控默认值 |
-| `options` | `SelectOption[]`（`{ label, value, disabled? }`） | - | 选项列表 |
+| `options` | `Option[]`（`{ label, value, disabled?, danger? }`） | - | 选项列表 |
 | `onChange` | `(value, option) => void` | - | 选中变化回调 |
 | `placeholder` | `string` | `"请选择"` | 无选中时占位文本 |
 | `disabled` | `boolean` | `false` | 是否禁用 |

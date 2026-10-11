@@ -1,6 +1,6 @@
 import { useState, type CSSProperties } from "react";
 import { useCls } from "../std/hooks/cls";
-import type { SelectOption } from "../select";
+import type { Option } from "../trigger/types";
 import { useSettings } from "./hooks/useSettings";
 import { NormalSettings } from "./normal";
 import { AudioSettings } from "./audio";
@@ -36,7 +36,7 @@ export interface SettingsPanelProps {
   /** 视频统计（RTCStats 驱动） */
   video?: VideoStats;
   /** 语言选项（传入后常规分区才展示语言行） */
-  langOptions?: SelectOption[];
+  langOptions?: Option[];
   className?: string;
   style?: CSSProperties;
 }

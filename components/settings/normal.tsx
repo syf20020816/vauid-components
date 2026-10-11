@@ -1,5 +1,6 @@
 import { Checkbox } from "../checkbox";
-import { Select, type SelectOption } from "../select";
+import { Select } from "../select";
+import type { Option } from "../trigger/types";
 import { LangSelect } from "./langSelect";
 import { SettingsRow } from "./row";
 import type {
@@ -18,7 +19,7 @@ const PERFORMANCE_OPTIONS: {
 
 export interface NormalSettingsProps extends SettingsSectionProps {
   /** 语言选项（库内不内置语言列表，由使用方传入；不传则不展示语言行） */
-  langOptions?: SelectOption[];
+  langOptions?: Option[];
 }
 
 /** 常规设置：通知 / 性能模式 / 语言 */

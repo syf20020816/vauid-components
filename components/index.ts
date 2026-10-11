@@ -47,9 +47,10 @@ export {
   type RightCtxMenuProps,
 } from './dropdown/rightCtxMenu';
 export { Trigger } from './trigger';
+export type { Option } from './trigger/types';
 export { Slider } from './slider';
 export { Select } from './select';
-export type { SelectProps, SelectOption } from './select';
+export type { SelectProps } from './select';
 export { Checkbox } from './checkbox';
 export type { CheckboxProps } from './checkbox';
 export { SettingsPanel } from './settings';

@@ -31,10 +31,12 @@ import {
   Whiteboard,
   RightCtxMenu,
   SettingsPanel,
-  type SelectOption,
+  type Option,
+  Select,
+  LangSelect,
 } from "vauid-components";
 
-const LANG_OPTIONS: SelectOption[] = [
+const LANG_OPTIONS: Option[] = [
   { value: "zh-CN", label: "简体中文" },
   { value: "zh-TW", label: "繁體中文" },
   { value: "en-US", label: "English" },
@@ -42,7 +44,7 @@ const LANG_OPTIONS: SelectOption[] = [
 ];
 import { DeviceTrigger } from "../components/controller/device";
 import { useRef, useState } from "react";
-import { Settings } from "lucide-react";
+import { Languages, Settings } from "lucide-react";
 
 const mockNode = (id: string, label: string, isFocus = false): LayoutNode => ({
   entity: { id, label },
@@ -442,6 +444,19 @@ export const TabPage = ({
           />
         </div>
       </RoomCtxProvider>
+    );
+  } else if (tab === "select") {
+    return (
+      <div style={flexCenter}>
+        <Select options={LANG_OPTIONS} />
+        <LangSelect
+          options={[
+            { icon: <Languages size={14} />, label: "中文", value: "zh-CN" },
+            { label: "English", value: "en-US" },
+            { label: "日本語", value: "ja-JP" },
+          ]}
+        />
+      </div>
     );
   } else if (tab === "status") {
     return (
