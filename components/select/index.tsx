@@ -1,8 +1,12 @@
 import RcTrigger from "@rc-component/trigger";
 import "@rc-component/trigger/assets/index.css";
-import { forwardRef, useState, type HTMLAttributes } from "react";
+import {
+  forwardRef,
+  useState,
+  type HTMLAttributes,
+  type MouseEvent,
+} from "react";
 import { useCls } from "../std/hooks/cls";
-import { mergeClassNames } from "../std/util";
 import { getPopupContainer, builtinPlacements } from "../trigger/config";
 import type { Option } from "../trigger/types";
 import "./index.scss";
@@ -26,6 +30,35 @@ export interface SelectProps
   };
 }
 
+/** 菜单项内部 props：Select 注入选中态与点击处理（useCls 需在组件顶层调用，故抽为独立组件） */
+type SelectItemProps = {
+  option: Option;
+  active: boolean;
+  className?: string;
+  onClick: (e: MouseEvent<HTMLElement>) => void;
+};
+
+/** 菜单项：样式与 Dropdown 共用 dropdown-item 体系，suffix 推到尾部 */
+const SelectItem = ({ option, active, className, onClick }: SelectItemProps) => {
+  const { icon, label, suffix, disabled, danger } = option;
+  const { cls, vcls } = useCls(
+    [
+      "dropdown-item",
+      active && "dropdown-item--active",
+      disabled && "dropdown-item--disabled",
+      danger && "dropdown-item--danger",
+    ],
+    className,
+  );
+  return (
+    <div className={cls} onClick={onClick}>
+      {icon}
+      {label}
+      {suffix && <span className={vcls("suffix")}>{suffix}</span>}
+    </div>
+  );
+};
+
 /**
  * # Select - 下拉选择器
  * 受控/非受控的下拉单选，基于 RcTrigger，选项复用 dropdown-item 样式体系。
@@ -37,7 +70,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
       defaultValue,
       options,
       onChange,
-      placeholder = "请选择",
+      placeholder = "Please select",
       disabled,
       classNames,
       ...props
@@ -63,20 +96,16 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
     );
 
     return (
-      
       <RcTrigger
         action={disabled ? [] : ["click"]}
         popup={
           <div className={menuCls}>
             {options.map((option) => (
-              <div
+              <SelectItem
                 key={option.value}
-                className={mergeClassNames([
-                  "dropdown-item",
-                  option.value === current ? "dropdown-item--active" : "",
-                  option.disabled ? "dropdown-item--disabled" : "",
-                  option.danger ? "dropdown-item--danger" : "",
-                ])(classNames?.option)}
+                option={option}
+                active={option.value === current}
+                className={classNames?.option}
                 onClick={(e) => {
                   if (option.disabled) return;
                   e.stopPropagation();
@@ -91,10 +120,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
                   // 仅切换选中时触发（已选中不触发，对齐 Trigger）
                   if (isSwitch) option.onSelect?.(option.value, e);
                 }}
-              >
-                {option.icon}
-                {option.label}
-              </div>
+              />
             ))}
           </div>
         }

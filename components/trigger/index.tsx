@@ -46,7 +46,7 @@ type DropdownItemProps = Option & {
   ) => void;
 };
 
-/** 下拉项：选中态加 `active` 类以区分背景色；danger 红色强调；disabled 不可点击 */
+/** 下拉项：选中态加 `active` 类以区分背景色；danger 红色强调；disabled 不可点击；suffix 推到尾部 */
 const DropdownItem = ({
   icon,
   label,
@@ -54,11 +54,12 @@ const DropdownItem = ({
   active,
   disabled,
   danger,
+  suffix,
   onClick,
   onSelect,
   onInternalClick,
 }: DropdownItemProps) => {
-  const { cls } = useCls([
+  const { cls, vcls } = useCls([
     "dropdown-item",
     active && "active",
     disabled && "disabled",
@@ -81,6 +82,7 @@ const DropdownItem = ({
     >
       {icon}
       {label}
+      {suffix && <span className={vcls("suffix")}>{suffix}</span>}
     </div>
   );
 };
@@ -139,7 +141,7 @@ export const Trigger = ({
 
   const popup = (
     <div className={vcls("dropdown")} style={styles?.dropdown}>
-      {options?.map(({ icon, label, value, disabled, danger, onClick, onSelect }) => (
+      {options?.map(({ icon, label, value, disabled, danger, suffix, onClick, onSelect }) => (
         <DropdownItem
           key={value}
           icon={icon}
@@ -148,6 +150,7 @@ export const Trigger = ({
           active={value === currentValue}
           disabled={disabled}
           danger={danger}
+          suffix={suffix}
           onClick={onClick}
           onSelect={onSelect}
           onInternalClick={handleItemClick}

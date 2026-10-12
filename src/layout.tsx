@@ -44,7 +44,7 @@ const LANG_OPTIONS: Option[] = [
 ];
 import { DeviceTrigger } from "../components/controller/device";
 import { useRef, useState } from "react";
-import { Languages, Settings } from "lucide-react";
+import { Languages, Link, Settings } from "lucide-react";
 
 const mockNode = (id: string, label: string, isFocus = false): LayoutNode => ({
   entity: { id, label },
@@ -452,8 +452,19 @@ export const TabPage = ({
         <LangSelect
           options={[
             { icon: <Languages size={14} />, label: "中文", value: "zh-CN" },
-            { label: "English", value: "en-US" },
-            { label: "日本語", value: "ja-JP" },
+            { label: "English", value: "en-US", suffix: "US" },
+            {
+              label: "日本語",
+              value: "ja-JP",
+              suffix: (
+                <Link
+                  size={16}
+                  onClick={() => {
+                    alert("href");
+                  }}
+                ></Link>
+              ),
+            },
           ]}
         />
       </div>

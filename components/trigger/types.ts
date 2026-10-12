@@ -20,4 +20,6 @@ export interface Option {
     e: MouseEvent<HTMLElement>,
   ) => FnReturn<void>;
   active?: boolean;
+  /** 自定义后缀 */
+  suffix?: ReactNode;
 }

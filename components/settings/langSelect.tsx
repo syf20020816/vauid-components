@@ -39,7 +39,7 @@ export const LangSelect = ({
   return (
     <Select
       {...props}
-      placeholder="选择语言"
+      placeholder="Select a language"
       value={value}
       defaultValue={defaultValue}
       onChange={(v) => onChange?.(v as LangType)}

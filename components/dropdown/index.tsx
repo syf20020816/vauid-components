@@ -1,6 +1,5 @@
 import RcTrigger from "@rc-component/trigger";
 import "@rc-component/trigger/assets/index.css";
-import { mergeClassNames } from "../std/util";
 import { useCls } from "../std/hooks/cls";
 import "./index.scss";
 import {
@@ -46,6 +45,35 @@ export interface DropdownProps {
   };
   onOpenChange?: (open: boolean) => void;
 }
+
+/** 菜单项内部 props：Dropdown 注入点击处理（useCls 需在组件顶层调用，故抽为独立组件） */
+type DropdownItemProps = {
+  item: Omit<Option, "onSelect">;
+  className?: string;
+  style?: React.CSSProperties;
+  onClick: (e: MouseEvent<HTMLElement>) => void;
+};
+
+/** 菜单项：选中/禁用/危险态共用 dropdown-item 修饰符体系，suffix 推到尾部 */
+const DropdownItem = ({ item, className, style, onClick }: DropdownItemProps) => {
+  const { icon, label, suffix, active, disabled, danger } = item;
+  const { cls, vcls } = useCls(
+    [
+      "dropdown-item",
+      active && "dropdown-item--active",
+      disabled && "dropdown-item--disabled",
+      danger && "dropdown-item--danger",
+    ],
+    className,
+  );
+  return (
+    <div className={cls} style={style} onClick={onClick}>
+      {icon}
+      {label}
+      {suffix && <span className={vcls("suffix")}>{suffix}</span>}
+    </div>
+  );
+};
 
 /**
  * Dropdown 通过 ref 暴露已处理好的 className，
@@ -97,7 +125,7 @@ export const Dropdown = forwardRef<DropdownRef, DropdownProps>(
       ],
       classNames?.trigger,
     );
-    const itemClassName = mergeClassNames("dropdown-item")(classNames?.item);
+    const { cls: itemClassName } = useCls("dropdown-item", classNames?.item);
 
     // 暴露已处理好的 className，供外部自定义 popup / trigger 复用
     useImperativeHandle(
@@ -122,14 +150,10 @@ export const Dropdown = forwardRef<DropdownRef, DropdownProps>(
     const dropdownContent = popup ?? (
       <div className={menuCls} style={styles?.dropdown}>
         {items?.map((item) => (
-          <div
+          <DropdownItem
             key={item.value}
-            className={mergeClassNames([
-              "dropdown-item",
-              item.active ? "dropdown-item--active" : "",
-              item.disabled ? "dropdown-item--disabled" : "",
-              item.danger ? "dropdown-item--danger" : "",
-            ])(classNames?.item)}
+            item={item}
+            className={classNames?.item}
             style={styles?.item}
             onClick={(e: MouseEvent<HTMLElement>) => {
               e.stopPropagation();
@@ -137,10 +161,7 @@ export const Dropdown = forwardRef<DropdownRef, DropdownProps>(
               item.onClick?.(item.value, e);
               setOpen(false);
             }}
-          >
-            {item.icon}
-            {item.label}
-          </div>
+          />
         ))}
       </div>
     );
