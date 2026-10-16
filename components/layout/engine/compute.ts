@@ -4,7 +4,7 @@ import type { Nullable } from "../../std";
 import type {
   LayoutEntity,
   LayoutNode,
-  LayoutType,
+  LayoutTypeId,
   LayoutNodes,
   DeviceType,
   LayoutStyleProperties,
@@ -32,7 +32,7 @@ export interface ComputeConfig<Entity extends LayoutEntity = LayoutEntity> {
   /** 全屏模式下显示的实体，为 null 时回退到 focusEntity 或首页首个 */
   fullScreenEntity?: Nullable<Entity>;
   deviceType: DeviceType;
-  layoutType: LayoutType;
+  layoutType: LayoutTypeId;
   pageSize: number;
   page: number;
   /** rail 宽度，仅在桌面端有效，控制 rail 区域的宽度 */
@@ -722,7 +722,7 @@ export class LayoutCompute {
   }
 
   /** 是否处于聚焦布局模式 */
-  private static isFocus(layoutType: LayoutType): boolean {
+  private static isFocus(layoutType: LayoutTypeId): boolean {
     return layoutType === LayoutTypes.Focus;
   }
 

@@ -52,7 +52,7 @@ function serializeNodes(
   nodes: LayoutNodes<LayoutEntity>,
 ): SerializableLayoutNode[] {
   const result: SerializableLayoutNode[] = [];
-  for (const node of nodes.values()) {
+  for (const node of Array.from(nodes.values())) {
     result.push({
       entityId: node.entity.id,
       x: node.x,
@@ -80,13 +80,17 @@ self.addEventListener("message", (event: MessageEvent) => {
 
   try {
     const config = deserializeConfig(message.config);
+    // 计算耗时埋点：随响应回传，供主线程做性能观测
+    const computeStart = performance.now();
     const nodes = LayoutCompute.compute(config);
+    const duration = performance.now() - computeStart;
     const serializedNodes = serializeNodes(nodes);
 
     const response: ComputeResponseMessage = {
       type: "compute_response",
       id: message.id,
       nodes: serializedNodes,
+      duration,
     };
 
     self.postMessage(response);

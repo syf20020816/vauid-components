@@ -1,0 +1,60 @@
+@use "../style/global.scss" as *;
+
+@include cmp("checkbox") {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: color("text-primary");
+  cursor: pointer;
+  user-select: none;
+
+  &-input {
+    display: none;
+  }
+
+  &-box {
+    @include flex-center;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    border: 1px solid color("border-default");
+    background-color: color("bg-primary");
+    color: transparent;
+    transition:
+      background-color 0.2s,
+      border-color 0.2s;
+
+    svg {
+      width: 10px;
+      height: 10px;
+    }
+  }
+
+  &-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &.vauid-checked &-box {
+    background-color: color("primary");
+    border-color: color("primary");
+    color: #fff;
+  }
+
+  &:hover:not(.vauid-disabled) &-box {
+    border-color: color("primary-hover");
+  }
+
+  &.vauid-disabled {
+    cursor: not-allowed;
+    color: color("text-tertiary");
+
+    .vauid-checkbox-box {
+      background-color: color("bg-secondary");
+      border-color: color("border-default");
+    }
+  }
+}

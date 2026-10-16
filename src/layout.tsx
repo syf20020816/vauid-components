@@ -4,7 +4,7 @@ import { LeaveButton } from "../components/controller/leave";
 import { Controller } from "../components/controller";
 import { Trigger } from "../components/trigger/index";
 import { NoteTile } from "../components/tile/note";
-import { AudioTile } from "../components/tile/auido";
+import { AudioTile } from "../components/tile/audio";
 import { VideoTile } from "../components/tile/video";
 import { Avatar } from "../components/participant/avatar";
 import { ParticipantName } from "../components/participant/name";
@@ -25,6 +25,26 @@ import { TileWrap } from "../components/tile/wrap";
 import { Areas } from "../components/layout/types";
 import type { LayoutNode } from "../components/layout/types";
 import { Prejoin } from "../components/prejoin";
+import { WhiteboardTool } from "vauid-components/whiteboard/tool";
+import {
+  RoomCtxProvider,
+  Whiteboard,
+  RightCtxMenu,
+  SettingsPanel,
+  type Option,
+  Select,
+  LangSelect,
+} from "vauid-components";
+
+const LANG_OPTIONS: Option[] = [
+  { value: "zh-CN", label: "简体中文" },
+  { value: "zh-TW", label: "繁體中文" },
+  { value: "en-US", label: "English" },
+  { value: "ja-JP", label: "日本語" },
+];
+import { DeviceTrigger } from "../components/controller/device";
+import { useRef, useState } from "react";
+import { Languages, Link, Settings } from "lucide-react";
 
 const mockNode = (id: string, label: string, isFocus = false): LayoutNode => ({
   entity: { id, label },
@@ -65,23 +85,95 @@ export const TabPage = ({
 }: {
   searchParams?: URLSearchParams;
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  // 屏幕共享演示：ScreenShare 按钮将 getDisplayMedia 流挂到该 video 元素上
+  const screenShareVideoRef = useRef<HTMLVideoElement>(null);
+  const [whiteboardRef, setWhiteboardRef] = useState<HTMLDivElement | null>(
+    null,
+  );
   const params = searchParams ?? new URLSearchParams(window.location.search);
   const tab = params.get("tab");
 
   if (!tab) {
     return (
-      <>
+      <RoomCtxProvider>
         <RoomHeader roomName="Will's room" />
         <div style={{ width: "100vw", height: "calc(100vh - 116px)" }}>
           <Page />
         </div>
         <Controller position="center" audio={{ props: { showLabel: false } }} />
-      </>
+      </RoomCtxProvider>
     );
   } else if (tab === "prejoin") {
-    return <div style={{height: "100vh", width: "100vw", backgroundColor: "var(--vauid-color-bg-primary)"}}>
-      <Prejoin />
-    </div>;
+    return (
+      <div
+        style={{
+          height: "100vh",
+          width: "100vw",
+          backgroundColor: "var(--vauid-color-bg-primary)",
+        }}
+      >
+        <Prejoin />
+      </div>
+    );
+  } else if (tab === "whiteboard") {
+    return (
+      <div style={{ height: "100vh", width: "100vw" }}>
+        <Whiteboard toolContainer={document.body} />
+      </div>
+    );
+  } else if (tab === "whiteboard-other") {
+    return (
+      <div style={{ height: "70vh", width: "70vw" }}>
+        <div
+          style={{
+            height: "60px",
+            width: "100vw",
+            backgroundColor: "red",
+            position: "relative",
+          }}
+          ref={(el) => {
+            containerRef.current = el;
+            setWhiteboardRef(el);
+          }}
+        ></div>
+        <Whiteboard toolContainer={whiteboardRef ?? undefined} />
+      </div>
+    );
+  } else if (tab === "whiteboard-self") {
+    return (
+      <div style={{ height: "80vh", width: "80vw" }}>
+        <Whiteboard toolContainer="self" />
+      </div>
+    );
+  } else if (tab === "whiteboard-h") {
+    return (
+      <div style={{ height: "100vh", width: "100vw" }}>
+        <WhiteboardTool />
+        <WhiteboardTool position="top-center" />
+        <WhiteboardTool position="left-center" />
+        <WhiteboardTool position="right-center" />
+
+        <WhiteboardTool position="left-top" />
+        <WhiteboardTool position="right-top" />
+        <WhiteboardTool position="left-bottom" />
+        <WhiteboardTool position="right-bottom" />
+      </div>
+    );
+  } else if (tab === "whiteboard-v") {
+    return (
+      <div style={{ height: "100vh", width: "100vw" }}>
+        <WhiteboardTool direction="vertical" />
+        <WhiteboardTool position="top-center" direction="vertical" />
+        <WhiteboardTool position="left-center" direction="vertical" />
+        <WhiteboardTool position="right-center" direction="vertical" />
+
+        <WhiteboardTool position="left-top" direction="vertical" />
+        <WhiteboardTool position="right-top" direction="vertical" />
+        <WhiteboardTool position="left-bottom" direction="vertical" />
+        <WhiteboardTool position="right-bottom" direction="vertical" />
+      </div>
+    );
   } else if (tab == "header") {
     return (
       <>
@@ -99,9 +191,28 @@ export const TabPage = ({
     );
   } else if (tab === "ctr") {
     return (
-      <div style={flexCenter}>
+      <RoomCtxProvider>
+        {" "}
         <Controller />
-      </div>
+        <hr />
+        <Controller position="center" />
+        <hr />
+        <Controller position="end" leaveLabel="退出房间" />
+        <hr />
+        <Controller participant={{ num: { show: false } }} />
+        <hr />
+        <Controller
+          leaveLabel={<span style={{ fontWeight: 700 }}>Leave!</span>}
+          moreOptions={[
+            { label: "participant", value: "participant" },
+            {
+              label: "setting",
+              value: "setting",
+              icon: <Settings size={14} />,
+            },
+          ]}
+        />
+      </RoomCtxProvider>
     );
   } else if (tab === "btn") {
     return (
@@ -119,30 +230,33 @@ export const TabPage = ({
     );
   } else if (tab === "tile") {
     return (
-      <div style={flexRowWrap}>
-        <TileWrap
-          node={mockNode("note", "公告")}
-          style={{ height: 300, width: 300 }}
-          float={{
-            leftTop: { show: false },
-            leftBottom: { show: false },
-            rightBottom: { show: false },
-          }}
-        >
-          <NoteTile value={noteValue} />
-        </TileWrap>
-        <TileWrap
-          node={mockNode("audio", "Join")}
-          style={{ height: 300, width: 300 }}
-        >
-          <AudioTile name="Join"></AudioTile>
-        </TileWrap>
-        <TileWrap
-          node={mockNode("video", "视频", true)}
-          style={{ height: 300, width: 300 }}
-        >
-          <VideoTile></VideoTile>
-        </TileWrap>
+      <div style={{ ...flexCol }}>
+        <div style={flexRowWrap}>
+          <TileWrap
+            node={mockNode("note", "公告")}
+            style={{ height: 300, width: 300 }}
+            float={{
+              leftTop: { show: false },
+              leftBottom: { show: false },
+              rightBottom: { show: false },
+            }}
+          >
+            <NoteTile value={noteValue} />
+          </TileWrap>
+          <TileWrap
+            node={mockNode("audio", "Join")}
+            style={{ height: 300, width: 300 }}
+          >
+            <AudioTile name="Join"></AudioTile>
+          </TileWrap>
+          <TileWrap
+            node={mockNode("video", "屏幕共享", true)}
+            style={{ height: 300, width: 300 }}
+          >
+            <VideoTile ref={screenShareVideoRef}></VideoTile>
+          </TileWrap>
+        </div>
+        <DeviceTrigger.ScreenShare element={screenShareVideoRef} />
       </div>
     );
   } else if (tab === "audio") {
@@ -218,34 +332,48 @@ export const TabPage = ({
       </div>
     );
   } else if (tab === "item") {
+    const ctxItems = [
+      { value: "mute", label: "静音" },
+      { value: "focus", label: "设为焦点" },
+      { value: "pin", label: "置顶" },
+      { value: "remove", label: "移出房间", danger: true },
+    ];
     return (
       <div style={{ width: 300, ...flexCol, padding: 12 }}>
-        <ParticipantItem
-          name="张三"
-          role="participant"
-          audioEnabled
-          videoEnabled
-        />
-        <ParticipantItem
-          name="John"
-          extra="主持人"
-          audioEnabled
-          videoEnabled={false}
-          role="host"
-        />
-        <ParticipantItem
-          name="Alice"
-          extra="静音中"
-          audioEnabled={false}
-          videoEnabled
-          role="manager"
-        />
-        <ParticipantItem
-          name="Bob"
-          role="guest"
-          audioEnabled={false}
-          videoEnabled={false}
-        />
+        <RightCtxMenu items={ctxItems}>
+          <ParticipantItem
+            name="张三"
+            role="participant"
+            audioEnabled
+            videoEnabled
+          />
+        </RightCtxMenu>
+        <RightCtxMenu items={ctxItems}>
+          <ParticipantItem
+            name="John"
+            extra="主持人"
+            audioEnabled
+            videoEnabled={false}
+            role="host"
+          />
+        </RightCtxMenu>
+        <RightCtxMenu items={ctxItems}>
+          <ParticipantItem
+            name="Alice"
+            extra="静音中"
+            audioEnabled={false}
+            videoEnabled
+            role="manager"
+          />
+        </RightCtxMenu>
+        <RightCtxMenu items={ctxItems}>
+          <ParticipantItem
+            name="Bob"
+            role="guest"
+            audioEnabled={false}
+            videoEnabled={false}
+          />
+        </RightCtxMenu>
       </div>
     );
   } else if (tab === "num") {
@@ -296,6 +424,49 @@ export const TabPage = ({
         <NetworkStatus rtt={4} />
         <NetworkUpload />
         <NetworkDownload />
+      </div>
+    );
+  } else if (tab === "settings") {
+    return (
+      <RoomCtxProvider>
+        <div style={{ ...flexCenter }}>
+          <SettingsPanel
+            network={{
+              bandwidth: 2048,
+              lossRate: 0.2,
+              jitter: 12,
+              rtt: 45,
+              networkType: "wifi",
+            }}
+            audio={{ bitrate: 48, inputVolume: 80, outputVolume: 60 }}
+            video={{ resolution: "1280×720", frameRate: 30, bitrate: 1200 }}
+            langOptions={LANG_OPTIONS}
+          />
+        </div>
+      </RoomCtxProvider>
+    );
+  } else if (tab === "select") {
+    return (
+      <div style={flexCenter}>
+        <Select options={LANG_OPTIONS} />
+        <LangSelect
+          options={[
+            { icon: <Languages size={14} />, label: "中文", value: "zh-CN" },
+            { label: "English", value: "en-US", suffix: "US" },
+            {
+              label: "日本語",
+              value: "ja-JP",
+              suffix: (
+                <Link
+                  size={16}
+                  onClick={() => {
+                    alert("href");
+                  }}
+                ></Link>
+              ),
+            },
+          ]}
+        />
       </div>
     );
   } else if (tab === "status") {

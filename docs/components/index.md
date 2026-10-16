@@ -58,3 +58,11 @@ export default () => (
 - [VideoTile 视频 Tile](/components/video-tile) — 视频渲染单元
 - [AudioTile 音频 Tile](/components/audio-tile) — 音频渲染单元
 - [NoteTile 备注 Tile](/components/note-tile) — 文本/备注 Tile
+
+### 白板
+
+- [Whiteboard 白板](/components/whiteboard) — 基于 react-konva 的画板，支持笔/橡皮/形状/文本绘制与撤销重做
+
+### 上下文
+
+- [RoomCtx 房间上下文](/components/room-ctx) — 房间级布局引擎与额外数据的上下文

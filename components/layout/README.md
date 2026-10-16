@@ -112,10 +112,10 @@ await engine.init(entities, container, {
   layoutType: LayoutTypes.Grid,
   deviceType: DeviceTypes.Desktop,
   smart: true,          // 是否开启智能末尾填补算法
-  worker: {             // Web Worker 配置
-    enabled: true,
-    workerUrl: '/path/to/worker.js',
-    timeout: 5000,
+  worker: {             // Web Worker 配置（可省略，默认自动启用内联 worker）
+    enabled: true,      // 设为 false 强制主线程计算
+    workerUrl: '/path/to/worker.js', // 可选：自建 worker 产物 URL
+    timeout: 5000,      // worker 计算超时后回退主线程
   },
 });
 ```

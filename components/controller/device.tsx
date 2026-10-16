@@ -7,6 +7,7 @@ import {
   type FC,
   type ForwardRefExoticComponent,
   type MouseEvent,
+  type ReactNode,
   type RefAttributes,
 } from "react";
 import { useCls } from "../std/hooks/cls";
@@ -20,6 +21,8 @@ import {
   type UseScreenShareProps,
 } from "./hooks/useScreenShare";
 import type { FnReturn, Nullable } from "vauid-components/std";
+import { Dropdown, type DropdownProps } from "vauid-components";
+import { MoreHorizontal } from "lucide-react";
 
 export interface DeviceTriggerComponent extends FC<TriggerProps> {
   Audio: FC<TriggerProps>;
@@ -27,8 +30,8 @@ export interface DeviceTriggerComponent extends FC<TriggerProps> {
   Video: ForwardRefExoticComponent<
     DeviceTriggerProps & RefAttributes<DeviceVideoTriggerExports>
   >;
-  ScreenShare: FC<UseScreenShareProps>;
-  More: FC<TriggerProps>;
+  ScreenShare: FC<DeviceScreenShareProps>;
+  More: FC<DeviceTriggerMoreProps>;
 }
 
 const svgProps = {
@@ -128,12 +131,35 @@ const DeviceTriggerVideo = forwardRef<
   );
 });
 
+export interface DeviceScreenShareProps extends UseScreenShareProps {
+  onClick?: (e: MouseEvent<HTMLElement>, sharing: boolean) => FnReturn<void>;
+  label?: {
+    start?: string;
+    stop?: string;
+  };
+  icon?: {
+    start?: ReactNode;
+    stop?: ReactNode;
+  };
+  /** 是否显示共享按钮的文本 */
+  showLabel?: boolean;
+}
+
 const DeviceScreenShare = ({
   onClick,
+  label = {
+    start: "Share Screen",
+    stop: "Stop Sharing",
+  },
+  icon = {
+    start: <Icon.ScreenShare {...svgProps} />,
+    stop: (
+      <Icon.ScreenShareOff {...svgProps} color="var(--vauid-color-error)" />
+    ),
+  },
+  showLabel = true,
   ...props
-}: UseScreenShareProps & {
-  onClick?: (e: MouseEvent<HTMLElement>, sharing: boolean) => FnReturn<void>;
-}) => {
+}: DeviceScreenShareProps) => {
   const { share, sharing, stop } = useScreenShare(props);
   const { cls } = useCls(["screenShare", sharing && "active"]);
   return (
@@ -147,15 +173,25 @@ const DeviceScreenShare = ({
         }
         onClick?.(e, sharing);
       }}
-      icon={<Icon.ScreenShare {...svgProps} />}
+      icon={icon[sharing ? "stop" : "start"]}
     >
-      {sharing ? "Stop Sharing" : "Share Screen"}
+      {showLabel && (sharing ? label.stop : label.start)}
     </Button>
   );
 };
 
-const DeviceTriggerMore = (props: TriggerProps) => {
-  return <Trigger options={props.options} placeholder="More" />;
+/** More 触发器 props：透传 Dropdown（触发节点固定为更多图标按钮） */
+export type DeviceTriggerMoreProps = Omit<DropdownProps, "children">;
+
+const DeviceTriggerMore = ({
+  placement = "top",
+  ...props
+}: DeviceTriggerMoreProps) => {
+  return (
+    <Dropdown placement={placement} {...props}>
+      <Button icon={<MoreHorizontal {...svgProps} />}></Button>
+    </Dropdown>
+  );
 };
 
 export interface DeviceTriggerProps extends Omit<TriggerProps, "onClick"> {
@@ -175,10 +211,9 @@ DeviceTrigger.More = DeviceTriggerMore;
 
 export interface DeviceSliderComponent extends React.FC<SliderProps> {
   Microphone: React.FC<SliderProps>;
-  
 }
 
-export  interface DeviceSliderMicrophoneProps extends SliderProps {
+export interface DeviceSliderMicrophoneProps extends SliderProps {
   format?: (v: number) => string;
 }
 /**
@@ -186,7 +221,10 @@ export  interface DeviceSliderMicrophoneProps extends SliderProps {
  * - 启动麦克风流后，通过 Web Audio GainNode 实时调节音量（0~100）
  * - 卸载时自动停止麦克风流并释放 AudioContext
  */
-const DeviceSliderMicrophone = ({ format, ...props }: DeviceSliderMicrophoneProps) => {
+const DeviceSliderMicrophone = ({
+  format,
+  ...props
+}: DeviceSliderMicrophoneProps) => {
   const { inUsed, start, stop, streamRef } = useDevice({
     deviceKind: "audioinput",
   });

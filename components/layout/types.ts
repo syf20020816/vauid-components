@@ -116,9 +116,17 @@ export const LayoutTypes = {
   Grid: "grid",
   /** 焦点布局，主实体在主区展示，其他实体在缩略区展示，适合发言者聚焦等场景 */
   Focus: "focus",
+  /** 全屏布局，所有实体在全屏展示，适合仅单发言人场景 */
+  FullScreen: "full_screen",
 } as const;
 
 export type LayoutType = (typeof LayoutTypes)[keyof typeof LayoutTypes];
+
+/**
+ * 布局类型标识：内建 LayoutType 或自定义注册类型的字符串。
+ * `(string & {})` 兜底保留任意自定义类型的可写性，同时内建值仍有自动补全。
+ */
+export type LayoutTypeId = LayoutType | (string & {});
 
 export const DeviceTypes = {
   /** 移动端 */
@@ -198,7 +206,7 @@ export interface LayoutState<Entity extends LayoutEntity = LayoutEntity> {
   /** 总页数 */
   totalPages: number;
   /** 布局类型 */
-  layoutType: LayoutType;
+  layoutType: LayoutTypeId;
   /** 布局宽度 */
   width: number;
   /** 布局高度 */
@@ -249,25 +257,36 @@ export const LifeTimes = {
   onResize: "onResize",
   /** 引擎中任何 state 出现更新时触发 */
   onUpdate: "onUpdate",
+  /** 布局选择状态（layoutType / fullScreen）变化时触发 */
+  onLayoutChange: "onLayoutChange",
+  /** 自定义布局模式注册表变化（注册 / 注销）时触发 */
+  onLayoutModesChange: "onLayoutModesChange",
   /** 引擎中监听实体更新触发, 包括实体的增加/删除/更新 */
   onEntityUpdate: "onEntityUpdate",
   /** 引擎销毁时触发 */
   onDestroy: "onDestroy",
-};
+} as const;
 
 export type LifeTime = (typeof LifeTimes)[keyof typeof LifeTimes];
 
-/** 事件类型映射 - 每个生命周期事件对应不同的参数签名 */
+/**
+ * 事件类型映射 - 每个生命周期事件对应不同的参数签名
+ *
+ * 直接用字面量键名（与 LifeTimes 的值一一对应），
+ * 避免 interface 计算属性引用引发的 IDE downlevel/symbol 兼容诊断
+ */
 export interface LifeTimeEventMap {
-  [LifeTimes.onInit]: () => FnReturn<void>;
-  [LifeTimes.onRun]: () => FnReturn<void>;
-  [LifeTimes.onResize]: (width: number, height: number) => FnReturn<void>;
-  [LifeTimes.onUpdate]: () => FnReturn<void>;
-  [LifeTimes.onEntityUpdate]: (
+  onInit: () => FnReturn<void>;
+  onRun: () => FnReturn<void>;
+  onResize: (width: number, height: number) => FnReturn<void>;
+  onUpdate: () => FnReturn<void>;
+  onLayoutChange: () => FnReturn<void>;
+  onLayoutModesChange: () => FnReturn<void>;
+  onEntityUpdate: (
     entities: LayoutNodes<LayoutEntity>,
     type: NodeUpdate,
   ) => FnReturn<void>;
-  [LifeTimes.onDestroy]: () => FnReturn<void>;
+  onDestroy: () => FnReturn<void>;
 }
 
 export type LifeTimeEvent<T extends LifeTime = LifeTime> = LifeTimeEventMap[T];
@@ -340,6 +359,8 @@ export interface ComputeResponseMessage {
   type: "compute_response";
   id: number;
   nodes: SerializableLayoutNode[];
+  /** 本次计算耗时（ms，worker 端 performance.now 测量），供性能观测 */
+  duration?: number;
 }
 
 /** Worker → 主线程的错误响应 */

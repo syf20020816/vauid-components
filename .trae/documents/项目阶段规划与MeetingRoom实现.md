@@ -1,5 +1,9 @@
 # 项目阶段规划 + MeetingRoom/RoomCtx 实现计划
 
+> **⚠️ 已废弃（2026-09）**：本文档为历史方案，其中交付物 3 的 RoomAdapter / LiveKitAdapter / room-ctx 抽象层路线已在 2026-08 架构调整中放弃（见 [spec/tasks-initial.md](../../spec/tasks-initial.md) 头部说明）。
+> **现行规划以 [spec/plan.md](../../spec/plan.md) 为准**：组件库不感知音视频厂商，实体由使用方以 entities 传入，房间上下文为 std/ctx（布局引擎 + extra）。
+> 本文档仅保留作决策背景参考，请勿按交付物 3 实施。
+
 ## 摘要
 
 本计划包含三部分交付物：

@@ -3,29 +3,34 @@ import { DeviceTrigger } from "./device";
 import { LeaveButton, type LeaveButtonAttr } from "./leave";
 import { useCls } from "../std/hooks/cls";
 import "./index.scss";
-import type { Option } from "../trigger/types";
+import type { DropdownProps } from "../dropdown";
 import type { TriggerProps } from "../trigger";
 import type { UseScreenShareProps } from "./hooks/useScreenShare";
 import { ParticipantNum, type ParticipantNumProps } from "../participant/num";
+import { useRoomCtxLayout } from "vauid-components/std/ctx/hooks";
 
 export interface ControllerProps
   extends LeaveButtonAttr, HTMLAttributes<HTMLElement> {
   other?: ReactNode;
   position?: "start" | "end" | "center";
   showMore?: boolean;
-  moreOptions?: Option[];
+  /** 更多菜单选项（Dropdown items） */
+  moreOptions?: DropdownProps["items"];
   audio?: {
     show?: boolean;
+    showLabel?: boolean;
     props?: TriggerProps;
     children?: ReactNode;
   };
   video?: {
     show?: boolean;
+    showLabel?: boolean;
     props?: TriggerProps;
     children?: ReactNode;
   };
   screenShare?: {
     show?: boolean;
+    showLabel?: boolean;
     props?: UseScreenShareProps;
     children?: ReactNode;
   };
@@ -36,6 +41,7 @@ export interface ControllerProps
       children?: ReactNode;
     };
   };
+  leaveLabel?: ReactNode;
 }
 
 export interface ControllerComponent extends React.ForwardRefExoticComponent<
@@ -70,16 +76,22 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
       video,
       screenShare,
       participant,
+      leaveLabel,
       ...props
     }: ControllerProps,
     ref,
   ) => {
+    const { deviceType } = useRoomCtxLayout();
+    const isMobile = deviceType === "mobile";
+    console.log(isMobile, deviceType);
     const { cls } = useCls("controller", props.className);
     const { cls: devicesCls } = useCls("devices");
     const showAudio = audio?.show ?? true;
     const showVideo = video?.show ?? true;
     const showScreenShare = screenShare?.show ?? true;
-    const showParticipantNum = participant?.num?.show ?? true;
+    const showParticipantNum = isMobile
+      ? false
+      : (participant?.num?.show ?? true);
 
     return (
       <footer className={cls} ref={ref} {...props}>
@@ -94,15 +106,22 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
           }}
         >
           {showAudio &&
-            (audio?.children ?? <DeviceTrigger.Audio {...audio?.props} />)}
+            (audio?.children ?? (
+              <DeviceTrigger.Audio showLabel={!isMobile} {...audio?.props} />
+            ))}
           {showVideo &&
-            (video?.children ?? <DeviceTrigger.Video {...video?.props} />)}
+            (video?.children ?? (
+              <DeviceTrigger.Video showLabel={!isMobile} {...video?.props} />
+            ))}
           {showScreenShare &&
             (screenShare?.children ?? (
-              <DeviceTrigger.ScreenShare {...screenShare?.props} />
+              <DeviceTrigger.ScreenShare
+                showLabel={!isMobile}
+                {...screenShare?.props}
+              />
             ))}
-          {showMore && moreOptions.length > 0 && (
-            <DeviceTrigger.More options={moreOptions} />
+          {showMore && moreOptions && moreOptions.length > 0 && (
+            <DeviceTrigger.More items={moreOptions} />
           )}
           {other}
         </div>
@@ -110,7 +129,9 @@ export const Controller = forwardRef<HTMLElement, ControllerProps>(
           onClick={onLeave}
           onBeforeLeave={onBeforeLeave}
           onAfterLeave={onAfterLeave}
-        />
+        >
+          {leaveLabel}
+        </LeaveButton>
         {other}
       </footer>
     );

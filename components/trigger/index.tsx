@@ -14,6 +14,8 @@ export interface TriggerProps {
   options?: Option[];
   /** 当前选中的值（受控模式），不传则使用内部状态（非受控模式） */
   value?: string | number;
+  /** 触发器方向：横向（默认）/ 纵向 */
+  direction?: "horizontal" | "vertical";
   showLabel?: boolean;
   ellipsis?: boolean;
   placeholder?: string;
@@ -44,21 +46,30 @@ type DropdownItemProps = Option & {
   ) => void;
 };
 
-/** 下拉项：选中态加 `active` 类以区分背景色 */
+/** 下拉项：选中态加 `active` 类以区分背景色；danger 红色强调；disabled 不可点击；suffix 推到尾部 */
 const DropdownItem = ({
   icon,
   label,
   value,
   active,
+  disabled,
+  danger,
+  suffix,
   onClick,
   onSelect,
   onInternalClick,
 }: DropdownItemProps) => {
-  const { cls } = useCls(["dropdown-item", active && "active"]);
+  const { cls, vcls } = useCls([
+    "dropdown-item",
+    active && "active",
+    disabled && "disabled",
+    danger && "danger",
+  ]);
   return (
     <div
       className={cls}
       onClick={(e) => {
+        if (disabled) return;
         // 内部处理：关闭下拉、状态更新、onChange
         onInternalClick(value, e, !active);
         // 用户回调：每次点击都触发
@@ -71,6 +82,7 @@ const DropdownItem = ({
     >
       {icon}
       {label}
+      {suffix && <span className={vcls("suffix")}>{suffix}</span>}
     </div>
   );
 };
@@ -79,6 +91,7 @@ export const Trigger = ({
   prefix,
   options,
   value: controlledValue,
+  direction = "horizontal",
   showLabel = true,
   placeholder = "Select",
   styles,
@@ -94,7 +107,10 @@ export const Trigger = ({
   // 非受控模式下，options 异步加载后自动选中第一个（渲染时派生，避免 effect 级联渲染）
   const currentValue = controlledValue ?? internalValue ?? options?.[0]?.value;
 
-  const { cls, vcls } = useCls("toggle-trigger", classNames?.trigger);
+  const { cls, vcls } = useCls(
+    ["toggle-trigger", `toggle-trigger--${direction}`],
+    classNames?.trigger,
+  );
 
   const label = useMemo(() => {
     const matched =
@@ -125,13 +141,16 @@ export const Trigger = ({
 
   const popup = (
     <div className={vcls("dropdown")} style={styles?.dropdown}>
-      {options?.map(({ icon, label, value, onClick, onSelect }) => (
+      {options?.map(({ icon, label, value, disabled, danger, suffix, onClick, onSelect }) => (
         <DropdownItem
           key={value}
           icon={icon}
           label={label}
           value={value}
           active={value === currentValue}
+          disabled={disabled}
+          danger={danger}
+          suffix={suffix}
           onClick={onClick}
           onSelect={onSelect}
           onInternalClick={handleItemClick}
@@ -164,7 +183,7 @@ export const Trigger = ({
             width={16}
             strokeWidth={2}
             style={{
-              transform: "rotate(90deg)",
+              transform: direction === "vertical" ? "none" : "rotate(90deg)",
             }}
           />
         </div>

@@ -21,7 +21,7 @@ import type {
 export interface WorkerProxyOptions {
   /** 是否启用 Worker，默认 true */
   enabled?: boolean;
-  /** Worker 脚本 URL，如果不提供则使用内联 Blob Worker */
+  /** Worker 脚本 URL，不提供时使用 `new URL('./index.ts', import.meta.url)` 内联构建的 worker chunk（零配置），运行环境不支持时自动回退主线程 */
   workerUrl?: string;
   /** Worker 计算超时时间（ms），超时后回退到同步计算，默认 5000 */
   timeout?: number;
@@ -37,6 +37,8 @@ export class LayoutWorkerProxy {
   private enabled: boolean;
   private timeout: number;
   private messageId = 0;
+  /** 最近一次 worker 端计算耗时（ms），性能观测用 */
+  private lastDuration: number | null = null;
   private pendingRequests = new Map<
     number,
     {
@@ -208,6 +210,9 @@ export class LayoutWorkerProxy {
         clearTimeout(pending.timer);
         this.pendingRequests.delete(message.id);
 
+        // 记录 worker 端计算耗时（响应未携带时置空，如旧版本 worker）
+        this.lastDuration = message.duration ?? null;
+
         const nodes = this.deserializeNodes(
           message.nodes,
           pending.config,
@@ -231,7 +236,8 @@ export class LayoutWorkerProxy {
   private handleError = () => {
     this.enabled = false;
     // 清除所有 pending 请求并回退到同步计算
-    for (const pending of this.pendingRequests.values()) {
+    // Array.from 规避 IDE 内置 TS 的 downlevelIteration 诊断（tsc CLI es2023 无此问题）
+    for (const pending of Array.from(this.pendingRequests.values())) {
       clearTimeout(pending.timer);
       this.computeSync(pending.config, pending.styleBuildFn).then(
         pending.resolve,
@@ -241,14 +247,19 @@ export class LayoutWorkerProxy {
   };
 
   /**
-   * 获取内联 Worker URL（使用 Blob URL）
+   * 获取内联 Worker URL
+   *
+   * 使用 `new Worker(new URL('./index.ts', import.meta.url), { type: 'module' })`
+   * 标准模式：vite / webpack 等打包器会在构建时识别该表达式，
+   * 自动把 worker/index.ts 打成独立 chunk 并把 URL 替换为产物地址，
+   * 因此无需用户传入 workerUrl 即可零配置启用 Worker。
+   *
+   * 兜底：纯 tsc 直跑等不支持的运行环境会 new Worker 失败或 onerror 404，
+   * 统一走 handleError → enabled=false → 主线程同步计算，不影响功能。
    */
   private getInlineWorkerUrl(): string | null {
-    // 尝试动态导入 worker 模块
-    // 注意：这需要构建工具支持 worker 内联
-    // 如果构建工具不支持，返回 null，Engine 会回退到同步计算
     try {
-      return null;
+      return new URL("./index.ts", import.meta.url).href;
     } catch {
       return null;
     }
@@ -262,7 +273,7 @@ export class LayoutWorkerProxy {
       this.worker.terminate();
       this.worker = null;
     }
-    for (const pending of this.pendingRequests.values()) {
+    for (const pending of Array.from(this.pendingRequests.values())) {
       clearTimeout(pending.timer);
     }
     this.pendingRequests.clear();
@@ -273,5 +284,12 @@ export class LayoutWorkerProxy {
    */
   get isAvailable(): boolean {
     return this.worker !== null && this.enabled;
+  }
+
+  /**
+   * 最近一次 worker 端布局计算耗时（ms）；尚未收到响应时为 null
+   */
+  getLastComputeDuration(): number | null {
+    return this.lastDuration;
   }
 }

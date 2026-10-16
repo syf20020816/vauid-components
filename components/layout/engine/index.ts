@@ -3,7 +3,7 @@ import {
   type LayoutEntity,
   type LayoutNodes,
   type DeviceType,
-  type LayoutType,
+  type LayoutTypeId,
   LayoutTypes,
   DeviceTypes,
   type LifeTime,
@@ -13,6 +13,7 @@ import {
   type NodeUpdate,
 } from "../types";
 import type { ComputeConfig } from "./compute";
+import type { LayoutModeDefinition } from "./layoutMode";
 
 /** 设备类型对应的默认 pageSize */
 const DEFAULT_PAGE_SIZE: Record<DeviceType, number> = {
@@ -25,6 +26,9 @@ const DEFAULT_ASPECT_RATIO: Record<DeviceType, { w: number; h: number }> = {
   [DeviceTypes.Desktop]: { w: 16, h: 9 },
   [DeviceTypes.Mobile]: { w: 9, h: 16 },
 };
+
+/** 自动切换设备类型的默认断点（px）：容器宽度小于该值判定为移动端 */
+const DEFAULT_MOBILE_BREAKPOINT = 768;
 import { LayoutCompute } from "./compute";
 import { LayoutSizeWatcher } from "./watcher/size";
 import { LayoutNodeWatcher } from "./watcher/node";
@@ -46,6 +50,16 @@ interface FromServer {
   serverUrl?: string;
 }
 
+/**
+ * # EngineConfig - Engine 附加配置（非布局计算输入）
+ */
+interface EngineConfig {
+  /** 是否根据容器宽度自动切换设备类型，默认 true；显式指定 deviceType 时默认关闭 */
+  autoDeviceType?: boolean;
+  /** 自动切换断点（px），容器宽度小于该值判定为移动端，默认 768 */
+  mobileBreakpoint?: number;
+}
+
 interface EngineState<Entity extends LayoutEntity = LayoutEntity> {
   /** 布局实体列表 */
   entities: Entity[];
@@ -62,7 +76,7 @@ interface EngineState<Entity extends LayoutEntity = LayoutEntity> {
   /** 设备类型 */
   deviceType?: DeviceType;
   /** 布局类型 */
-  layoutType?: LayoutType;
+  layoutType?: LayoutTypeId;
   /** 每页实体数量 */
   pageSize?: number;
   /** 当前页码 */
@@ -79,6 +93,10 @@ interface EngineState<Entity extends LayoutEntity = LayoutEntity> {
   aspectRatio?: { w: number; h: number };
   /** 是否开启智能末尾填补算法，默认 true */
   smart?: boolean;
+  /** 是否根据容器宽度自动切换设备类型，默认 true */
+  autoDeviceType?: boolean;
+  /** 自动切换断点（px）：宽度小于该值判定为移动端，默认 768 */
+  mobileBreakpoint?: number;
 }
 
 /**
@@ -148,6 +166,8 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     gridFixedSize: false,
     aspectRatio: DEFAULT_ASPECT_RATIO[DeviceTypes.Desktop],
     smart: true,
+    autoDeviceType: true,
+    mobileBreakpoint: DEFAULT_MOBILE_BREAKPOINT,
   };
 
   /** 计算出的布局节点 */
@@ -168,16 +188,20 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   private container: Nullable<HTMLElement> = null;
   /** 布局缓存 */
   private cache: Nullable<LayoutCache<Entity>> = null;
-  /** 生命周期回调映射 */
-  private lifeTime: Map<LifeTime, LifeTimeEvent> = new Map();
+  /** 生命周期回调映射（同一生命周期支持多个订阅者） */
+  private lifeTime: Map<LifeTime, LifeTimeEvent[]> = new Map();
   /** 样式表实例 */
   private styleSheet: EntityStyleSheet = new EntityStyleSheet();
+  /** 自定义布局模式注册表（注册序即展示序） */
+  private layoutModes = new Map<string, LayoutModeDefinition<Entity>>();
   /** Web Worker 代理 */
   private workerProxy: Nullable<LayoutWorkerProxy> = null;
   /** Worker 配置 */
   private workerOptions: Nullable<WorkerProxyOptions> = null;
   /** 是否正在异步计算中 */
   private isComputingAsync = false;
+  /** 是否已执行过 init / initFromNodes（destroy 后重置） */
+  private initialized = false;
 
   constructor() {}
 
@@ -187,11 +211,13 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   async init(
     entities: Entity[],
     container: HTMLElement,
-    others?: Partial<ComputeConfig<Entity>> & { worker?: WorkerProxyOptions },
+    others?: Partial<ComputeConfig<Entity>> & EngineConfig & { worker?: WorkerProxyOptions },
     _fromServer?: FromServer,
   ) {
     console.warn("服务器分发暂未实现: ", _fromServer);
 
+    // 同步标记，避免 Provider 兜底初始化与布局初始化竞争导致双重 init
+    this.initialized = true;
     this.state.entities = entities;
     this.container = container;
     if (others) {
@@ -206,22 +232,25 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     const { height, width } = this.getSize();
     this.state.height = height;
     this.state.width = width;
+    this.syncDeviceType(width);
 
     this.computeAndCache();
-    const onInit = this.lifeTime.get(LifeTimes.onInit) as
-      | (() => FnReturn<void>)
-      | undefined;
-    await onInit?.();
+    const inits = this.lifeTime.get(LifeTimes.onInit);
+    for (const callback of [...(inits ?? [])]) {
+      await (callback as () => FnReturn<void>)();
+    }
   }
 
   async initFromNodes(
     nodes: LayoutNodes<Entity>,
     container: HTMLElement,
-    others?: Partial<ComputeConfig<Entity>>,
+    others?: Partial<ComputeConfig<Entity>> & EngineConfig,
     _fromServer?: FromServer,
   ) {
     console.warn("服务器分发暂未实现: ", _fromServer);
 
+    // 同步标记，避免 Provider 兜底初始化与布局初始化竞争导致双重 init
+    this.initialized = true;
     this.layoutNodes = nodes;
     this.state.entities = Array.from(nodes.values()).map((node) => node.entity);
     this.container = container;
@@ -234,28 +263,45 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     const { height, width } = this.getSize();
     this.state.height = height;
     this.state.width = width;
+    this.syncDeviceType(width);
 
-    const onInit = this.lifeTime.get(LifeTimes.onInit) as
-      | (() => FnReturn<void>)
-      | undefined;
-    await onInit?.();
+    const onInit = this.lifeTime.get(LifeTimes.onInit);
+    for (const callback of [...(onInit ?? [])]) {
+      await (callback as () => FnReturn<void>)();
+    }
   }
 
   private initSizeWatcher(container: HTMLElement) {
+    // 重复 init 时先解绑旧监听，避免观察器泄漏
+    this.sizeWatcher?.unwatch();
     this.sizeWatcher = new LayoutSizeWatcher();
     this.sizeWatcher.onResize = (width: number, height: number) => {
       this.state.width = width;
       this.state.height = height;
+      this.syncDeviceType(width);
       this.computeAndCache();
-      const callback = this.lifeTime.get(LifeTimes.onResize) as
-        | ((width: number, height: number) => FnReturn<void>)
-        | undefined;
-      callback?.(width, height);
+      this.emit(LifeTimes.onResize, width, height);
     };
     // 初始化尺寸
     const { height, width } = container.getBoundingClientRect();
     this.state.width = width;
     this.state.height = height;
+  }
+
+  /**
+   * ## 根据容器宽度自动同步设备类型
+   * 仅在 `autoDeviceType` 开启时生效；切换时同步应用该设备类型的
+   * 默认 pageSize / aspectRatio（与 `setDeviceType(type, true)` 行为一致）
+   */
+  private syncDeviceType(width: number) {
+    if (!this.state.autoDeviceType) return;
+    const breakpoint = this.state.mobileBreakpoint ?? DEFAULT_MOBILE_BREAKPOINT;
+    const next: DeviceType =
+      width < breakpoint ? DeviceTypes.Mobile : DeviceTypes.Desktop;
+    if (next === this.state.deviceType) return;
+    this.state.deviceType = next;
+    this.state.pageSize = DEFAULT_PAGE_SIZE[next];
+    this.state.aspectRatio = DEFAULT_ASPECT_RATIO[next];
   }
 
   private initNodeWatcher() {
@@ -278,13 +324,26 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
 
   /**
    * ## 执行布局计算并缓存结果
+   * 自定义布局模式命中时由注册的 compute 在主线程计算，
+   * 引擎统一为其补齐 styleSheet（使用者显式指定的优先）
    */
   private computeAndCache(): LayoutNodes<Entity> {
     const config = this.buildComputeConfig();
     const styleOption = this.buildStyleOptions();
-    const nodes = LayoutCompute.compute(config, (node) => {
-      return this.styleSheet.build(node, styleOption);
-    });
+    const custom = this.getLayoutModeDef(config.layoutType);
+    let nodes: LayoutNodes<Entity>;
+    if (custom) {
+      nodes = custom.compute(config);
+      for (const node of Array.from(nodes.values())) {
+        if (!node.styleSheet) {
+          node.styleSheet = this.styleSheet.build(node, styleOption);
+        }
+      }
+    } else {
+      nodes = LayoutCompute.compute(config, (node) => {
+        return this.styleSheet.build(node, styleOption);
+      });
+    }
 
     this.layoutNodes = nodes;
     this.nodeWatcher?.detectChanges(nodes);
@@ -302,6 +361,11 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
 
     this.isComputingAsync = true;
     const config = this.buildComputeConfig();
+    // 自定义布局模式的 compute 是函数，无法序列化进 Worker，回退主线程同步计算
+    if (this.getLayoutModeDef(config.layoutType)) {
+      this.isComputingAsync = false;
+      return this.computeAndCache();
+    }
     const styleOption = this.buildStyleOptions();
 
     try {
@@ -432,15 +496,18 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   /**
    * ## 应用配置到状态
    */
-  private applyConfig(others: Partial<ComputeConfig<Entity>>) {
+  private applyConfig(others: Partial<ComputeConfig<Entity>> & EngineConfig) {
     if (others.focusEntity !== undefined)
       this.state.focusEntity = others.focusEntity;
     if (others.fullScreen !== undefined)
       this.state.fullScreen = others.fullScreen;
     if (others.fullScreenEntity !== undefined)
       this.state.fullScreenEntity = others.fullScreenEntity;
-    if (others.deviceType !== undefined)
+    if (others.deviceType !== undefined) {
       this.state.deviceType = others.deviceType;
+      // 显式指定设备类型视为手动接管，关闭自动切换（除非显式开启 autoDeviceType）
+      this.state.autoDeviceType = false;
+    }
     if (others.layoutType !== undefined)
       this.state.layoutType = others.layoutType;
     if (others.pageSize !== undefined) this.state.pageSize = others.pageSize;
@@ -452,20 +519,40 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     if (others.aspectRatio !== undefined)
       this.state.aspectRatio = others.aspectRatio;
     if (others.smart !== undefined) this.state.smart = others.smart;
+    if (others.autoDeviceType !== undefined)
+      this.state.autoDeviceType = others.autoDeviceType;
+    if (others.mobileBreakpoint !== undefined)
+      this.state.mobileBreakpoint = others.mobileBreakpoint;
   }
 
   // --- 生命周期回调 ---------------------------------------------------------------------------------
 
   /**
    * ## 生命周期回调
+   * 同一生命周期可注册多个回调，按注册顺序触发
    */
   on<T extends LifeTime>(lifeTime: T, callback: LifeTimeEvent<T>) {
-    this.lifeTime.set(lifeTime, callback as LifeTimeEvent);
+    const list = this.lifeTime.get(lifeTime);
+    if (list) {
+      list.push(callback as LifeTimeEvent);
+    } else {
+      this.lifeTime.set(lifeTime, [callback as LifeTimeEvent]);
+    }
   }
 
-  /** ## 取消监听请求 */
-  off(time: LifeTime) {
-    this.lifeTime?.delete(time);
+  /**
+   * ## 取消监听请求
+   * 传 callback 时精确移除该回调；否则移除该生命周期的全部回调
+   */
+  off(time: LifeTime, callback?: LifeTimeEvent) {
+    if (!callback) {
+      this.lifeTime.delete(time);
+      return;
+    }
+    const list = this.lifeTime.get(time);
+    if (!list) return;
+    const index = list.indexOf(callback);
+    if (index !== -1) list.splice(index, 1);
   }
 
   // --- 引擎控制 ---------------------------------------------------------------------------------
@@ -489,6 +576,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
       : entities;
 
     // 判断是否有下一页
+    // smart 填补是实体层算法（rail 分页语义），与布局类型正交，固定走内建公式
     const totalPages = LayoutCompute.totalPages(
       effectiveEntities,
       railPageSize,
@@ -555,6 +643,25 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   }
 
   /**
+   * ## 绑定/更换尺寸监听容器
+   * Provider 已用视口完成兜底初始化后，布局挂载时由 useEngine 调用，
+   * 将尺寸监听从视口换绑到真实布局容器（自动解绑旧监听，无需重新 init）。
+   * 换绑后以一次 onResize 事件通知所有订阅方。
+   */
+  bindContainer(container: HTMLElement) {
+    this.container = container;
+    this.initSizeWatcher(container);
+    this.sizeWatcher?.watch(container);
+    // 同步一次尺寸与设备类型并重算布局
+    const { height, width } = this.getSize();
+    this.state.height = height;
+    this.state.width = width;
+    this.syncDeviceType(width);
+    this.computeAndCache();
+    this.emit(LifeTimes.onResize, width, height);
+  }
+
+  /**
    * ## 运行布局引擎
    */
   run() {
@@ -566,13 +673,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
    */
   private workflow() {
     this.computeAndCache();
-    this.onRun()?.();
-  }
-
-  private onRun() {
-    return this.lifeTime.get(LifeTimes.onRun) as
-      | (() => FnReturn<void>)
-      | undefined;
+    this.emit(LifeTimes.onRun);
   }
 
   /**
@@ -591,8 +692,10 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     this.workerProxy?.destroy();
     this.workerProxy = null;
     this.layoutNodes.clear();
+    this.layoutModes.clear();
     this.cache?.clear();
     this.lifeTime.clear();
+    this.initialized = false;
   }
 
   // --- 数据访问 ---------------------------------------------------------------------------------
@@ -632,6 +735,11 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
    */
   get isComputing(): boolean {
     return this.isComputingAsync;
+  }
+
+  /** 引擎是否已初始化（init / initFromNodes 后为 true，destroy 后为 false） */
+  get isInitialized(): boolean {
+    return this.initialized;
   }
 
   /**
@@ -675,13 +783,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     }
 
     // 检查并调整页码，防止页码越界
-    const totalPages = LayoutCompute.totalPages(
-      this.state.entities,
-      this.state.pageSize ?? 6,
-      this.state.page ?? 1,
-      this.state.fullScreen ?? false,
-      wasFocus ? null : (this.state.focusEntity ?? null),
-    );
+    const totalPages = this.resolveTotalPages();
     if ((this.state.page ?? 1) > totalPages) {
       this.state.page = Math.max(1, totalPages);
     }
@@ -709,19 +811,96 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     }
   }
 
+  /**
+   * ## 视觉语义移动实体
+   * toIndex 为拖拽后该实体在列表中的最终位置索引（0-based，自动 clamp），
+   * 与 Tile 视觉顺序一一对应，UI 层无需换算
+   */
+  moveEntity(id: string, toIndex: number) {
+    const ids = this.state.entities.map((e) => e.id);
+    const from = ids.indexOf(id);
+    if (from === -1) return;
+    ids.splice(from, 1);
+    ids.splice(Math.max(0, Math.min(toIndex, ids.length)), 0, id);
+    this.reorderEntities(ids);
+  }
+
+  /**
+   * ## 按传入 id 顺序重排实体
+   * 存储中缺席的 id 忽略；当前列表中多出的实体（新增参与者）追加末尾。
+   * 实体集合未变，仅顺序变化：不触发 onLayoutChange，以 NonPhysicalUpdate 通知
+   */
+  reorderEntities(orderedIds: string[]) {
+    const idSet = new Set(orderedIds);
+    const ordered = orderedIds
+      .map((id) => this.state.entities.find((e) => e.id === id))
+      .filter((e): e is Entity => e !== undefined);
+    const rest = this.state.entities.filter((e) => !idSet.has(e.id));
+    if (rest.length === 0 && ordered.length === this.state.entities.length && ordered.every((e, i) => e.id === this.state.entities[i].id)) {
+      return; // 顺序未变化，跳过重算
+    }
+    this.state.entities = [...ordered, ...rest];
+    this.computeAndCache();
+    this.onUpdate();
+    this.onEntityUpdate(NodeUpdates.NonPhysicalUpdate);
+  }
+
   focus(id: string) {
     const entity = this.state.entities.find((e) => e.id === id);
     this.state.focusEntity = entity ?? null;
-    this.state.layoutType = LayoutTypes.Focus;
-    this.computeAndCache();
-    this.onUpdate();
+    this.state.fullScreenEntity = null;
+    this.state.fullScreen = false;
+    this.setLayoutType(LayoutTypes.Focus);
   }
 
   unFocus() {
     this.state.focusEntity = null;
-    this.state.layoutType = LayoutTypes.Grid;
-    this.computeAndCache();
-    this.onUpdate();
+    this.setLayoutType(LayoutTypes.Grid);
+  }
+
+  focusFirst() {
+    if (this.state.entities.length === 0) return;
+    this.focus(this.state.entities[0].id);
+  }
+
+  /**
+   * ## 沿实体列表循环移动焦点
+   * 无焦点时 delta=1 聚焦首个实体（进入 Focus 布局），delta=-1 聚焦末个
+   */
+  focusStep(delta: 1 | -1) {
+    const entities = this.state.entities;
+    if (entities.length === 0) return;
+    const cur = entities.findIndex((e) => e.id === this.state.focusEntity?.id);
+    const next = cur === -1 ? (delta === 1 ? 0 : entities.length - 1) : (cur + delta + entities.length) % entities.length;
+    this.focus(entities[next].id);
+  }
+
+  focusNext() {
+    this.focusStep(1);
+  }
+
+  focusPrev() {
+    this.focusStep(-1);
+  }
+
+  fullScreen(id: string) {
+    this.setFullScreen(id);
+  }
+
+  unFullScreen() {
+    this.setFullScreen();
+  }
+
+  fullScreenFirst() {
+    if (this.state.entities.length === 0) return;
+    this.fullScreen(this.state.entities[0].id);
+  }
+
+  grid() {
+    this.state.focusEntity = null;
+    this.state.fullScreenEntity = null;
+    this.state.fullScreen = false;
+    this.setLayoutType(LayoutTypes.Grid);
   }
 
   /**
@@ -747,6 +926,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     }
     this.computeAndCache();
     this.onUpdate();
+    this.onLayoutChange();
   }
 
   setPage(page: number) {
@@ -779,13 +959,7 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   }
 
   nextPage() {
-    const totalPages = LayoutCompute.totalPages(
-      this.state.entities,
-      this.state.pageSize ?? 6,
-      this.state.page ?? 1,
-      this.state.fullScreen ?? false,
-      this.state.focusEntity ?? null,
-    );
+    const totalPages = this.resolveTotalPages();
     if ((this.state.page ?? 1) < totalPages) {
       this.state.page = (this.state.page ?? 1) + 1;
       this.computeAndCache();
@@ -802,6 +976,8 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
   }
 
   setDeviceType(deviceType: DeviceType, auto?: boolean) {
+    // 手动指定设备类型后关闭自动切换，避免尺寸变化覆盖手动设置
+    this.state.autoDeviceType = false;
     this.state.deviceType = deviceType;
     if (auto) {
       this.state.pageSize = DEFAULT_PAGE_SIZE[deviceType];
@@ -811,10 +987,144 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     this.onUpdate();
   }
 
-  setLayoutType(layoutType: LayoutType) {
+  /**
+   * ## 设置自动设备类型切换
+   * - 开启后根据容器宽度自动切换 deviceType（宽度 < mobileBreakpoint 为移动端）
+   * - 断点不传时保留当前断点（默认 768）
+   */
+  setAutoDeviceType(enabled: boolean, mobileBreakpoint?: number) {
+    this.state.autoDeviceType = enabled;
+    if (mobileBreakpoint !== undefined) {
+      this.state.mobileBreakpoint = mobileBreakpoint;
+    }
+    const { width } = this.getSize();
+    this.syncDeviceType(width);
+    this.computeAndCache();
+    this.onUpdate();
+  }
+
+  // --- 自定义布局模式注册 -----------------------------------------------------------------------------
+
+  /**
+   * ## 注册自定义布局模式
+   * - type 不可与内建 "grid" / "focus" / "full_screen" 冲突（拒绝并警告）
+   * - 重复 type 覆盖旧定义并警告
+   * - 注册/注销后触发 onLayoutModesChange，Thumbnail 据此刷新切换项
+   */
+  registerLayoutMode(def: LayoutModeDefinition<Entity>) {
+    if ((Object.values(LayoutTypes) as string[]).includes(def.type)) {
+      console.warn(
+        `[LayoutEngine] Layout type "${def.type}" is built-in, registration rejected.`,
+      );
+      return;
+    }
+    if (this.layoutModes.has(def.type)) {
+      console.warn(
+        `[LayoutEngine] Layout type "${def.type}" already registered, overwriting.`,
+      );
+    }
+    this.layoutModes.set(def.type, def);
+    this.emit(LifeTimes.onLayoutModesChange);
+  }
+
+  /**
+   * ## 注销自定义布局模式
+   * 若注销的是当前激活的自定义布局，回退到 Grid
+   */
+  unregisterLayoutMode(type: string) {
+    if (!this.layoutModes.delete(type)) return;
+    if (this.getLayoutType() === type) {
+      this.grid();
+    }
+    this.emit(LifeTimes.onLayoutModesChange);
+  }
+
+  /** 获取全部已注册的自定义布局模式（注册序） */
+  getLayoutModes(): readonly LayoutModeDefinition<Entity>[] {
+    return Array.from(this.layoutModes.values());
+  }
+
+  /** 查找布局定义：仅自定义模式走注册表，内建三值返回 undefined */
+  private getLayoutModeDef(type: LayoutTypeId): LayoutModeDefinition<Entity> | undefined {
+    if (type === LayoutTypes.Grid || type === LayoutTypes.Focus || type === LayoutTypes.FullScreen) {
+      return undefined;
+    }
+    return this.layoutModes.get(type);
+  }
+
+  /**
+   * ## 布局激活统一入口
+   * Grid → grid()；Focus → 已有焦点则保页，否则聚焦首个；
+   * FullScreen → 全屏首个；自定义 → activate 钩子 + 切换 layoutType
+   */
+  activateLayout(type: LayoutTypeId) {
+    if (type === LayoutTypes.Grid) {
+      this.grid();
+      return;
+    }
+    if (type === LayoutTypes.Focus) {
+      if (this.state.focusEntity) {
+        this.setLayoutType(LayoutTypes.Focus);
+      } else {
+        this.focusFirst();
+      }
+      return;
+    }
+    if (type === LayoutTypes.FullScreen) {
+      this.fullScreenFirst();
+      return;
+    }
+    const def = this.layoutModes.get(type);
+    if (!def) return;
+    this.state.focusEntity = null;
+    this.state.fullScreen = false;
+    this.state.fullScreenEntity = null;
+    def.activate?.(this);
+    this.setLayoutType(type);
+  }
+
+  /**
+   * ## 按注册顺序循环切换布局
+   * 顺序为 [Grid, Focus, FullScreen, ...已注册自定义模式]；全屏态视为 FullScreen 参与
+   */
+  cycleLayoutMode() {
+    const order: LayoutTypeId[] = [
+      LayoutTypes.Grid,
+      LayoutTypes.Focus,
+      LayoutTypes.FullScreen,
+      ...Array.from(this.layoutModes.keys()),
+    ];
+    const current = (this.state.fullScreen ?? false)
+      ? LayoutTypes.FullScreen
+      : this.getLayoutType();
+    const index = order.indexOf(current);
+    const next = order[(index + 1) % order.length];
+    this.activateLayout(next);
+  }
+
+  /**
+   * ## 解析当前总页数
+   * 自定义布局模式且提供了 getTotalPages 时用之，否则走内建公式
+   */
+  private resolveTotalPages(): number {
+    const custom = this.getLayoutModeDef(this.state.layoutType ?? LayoutTypes.Grid);
+    if (custom?.getTotalPages) {
+      return custom.getTotalPages(this.buildComputeConfig());
+    }
+    return LayoutCompute.totalPages(
+      this.state.entities,
+      this.state.pageSize ?? 6,
+      this.state.page ?? 1,
+      this.state.fullScreen ?? false,
+      this.state.focusEntity ?? null,
+    );
+  }
+
+  setLayoutType(layoutType: LayoutTypeId) {
     this.state.layoutType = layoutType;
     this.computeAndCache();
     this.onUpdate();
+    this.onLayoutChange();
   }
 
   setAspectRatio(w: number, h: number) {
@@ -841,19 +1151,33 @@ export class Engine<Entity extends LayoutEntity = LayoutEntity> {
     return this.state.fullScreenEntity ?? null;
   }
 
+  /** 获取当前布局类型 */
+  getLayoutType(): LayoutTypeId {
+    return this.state.layoutType ?? LayoutTypes.Grid;
+  }
+
   // --- 生命周期回调 ---------------------------------------------------------------------------------
 
+  /** 触发指定生命周期的全部回调（拷贝后遍历，允许回调内 on/off） */
+  private emit(lifeTime: LifeTime, ...args: unknown[]) {
+    const list = this.lifeTime.get(lifeTime);
+    if (!list || list.length === 0) return;
+    const callbacks = [...list] as ((...cbArgs: unknown[]) => unknown)[];
+    for (const callback of callbacks) {
+      callback(...args);
+    }
+  }
+
   private onUpdate() {
-    const callback = this.lifeTime.get(LifeTimes.onUpdate) as
-      | (() => FnReturn<void>)
-      | undefined;
-    callback?.();
+    this.emit(LifeTimes.onUpdate);
+  }
+
+  /** 布局选择状态（layoutType / fullScreen）变化时通知 */
+  private onLayoutChange() {
+    this.emit(LifeTimes.onLayoutChange);
   }
 
   private onEntityUpdate(type: NodeUpdate) {
-    const callback = this.lifeTime.get(LifeTimes.onEntityUpdate) as
-      | ((entities: LayoutNodes<Entity>, type: NodeUpdate) => FnReturn<void>)
-      | undefined;
-    callback?.(this.layoutNodes, type);
+    this.emit(LifeTimes.onEntityUpdate, this.layoutNodes, type);
   }
 }

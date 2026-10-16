@@ -5,6 +5,10 @@ export interface Option {
   label: ReactNode;
   value: string | number;
   icon?: ReactNode;
+  /** 禁用该项（不可点击） */
+  disabled?: boolean;
+  /** 危险项（红色强调，用于删除/退出等操作） */
+  danger?: boolean;
   /** 每次点击该项时触发（无论是否切换选中） */
   onClick?: (
     value: string | number,
@@ -16,4 +20,6 @@ export interface Option {
     e: MouseEvent<HTMLElement>,
   ) => FnReturn<void>;
   active?: boolean;
+  /** 自定义后缀 */
+  suffix?: ReactNode;
 }
