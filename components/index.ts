@@ -83,6 +83,7 @@ export { useRoomCtx } from './std/ctx/hooks';
 export type { RoomCtx } from './std/ctx/types';
 export { Prejoin } from './prejoin';
 export { Whiteboard } from './whiteboard';
+export type { WhiteboardCollabProps } from './whiteboard/types';
 export { WhiteboardTool, type WhiteboardToolProps } from './whiteboard/tool';
 export {
   Tool,
@@ -98,3 +99,23 @@ export {
   type DirectionType,
 } from './whiteboard/types';
 export { DEFAULT_COLORS } from './style/global';
+// 协作基座（纯 TS，无 React 组件）：Transport 注入接口 + envelope 编解码 + Yjs 桥
+export {
+  CollabMessageTypes,
+  CollabStatus,
+  createSeq,
+  createMemoryTransportPair,
+  createYjsBridge,
+  decodeEnvelope,
+  decodeEnvelopeJson,
+  encodeEnvelope,
+  encodeEnvelopeJson,
+  type CollabEnvelope,
+  type CollabMessageType,
+  type CollabPayload,
+  type CollabSendOptions,
+  type CollabStatusValue,
+  type CollabTransport,
+  type YjsBridge,
+  type YjsBridgeOptions,
+} from './collab';

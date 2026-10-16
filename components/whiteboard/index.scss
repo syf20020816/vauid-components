@@ -32,6 +32,20 @@
     caret-color: currentColor;
   }
 
+  // 远端协作光标名牌：跟随归一化坐标（箭头点由 Konva 层绘制，名牌为 DOM 叠加）
+  &-remote-cursor {
+    position: absolute;
+    transform: translate(12px, 14px);
+    padding: 1px space("sm");
+    border-radius: radius("full");
+    color: #fff;
+    font-size: font-size("t");
+    line-height: 1.4;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 10;
+  }
+
   &-tool {
     // 默认 portal 到 document.body，需 fixed 让 position 修饰类的坐标生效；
     // self 模式下由 Whiteboard 附加 --tool-self 修饰类改为 absolute（相对白板容器定位）

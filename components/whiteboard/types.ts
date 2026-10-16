@@ -1,3 +1,6 @@
+import type { Awareness } from "y-protocols/awareness";
+import type { Doc } from "yjs";
+
 export const Position = {
   LeftTop: "left-top",
   LeftCenter: "left-center",
@@ -105,3 +108,18 @@ export type WhiteboardShape =
   | EllipseShape
   | ArrowShape
   | TextShape;
+
+/**
+ * # 白板协作配置（传入 Whiteboard 的 collab prop 即进入协作模式）
+ * 组件只依赖 Y.Doc + Awareness，不感知传输层——transport 由使用方在 doc 外
+ * 通过 collab/createYjsBridge 自行桥接（保持 UI 与传输解耦）。
+ * doc / awareness 需保持稳定引用（建议 useMemo），组件不做运行时热切换。
+ */
+export interface WhiteboardCollabProps {
+  /** 协作文档（形状存于 Y.Array<WhiteboardShape>，key 为 "shapes"） */
+  doc: Doc;
+  /** 可选 awareness（远程光标 presence），不传则无光标同步 */
+  awareness?: Awareness;
+  /** 本端用户名（随光标广播，显示在远端光标名牌上） */
+  name?: string;
+}

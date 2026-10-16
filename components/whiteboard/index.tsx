@@ -1,6 +1,7 @@
 import {
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type HTMLAttributes,
@@ -8,6 +9,7 @@ import {
 import {
   Arrow,
   Ellipse,
+  Group,
   Layer,
   Line,
   Rect,
@@ -19,6 +21,13 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import { useCls } from "../std/hooks/cls";
 import { WhiteboardTool } from "./tool";
 import {
+  createShapeId,
+  cursorColor,
+  SHAPES_KEY,
+  useCollabCursors,
+  useYShapes,
+} from "./collabShapes";
+import {
   PenType,
   Tool,
   type DirectionType,
@@ -27,6 +36,7 @@ import {
   type PositionType,
   type ShapeTypeValue,
   type ToolValue,
+  type WhiteboardCollabProps,
   type WhiteboardShape,
 } from "./types";
 import "./index.scss";
@@ -49,6 +59,12 @@ export interface WhiteboardProps extends HTMLAttributes<HTMLDivElement> {
   onShapesChange?: (shapes: WhiteboardShape[]) => void;
   /** 工具栏收缩回调（收缩后画布禁用绘制） */
   onCollapsed?: (collapsed: boolean) => void;
+  /**
+   * 协作配置（传入即进入协作模式）：形状以 Y.Array 为数据源，undo/redo 走 Y.UndoManager，
+   * awareness 存在时同步远程光标。transport 由使用方在 doc 外经 collab/createYjsBridge 桥接；
+   * doc / awareness 需保持稳定引用（建议 useMemo），不做运行时热切换
+   */
+  collab?: WhiteboardCollabProps;
 }
 
 /** 文档状态：图形 + 撤销/重做栈（单一 state 保证 StrictMode 下更新纯函数化） */
@@ -57,10 +73,6 @@ interface Doc {
   past: WhiteboardShape[][];
   future: WhiteboardShape[][];
 }
-
-/** 生成图形 id（仅在事件回调中调用，不在渲染期） */
-let shapeSeq = 0;
-const uid = () => `vauid-wb-${++shapeSeq}-${Math.random().toString(36).slice(2, 8)}`;
 
 /** 笔类型 → 线宽/透明度（钢笔实线、水笔粗软、铅笔细淡） */
 const getPenStyle = (penType: PenTypeValue, size: number) => {
@@ -77,12 +89,48 @@ const getPenStyle = (penType: PenTypeValue, size: number) => {
 /** 文本字号：由线条粗细推导 */
 const getTextFontSize = (size: number) => 12 + size * 2;
 
+/** 绘制中的图形推进：笔迹追加点 / 形状拉伸（纯函数，本地与协作两模式共用） */
+const applyDrawMove = (
+  s: WhiteboardShape,
+  pos: { x: number; y: number },
+  start: { x: number; y: number },
+): WhiteboardShape => {
+  switch (s.type) {
+    case "pen":
+      return { ...s, points: [...s.points, pos.x, pos.y] };
+    case "rect":
+      return {
+        ...s,
+        x: Math.min(start.x, pos.x),
+        y: Math.min(start.y, pos.y),
+        width: Math.abs(pos.x - start.x),
+        height: Math.abs(pos.y - start.y),
+      };
+    case "ellipse":
+      return {
+        ...s,
+        x: (start.x + pos.x) / 2,
+        y: (start.y + pos.y) / 2,
+        radiusX: Math.abs(pos.x - start.x) / 2,
+        radiusY: Math.abs(pos.y - start.y) / 2,
+      };
+    case "arrow":
+      return {
+        ...s,
+        points: [s.points[0], s.points[1], pos.x, pos.y],
+      };
+    default:
+      return s;
+  }
+};
+
 /**
  * # Whiteboard - 白板组件
  * 基于 react-konva 的画布白板，组合内置 WhiteboardTool：
  * - 笔（钢笔/水笔/铅笔）、橡皮（点击/划过删除图形）、形状（方形/圆形/箭头）、文本
  * - 撤销/重做/清空（工具栏 footer 按钮）
  * - 图形为纯 JSON 模型（WhiteboardShape），可通过 onShapesChange 持久化
+ * - 传入 collab prop 进入协作模式：Y.Array 数据源 + UndoManager 撤销 + 远程光标
  *
  * 工具栏收缩后画布只读（不具备绘制能力）。
  */
@@ -97,6 +145,7 @@ export const Whiteboard = ({
   toolContainer,
   onShapesChange,
   onCollapsed,
+  collab,
   className,
   ...props
 }: WhiteboardProps) => {
@@ -119,6 +168,23 @@ export const Whiteboard = ({
 
   // 文档（图形 + 历史）
   const [doc, setDoc] = useState<Doc>({ shapes: [], past: [], future: [] });
+
+  // 协作模式（collab prop 存在即启用）：形状以 Y.Array 为数据源，
+  // useYShapes 订阅 observeDeep 转出渲染快照；本地模式返回 null，仍走上面的 doc 状态
+  const yShapes = useMemo(
+    () => (collab ? collab.doc.getArray<WhiteboardShape>(SHAPES_KEY) : null),
+    [collab],
+  );
+  const collabState = useYShapes(yShapes);
+  // 渲染统一取 shapes：本地 = doc.shapes；协作 = useYShapes 快照
+  const shapes = collabState ? collabState.shapes : doc.shapes;
+
+  // 远程光标（collab.awareness 存在时才启用上报与订阅）
+  const remoteCursors = useCollabCursors({
+    awareness: collab?.awareness,
+    name: collab?.name,
+    containerRef,
+  });
 
   // 文本编辑会话（null 表示不在编辑）
   const [editing, setEditing] = useState<{
@@ -146,10 +212,16 @@ export const Whiteboard = ({
     return () => ro.disconnect();
   }, []);
 
-  // 图形变化回调
+  // 图形变化回调：本地模式由 doc 驱动；协作模式由 useYShapes 快照驱动（本地/远端变化都触发）
   useEffect(() => {
+    if (collabState) return;
     onShapesChange?.(doc.shapes);
-  }, [doc.shapes, onShapesChange]);
+  }, [doc.shapes, onShapesChange, collabState]);
+
+  useEffect(() => {
+    if (!collabState) return;
+    onShapesChange?.(collabState.shapes);
+  }, [collabState, onShapesChange]);
 
   // 文本编辑开始后自动聚焦（延迟到宏任务，确保不被事件默认行为覆盖）
   useEffect(() => {
@@ -170,11 +242,18 @@ export const Whiteboard = ({
     return () => window.removeEventListener("mouseup", endStroke);
   }, []);
 
-  /** 将当前图形集快照压入撤销栈（新动作开始时调用） */
-  const pushHistory = () =>
+  /** 将当前图形集快照压入撤销栈（新动作开始时调用；协作模式改用 UndoManager 跟踪，跳过本地栈） */
+  const pushHistory = () => {
+    if (collabState) return;
     setDoc((d) => ({ ...d, past: [...d.past, d.shapes], future: [] }));
+  };
 
-  const undo = () =>
+  const undo = () => {
+    // 协作模式：CRDT 感知撤销（只回退本端事务，远端形状不受影响）
+    if (collabState) {
+      collabState.undoManager.undo();
+      return;
+    }
     setDoc((d) =>
       d.past.length === 0
         ? d
@@ -184,8 +263,13 @@ export const Whiteboard = ({
             future: [d.shapes, ...d.future],
           },
     );
+  };
 
-  const redo = () =>
+  const redo = () => {
+    if (collabState) {
+      collabState.undoManager.redo();
+      return;
+    }
     setDoc((d) =>
       d.future.length === 0
         ? d
@@ -195,23 +279,43 @@ export const Whiteboard = ({
             future: d.future.slice(1),
           },
     );
+  };
 
-  const clear = () =>
+  const clear = () => {
+    // 协作模式：删除全部形状（可撤销）
+    if (collabState) {
+      collabState.clear();
+      return;
+    }
     setDoc((d) =>
       d.shapes.length === 0
         ? d
         : { shapes: [], past: [...d.past, d.shapes], future: [] },
     );
+  };
 
   /** 橡皮：命中检测删除指针处的图形 */
   const eraseAt = (pos: { x: number; y: number }) => {
     const node = stageRef.current?.getIntersection(pos);
     const id = node?.id();
     if (!id) return;
+    if (collabState) {
+      collabState.remove(id);
+      return;
+    }
     setDoc((d) => {
       const next = d.shapes.filter((s) => s.id !== id);
       return next.length === d.shapes.length ? d : { ...d, shapes: next };
     });
+  };
+
+  /** 写入新形状：协作模式走 Y.Array（UndoManager 跟踪），本地模式走 setDoc */
+  const commitAdd = (shape: WhiteboardShape) => {
+    if (collabState) {
+      collabState.add(shape);
+      return;
+    }
+    setDoc((d) => ({ ...d, shapes: [...d.shapes, shape] }));
   };
 
   const handleMouseDown = (e: KonvaEventObject<MouseEvent>) => {
@@ -238,7 +342,7 @@ export const Whiteboard = ({
     // 笔 / 形状：落笔前快照历史
     isDrawingRef.current = true;
     pushHistory();
-    const id = uid();
+    const id = createShapeId();
     currentIdRef.current = id;
     startPointRef.current = pos;
 
@@ -252,7 +356,7 @@ export const Whiteboard = ({
         // 双点渲染为圆点（单击落笔也可见）
         points: [pos.x, pos.y, pos.x, pos.y],
       };
-      setDoc((d) => ({ ...d, shapes: [...d.shapes, shape] }));
+      commitAdd(shape);
       return;
     }
 
@@ -264,7 +368,7 @@ export const Whiteboard = ({
         : shapeType === "arrow"
           ? { ...base, type: "arrow", points: [pos.x, pos.y, pos.x, pos.y] }
           : { ...base, type: "rect", x: pos.x, y: pos.y, width: 0, height: 0 };
-    setDoc((d) => ({ ...d, shapes: [...d.shapes, shape] }));
+    commitAdd(shape);
   };
 
   const handleMouseMove = () => {
@@ -282,38 +386,16 @@ export const Whiteboard = ({
     const start = startPointRef.current;
     if (!id || !start) return;
 
+    if (collabState) {
+      // 协作模式：按 id 定位存储中的形状更新（远端并发增删不影响定位）
+      collabState.update(id, (s) => applyDrawMove(s, pos, start));
+      return;
+    }
     setDoc((d) => ({
       ...d,
-      shapes: d.shapes.map((s): WhiteboardShape => {
-        if (s.id !== id) return s;
-        switch (s.type) {
-          case "pen":
-            return { ...s, points: [...s.points, pos.x, pos.y] };
-          case "rect":
-            return {
-              ...s,
-              x: Math.min(start.x, pos.x),
-              y: Math.min(start.y, pos.y),
-              width: Math.abs(pos.x - start.x),
-              height: Math.abs(pos.y - start.y),
-            };
-          case "ellipse":
-            return {
-              ...s,
-              x: (start.x + pos.x) / 2,
-              y: (start.y + pos.y) / 2,
-              radiusX: Math.abs(pos.x - start.x) / 2,
-              radiusY: Math.abs(pos.y - start.y) / 2,
-            };
-          case "arrow":
-            return {
-              ...s,
-              points: [s.points[0], s.points[1], pos.x, pos.y],
-            };
-          default:
-            return s;
-        }
-      }),
+      shapes: d.shapes.map((s): WhiteboardShape =>
+        s.id === id ? applyDrawMove(s, pos, start) : s,
+      ),
     }));
   };
 
@@ -321,7 +403,7 @@ export const Whiteboard = ({
   const commitText = () => {
     if (editing && editing.value.trim()) {
       const shape: WhiteboardShape = {
-        id: uid(),
+        id: createShapeId(),
         type: "text",
         x: editing.x,
         y: editing.y,
@@ -329,11 +411,9 @@ export const Whiteboard = ({
         color,
         size: lineSize,
       };
-      setDoc((d) => ({
-        shapes: [...d.shapes, shape],
-        past: [...d.past, d.shapes],
-        future: [],
-      }));
+      // 本地模式先压历史快照（协作模式 no-op，由 UndoManager 跟踪）
+      pushHistory();
+      commitAdd(shape);
     }
     setEditing(null);
   };
@@ -435,8 +515,45 @@ export const Whiteboard = ({
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
       >
-        <Layer>{doc.shapes.map(renderShape)}</Layer>
+        <Layer>{shapes.map(renderShape)}</Layer>
+        {/* 远端协作光标层：不参与命中检测，橡皮不会误删 */}
+        {collabState && (
+          <Layer listening={false}>
+            {remoteCursors.map((c) => (
+              <Group
+                key={c.clientId}
+                x={c.x * size.width}
+                y={c.y * size.height}
+              >
+                <Line
+                  points={[0, 0, 0, 14, 10, 9]}
+                  closed
+                  fill={cursorColor(c.clientId)}
+                  stroke="#ffffff"
+                  strokeWidth={1}
+                />
+              </Group>
+            ))}
+          </Layer>
+        )}
       </Stage>
+
+      {/* 远端光标名牌：归一化坐标换算为容器百分比定位，箭头点由上方 Konva 层绘制 */}
+      {remoteCursors.map((c) =>
+        c.name ? (
+          <div
+            key={c.clientId}
+            className={vcls("remote-cursor")}
+            style={{
+              left: `${c.x * 100}%`,
+              top: `${c.y * 100}%`,
+              backgroundColor: cursorColor(c.clientId),
+            }}
+          >
+            {c.name}
+          </div>
+        ) : null,
+      )}
 
       {/* 文本编辑浮层：与画布坐标对齐（Stage 位于容器原点） */}
       {editing && (

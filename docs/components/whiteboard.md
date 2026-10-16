@@ -64,6 +64,7 @@ export default () => {
 | `showTool`       | `boolean`            | `true`                            | 是否显示内置工具栏（配合单独使用 WhiteboardTool） |
 | `onShapesChange` | `(shapes) => void`   | -                                 | 图形集合变化回调（可用于持久化，绘制中高频触发）  |
 | `onCollapsed`    | `(collapsed) => void`| -                                 | 工具栏收缩/展开回调                               |
+| `collab`         | `WhiteboardCollabProps` | -                              | 协作配置（传入即进入协作模式），见 [多人协作](#多人协作) |
 
 ### WhiteboardTool
 
@@ -84,6 +85,100 @@ export default () => {
 | `onLineSizeChange` | `(lineSize) => void` | -          | 粗细变更回调                 |
 | `onUndo` / `onRedo` / `onClear` | `() => void` | - | 撤销/重做/清空            |
 | `onCollapsed`    | `(collapsed) => void` | -           | 收缩/展开回调                |
+
+## 多人协作
+
+传入 `collab` prop 即进入协作模式（不传时行为与单机完全一致）。组件只依赖 `Y.Doc` + `Awareness`，**不感知传输层**——transport 由使用方在 doc 外通过 `createYjsBridge` 桥接到任意 `CollabTransport`（WebSocket / RTCDataChannel / 内存通道等），保持 UI 与传输解耦。
+
+协作模式下的行为差异：
+
+- 形状以 doc 内 `Y.Array<WhiteboardShape>`（key 为 `"shapes"`）为数据源，仍是纯 JSON 模型（`WhiteboardShape`），与单机模型一致
+- **撤销/重做**走 `Y.UndoManager`：只回退本端事务（远端形状不受影响），一笔画内的连续更新合并为一个撤销项；**清空** = 删除全部形状，可撤销
+- `onShapesChange` 依旧全量快照回调（本地或远端任何形状变化都触发），持久化 API 不变
+- 传入 `awareness` 时同步**远程光标**：本端 pointermove 以 0-1 归一化坐标上报（约 20Hz 节流），远端渲染箭头点 + 用户名名牌
+
+下方 demo 用内存双端通道本地模拟两个协作端：在任一白板绘制，另一端实时同步；移动指针可见对端光标与名牌。
+
+```tsx
+import { useEffect, useMemo, useState } from "react";
+import * as Y from "yjs";
+import { Awareness } from "y-protocols/awareness";
+import {
+  Whiteboard,
+  createMemoryTransportPair,
+  createYjsBridge,
+  type CollabTransport,
+} from "vauid-components";
+
+/** 单个协作端：doc / awareness / 桥均随端创建与销毁 */
+function CollabPeer({
+  name,
+  color,
+  transport,
+}: {
+  name: string;
+  color: string;
+  transport: CollabTransport;
+}) {
+  // doc / awareness 引用必须保持稳定（挂载后不变），统一 useMemo 持有
+  const collab = useMemo(() => {
+    const doc = new Y.Doc();
+    return { doc, awareness: new Awareness(doc), name };
+  }, [name]);
+
+  // 使用方自行把 doc 桥接到传输层（Whiteboard 不感知 transport）
+  useEffect(() => {
+    const bridge = createYjsBridge(collab.doc, transport, {
+      awareness: collab.awareness,
+    });
+    return () => {
+      bridge.destroy();
+      collab.awareness.destroy();
+    };
+  }, [collab, transport]);
+
+  return (
+    <div style={{ flex: 1, display: "flex" }}>
+      <Whiteboard color={color} collab={collab} />
+    </div>
+  );
+}
+
+export default () => {
+  // 内存双端通道（仅演示）；真实项目换成 WebSocket / RTCDataChannel 实现的 CollabTransport
+  const [pair] = useState(createMemoryTransportPair);
+  return (
+    <div style={{ display: "flex", gap: 16, height: "60vh" }}>
+      <CollabPeer name="用户 A" color="#f59e0b" transport={pair[0]} />
+      <CollabPeer name="用户 B" color="#10b981" transport={pair[1]} />
+    </div>
+  );
+};
+```
+
+真实项目中的接入方式（传输层自行实现 `CollabTransport` 接口后一行桥接）：
+
+```ts
+import * as Y from "yjs";
+import type { Awareness } from "y-protocols/awareness";
+import { createYjsBridge, type CollabTransport } from "vauid-components";
+
+declare const doc: Y.Doc;
+declare const awareness: Awareness;
+declare const myTransport: CollabTransport; // WebSocket / RTCDataChannel 等实现
+
+// 把 doc 增量 update 与 awareness presence 桥接到自有传输通道
+const bridge = createYjsBridge(doc, myTransport, { awareness });
+
+// 断开 / 卸载时销毁桥（只拆监听与订阅，不关闭 transport 本身）
+bridge.destroy();
+```
+
+注意事项：
+
+- `doc` / `awareness` 需保持稳定引用（建议 `useMemo`），组件不做运行时热切换
+- `awareness` 实例生命周期归使用方管理（组件卸载时只清空本端 `cursor` 字段）
+- 「入会即有历史内容」的场景，由使用方在建桥后先发送一次 `Y.encodeStateAsUpdate(doc)` 全量帧（增量桥不做握手同步）
 
 ## 常量
 
