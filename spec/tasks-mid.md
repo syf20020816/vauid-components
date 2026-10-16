@@ -48,8 +48,8 @@
 
 ## W9：性能专项
 
-| # | 任务 | 涉及文件 | 验收标准 | 优先级 |
-|---|------|----------|----------|--------|
-| 9.1 | 0 帧渲染 | `components/tile/` | 非可视区 video.pause 停止解码、Canvas 降帧 | P1 |
-| 9.2 | Worker 计算与缓存基准 | `components/layout/engine/worker/`、`cache.ts` | 布局计算耗时、LRU 命中率 benchmark 报告 | P2 |
+| # | 任务 | 涉及文件 | 验收标准 | 优先级 | 状态 |
+|---|------|----------|----------|--------|------|
+| 9.1 | 0 帧渲染 | `components/tile/` | 非可视区 video.pause 停止解码、Canvas 降帧 | P1 | ✅ 已完成 |
+| 9.2 | Worker 计算与缓存基准 | `components/layout/engine/worker/`、`cache.ts` | 布局计算耗时、LRU 命中率 benchmark 报告 | P2 | ✅ 已完成（见 [benchmark-report.md](./benchmark-report.md)） |
 | 9.3 | 弱网自适应降级 | `components/layout/` | 弱网时自动 Grid → Focus 降级 | P2 |

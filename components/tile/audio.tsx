@@ -108,6 +108,10 @@ export interface AudioLevelProps extends HTMLAttributes<HTMLDivElement> {
   active?: boolean;
   /** 静默/无流时模拟波动保持视觉活跃，默认 true */
   simulate?: boolean;
+  /** 可见性：false 时跳过全部计算与绘制（0 帧渲染，分析链保留），默认 true。布局场景可传 visible={!node.hidden} */
+  visible?: boolean;
+  /** 绘制帧率上限（fps），undefined 为全速；用于限帧降负载，跳帧期间缓动状态保留 */
+  fps?: number;
 }
 
 /** 解析音频源为 MediaStream */
@@ -237,6 +241,8 @@ export const AudioLevel = ({
   height = 32,
   active = false,
   simulate = true,
+  visible = true,
+  fps,
   className,
   style,
   ...props
@@ -245,10 +251,10 @@ export const AudioLevel = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // 动态 props 转存 ref：rAF 内每帧读取，变更即时生效且不触发分析链/画布循环重建
   const sourceRef = useRef<AudioLevelSource | undefined>(source);
-  const dynamicRef = useRef({ variant, color, active, simulate });
+  const dynamicRef = useRef({ variant, color, active, simulate, visible, fps });
   useEffect(() => {
     sourceRef.current = source;
-    dynamicRef.current = { variant, color, active, simulate };
+    dynamicRef.current = { variant, color, active, simulate, visible, fps };
   });
 
   useEffect(() => {
@@ -264,6 +270,8 @@ export const AudioLevel = ({
     let raf = 0;
     let lastW = 0;
     let lastH = 0;
+    // 上次实际绘制的时刻（fps 限帧用）
+    let lastDraw = 0;
     const levels = new Float32Array(barCount);
     // 本帧原始目标值（未经平滑），levels 为缓动后的渲染值
     const targets = new Float32Array(barCount);
@@ -291,10 +299,18 @@ export const AudioLevel = ({
     };
 
     const tick = (now: number) => {
-      const t = now / 1000;
-      const { variant, color, active, simulate } = dynamicRef.current;
+      // 循环排队提前：任何 early return（限帧 / 不可见）都不会断掉绘制循环
+      raf = requestAnimationFrame(tick);
+      const { variant, color, active, simulate, visible, fps } =
+        dynamicRef.current;
+      // 0 帧渲染：不可见时跳过全部计算与绘制（rAF 空转开销可忽略，页面后台时浏览器自动暂停）
+      if (!visible) return;
+      // 限帧：距上次绘制不足 1/fps 秒时跳帧，缓动状态保留、恢复无跳变
+      if (fps !== undefined && now - lastDraw < 1000 / fps) return;
+      lastDraw = now;
       // 模拟幅度两档：对应"说话中 / 静默"的视觉区分（对齐原 useAudioWave 的 max 1 / 0.45）
       const simAmp = active ? 1 : 0.45;
+      const t = now / 1000;
       const stream = resolveStream(sourceRef.current);
       if (stream) ensureAnalyser(stream);
 
@@ -361,8 +377,6 @@ export const AudioLevel = ({
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       draw(ctx, w, h, levels, variant, color);
-
-      raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
 
