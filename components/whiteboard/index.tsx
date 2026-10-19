@@ -53,7 +53,7 @@ export interface WhiteboardProps extends HTMLAttributes<HTMLDivElement> {
   iconSize?: number | string;
   /** 是否显示内置工具栏 */
   showTool?: boolean;
-  /** 内置工具栏渲染容器：undefined 绑到 document.body（fixed 定位）；"self" 绑到白板自身；或传具体元素（absolute 定位，容器需为 position: relative） */
+  /** 工具栏渲染容器：默认（undefined）与 "self" 均挂白板自身（absolute，多实例互不干扰）；或传具体元素（absolute，容器需为 position: relative）；显式传 document.body 时 fixed 定位（多实例会重叠，不推荐） */
   toolContainer?: Element | DocumentFragment | "self";
   /** 图形集合变化回调（可用于持久化，注意绘制过程中会高频触发） */
   onShapesChange?: (shapes: WhiteboardShape[]) => void;
@@ -579,11 +579,9 @@ export const Whiteboard = ({
 
       {showTool && (
         <WhiteboardTool
-          // self / 自定义容器模式：附加修饰类将 fixed 改为 absolute（坐标相对容器定位，容器需 position: relative）
+          // 工具栏为 absolute 定位时附加修饰类（fixed → absolute，坐标相对容器，容器为 relative）
           className={
-            toolContainer !== undefined && toolContainer !== document.body
-              ? vcls("tool-self")
-              : undefined
+            toolContainer === document.body ? undefined : vcls("tool-self")
           }
           position={position}
           direction={direction}
@@ -603,8 +601,14 @@ export const Whiteboard = ({
           onUndo={undo}
           onRedo={redo}
           onClear={clear}
-          // toolContainer：undefined → document.body（tool 默认）；"self" → 白板自身；否则为具体容器
-          container={toolContainer === "self" ? (mountContainer ?? undefined) : toolContainer}
+          // toolContainer：undefined / "self" → 白板自身（默认，多实例互不干扰）；
+          // 具体元素 → 该容器；仅显式传 document.body 才 portal 到 body（fixed 定位，
+          // 注意页面存在多个默认实例时 fixed 工具栏会互相重叠，点击命中的是 DOM 靠后者）
+          container={
+            toolContainer === undefined || toolContainer === "self"
+              ? (mountContainer ?? undefined)
+              : toolContainer
+          }
         />
       )}
     </div>

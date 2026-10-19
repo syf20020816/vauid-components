@@ -62,6 +62,7 @@ export default () => {
 | `direction`      | `DirectionType`      | `"horizontal"`                    | 工具栏方向，`horizontal` / `vertical`             |
 | `iconSize`       | `number` \| `string` | `16`                              | 工具栏图标尺寸                                    |
 | `showTool`       | `boolean`            | `true`                            | 是否显示内置工具栏（配合单独使用 WhiteboardTool） |
+| `toolContainer`  | `Element` \| `DocumentFragment` \| `"self"` | 白板自身    | 工具栏渲染容器；默认挂白板自身（absolute）；传 `document.body` 时 fixed 定位（多实例会重叠，不推荐） |
 | `onShapesChange` | `(shapes) => void`   | -                                 | 图形集合变化回调（可用于持久化，绘制中高频触发）  |
 | `onCollapsed`    | `(collapsed) => void`| -                                 | 工具栏收缩/展开回调                               |
 | `collab`         | `WhiteboardCollabProps` | -                              | 协作配置（传入即进入协作模式），见 [多人协作](#多人协作) |
