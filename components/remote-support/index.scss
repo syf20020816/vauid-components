@@ -1,0 +1,73 @@
+@use "../style/global.scss" as *;
+
+// RemoteSupport 组合模板容器：children 为被叠加内容（如屏幕共享画面），标注层与指针层依次叠放
+@include cmp("remote-support") {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+// 标注层：Canvas 交互面 + 远程光标名牌（位于 children 之上、指针层之下）
+// 工具栏复用白板 WhiteboardTool（portal 进根元素，样式由 whiteboard/index.scss 提供）
+@include cmp("annotation-layer") {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+
+  // 全尺寸画布：绘制交互入口，禁用触摸默认行为保证 pointer 事件连续
+  &-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    cursor: crosshair;
+  }
+
+  // 远端协作光标（箭头 + 名牌整体着色）：归一化坐标百分比定位，不参与命中
+  &-remote-cursor {
+    position: absolute;
+    transform: translate(10px, 12px);
+    @include flex-center;
+    gap: space("xs");
+    padding: 1px space("sm");
+    border-radius: radius("full");
+    color: #fff;
+    font-size: font-size("t");
+    line-height: 1.4;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+}
+
+// 指针映射层：两种角色均为不拦截指针的视觉/监听叠加（capture 在父容器冒泡捕获，
+// display 纯展示远端光标），位于标注层之上保证远端光标可见
+@include cmp("mouse-mapper") {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+
+  // 远端光标：位置由 60Hz move 帧直改 transform（不走 React 渲染），首帧前隐藏
+  &-cursor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    @include flex-center;
+    gap: space("xs");
+    opacity: 0;
+    will-change: transform;
+    transition: opacity space("xs") linear;
+  }
+
+  // 名牌：capture 端名字
+  &-cursor-name {
+    padding: 1px space("sm");
+    border-radius: radius("full");
+    background-color: #f59e0b;
+    color: #fff;
+    font-size: font-size("t");
+    white-space: nowrap;
+  }
+}

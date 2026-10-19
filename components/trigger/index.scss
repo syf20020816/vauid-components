@@ -17,7 +17,7 @@
     height: 100%;
     width: fit-content;
     padding: 0 space("xs");
-    transform: translateY(2px);
+    transform: translateY(3px);
   }
 
   &-dropdown {
@@ -32,6 +32,20 @@
     @include flex-start;
     gap: space("xs");
     flex-direction: column;
+  }
+
+  // 纵向模式：按钮与箭头垂直排列
+  &--vertical {
+    flex-direction: column;
+
+    .vauid-toggle-trigger-button {
+      border-radius: radius("md") radius("md") 0 0;
+    }
+
+    .vauid-toggle-trigger-icon {
+      padding: space("xs") 0;
+      transform: translateX(-3px) rotate(90deg);
+    }
   }
 }
 
@@ -56,6 +70,22 @@
   // 选中态：用更明显的背景色区分，放在 :hover 之后保证选中项 hover 时仍保持选中背景
   &.vauid-active {
     background-color: color("primary-active");
+  }
+
+  // 危险项：红色强调（与 dropdown 的 --danger 保持一致）
+  &.vauid-danger {
+    color: color("error");
+
+    &:hover {
+      background-color: color("error-hover");
+    }
+  }
+
+  // 禁用项：置灰不可点击，放在最后保证覆盖 active / danger 颜色
+  &.vauid-disabled {
+    color: color("text-tertiary");
+    cursor: not-allowed;
+    pointer-events: none;
   }
 }
 

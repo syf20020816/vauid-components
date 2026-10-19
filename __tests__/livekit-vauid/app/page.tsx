@@ -25,7 +25,11 @@ export default function Home() {
     <RoomPage
       room={joined.room}
       roomName={joined.roomName}
-      onLeave={() => setJoined(null)}
+      onLeave={() => {
+        // 连接由 page 层创建，也由 page 层断开
+        joined.room.disconnect();
+        setJoined(null);
+      }}
     />
   );
 }

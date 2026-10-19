@@ -8,9 +8,9 @@
   height: 100%;
   width: 100%;
   &-header {
-    height: 150px;
+    height: 160px;
     @include flex-center;
-    align-items: flex-end;
+    align-items: center;
     padding: 0 space("md");
   }
   &-main {
@@ -19,14 +19,7 @@
     @include flex-center;
     width: 100%;
   }
-  &-video {
-    height: calc(100% - space("lg"));
-    background-color: color("bg-secondary");
-    aspect-ratio: 16 / 9;
-    width: auto;
-    border-radius: radius("md");
-    object-fit: cover;
-  }
+
   &-footer {
     height: 120px;
     @include flex-between;
@@ -45,7 +38,29 @@
   }
   &-join-btn {
     font-weight: bold;
-    background-color: color("success");
     padding: space("sm") space("lg");
+  }
+}
+
+@include cmp("preview-video") {
+  height: calc(100% - space("lg"));
+  background-color: color("bg-secondary");
+  aspect-ratio: 16 / 9;
+  width: auto;
+  border-radius: radius("md");
+  overflow: hidden;
+  position: relative;
+  &-player {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
+  &-placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 68%;
+    width: auto;
   }
 }

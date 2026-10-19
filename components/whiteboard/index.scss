@@ -1,0 +1,188 @@
+@use "../style/global.scss" as *;
+
+@include cmp("whiteboard") {
+  @include flex-center;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+
+  // 可绘制状态：十字光标
+  &-interactive {
+    cursor: crosshair;
+  }
+
+  // 文本编辑浮层（绝对定位于画布坐标，Stage 位于容器原点）
+  &-text-editor {
+    position: absolute;
+    min-width: 80px;
+    min-height: 1.5em;
+    padding: 0 2px;
+    margin: 0;
+    border: none;
+    // 虚线下划线提示输入位置（透明背景，与画布融合）
+    border-bottom: 1px dashed currentColor;
+    outline: none;
+    resize: none;
+    overflow: hidden;
+    background: transparent;
+    font-family: inherit;
+    line-height: 1.2;
+    white-space: pre;
+    caret-color: currentColor;
+  }
+
+  // 远端协作光标名牌：跟随归一化坐标（箭头点由 Konva 层绘制，名牌为 DOM 叠加）
+  &-remote-cursor {
+    position: absolute;
+    transform: translate(12px, 14px);
+    padding: 1px space("sm");
+    border-radius: radius("full");
+    color: #fff;
+    font-size: font-size("t");
+    line-height: 1.4;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  &-tool {
+    // 默认 portal 到 document.body，需 fixed 让 position 修饰类的坐标生效；
+    // self 模式下由 Whiteboard 附加 --tool-self 修饰类改为 absolute（相对白板容器定位）
+    position: fixed;
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: space("sm");
+    height: fit-content;
+    width: fit-content;
+    padding: space("sm") space("md");
+    background-color: color("bg-secondary");
+    border-radius: radius("md");
+    font-size: font-size("p");
+    gap: space("sm");
+    border: 1px solid color("border-default");
+    z-index: 111;
+    &--bottom-center {
+      bottom: space("sm");
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    &--top-center {
+      top: space("sm");
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    &--left-center {
+      left: space("sm");
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    &--right-center {
+      right: space("sm");
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    &--left-top {
+      top: space("sm");
+      left: space("sm");
+    }
+    &--right-top {
+      top: space("sm");
+      right: space("sm");
+    }
+    &--left-bottom {
+      bottom: space("sm");
+      left: space("sm");
+    }
+    &--right-bottom {
+      bottom: space("sm");
+      right: space("sm");
+    }
+
+    // self 模式：portal 进白板容器内，absolute 相对容器定位（容器为 position: relative）
+    &-self {
+      position: absolute;
+    }
+
+    // 方向：纵向垂直堆叠（横向为默认 row）
+    &--vertical {
+      flex-direction: column;
+      padding: space("sm") ;
+    }
+
+    // 收缩/展开箭头
+    &-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: color("text-secondary");
+      &:hover {
+        color: color("text-primary");
+      }
+    }
+
+    // 收缩态：仅展示笔图标（纯展示）
+    &-collapsed {
+      @include flex-center;
+      color: color("text-secondary");
+    }
+
+    // 工具选中态：warning 色（lucide 图标 stroke 使用 currentColor）
+    &-btn-active {
+      color: color("warning");
+      .vauid-button {
+        color: color("warning");
+      }
+    }
+
+    &-main {
+      @include flex-center;
+      gap: space("sm");
+      &-tools {
+        @include flex-center;
+        gap: space("sm");
+      }
+      &-size {
+        @include flex-center;
+        gap: space("sm");
+        width: 160px;
+      }
+    }
+    &-footer {
+      @include flex-center;
+      gap: space("sm");
+    }
+    &-delete {
+      background-color: color("error");
+    }
+
+    // 纵向模式：尺寸区段改为纵向排列，Slider 给固定高度
+    &--vertical {
+      .vauid-whiteboard-tool-main {
+        flex-direction: column;
+      }
+      .vauid-whiteboard-tool-main-size {
+        flex-direction: column;
+        width: auto;
+        // Slider 纵向模式用 height: 100%，需父级给固定高度
+        height: 160px;
+      }
+    }
+  }
+}
+
+@include cmp("divider") {
+  background-color: color("border-default");
+  // 覆盖根容器的 align-items: center，沿交叉轴撑满
+  align-self: stretch;
+  &--horizontal {
+    height: 1px;
+    margin: space("xs") 0;
+  }
+  &--vertical {
+    width: 1px;
+    margin: 0 space("xs");
+  }
+}

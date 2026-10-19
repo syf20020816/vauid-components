@@ -1,17 +1,31 @@
-export { Layout } from './layout';
+export { Layout, type LayoutDragSort } from './layout';
 export { useEngine } from './layout/hooks/useEngine';
+export { useKeyboardNav, type UseKeyboardNavOptions } from './layout/hooks/useKeyboardNav';
+export { saveEntityOrder, loadEntityOrder } from './layout/hooks/useDragSort';
+export type { LayoutModeDefinition } from './layout/engine/layoutMode';
+export type { ComputeConfig } from './layout/engine/compute';
+export {
+  DEFAULT_SHORTCUTS,
+  type ShortcutAction,
+  type ShortcutBindings,
+} from './layout/shortcut';
 export {
   Areas,
   LayoutTypes,
   DeviceTypes,
   type Area,
+  type LayoutType,
+  type LayoutTypeId,
 } from './layout/types';
 export { TileWrap } from './tile/wrap';
 export { VideoTile } from './tile/video';
-export { AudioTile } from './tile/auido';
+export { AudioTile } from './tile/audio';
 export { NoteTile } from './tile/note';
+export { AudioLevel, type AudioLevelProps, type AudioLevelSource, type AudioLevelVariant } from './tile/audio';
 // export { IframeTile } from './tile/iframe'; // TODO: 实现
 export { Controller } from './controller';
+export { DeviceTrigger } from './controller/device';
+export type { DeviceTriggerComponent, DeviceScreenShareProps } from './controller/device';
 export { ParticipantItem } from './participant/item';
 export { ParticipantName } from './participant/name';
 export { ParticipantNum } from './participant/num';
@@ -25,19 +39,109 @@ export { NetworkStatus, NetworkUpload, NetworkDownload } from './status/network'
 export { Button } from './button';
 export { Tag } from './tag';
 export { Input, TextArea, Password, NumberInput } from './input';
-export { Dropdown, type DropdownRef } from './dropdown';
+export {
+  Dropdown,
+  type DropdownProps,
+  type DropdownRef,
+} from './dropdown';
+export {
+  RightCtxMenu,
+  type RightCtxMenuProps,
+} from './dropdown/rightCtxMenu';
 export { Trigger } from './trigger';
+export type { Option } from './trigger/types';
 export { Slider } from './slider';
+export { Select } from './select';
+export type { SelectProps } from './select';
+export { Checkbox } from './checkbox';
+export type { CheckboxProps } from './checkbox';
+export { SettingsPanel } from './settings';
+export type { SettingsPanelProps, SettingsTab } from './settings';
+export { LangSelect } from './settings/langSelect';
+export type { LangType } from './settings/langSelect';
+export {
+  StatCard,
+  LoadCard,
+  NetworkCard,
+  AudioStatsCard,
+  VideoStatsCard,
+} from './settings/cards';
+export type {
+  LoadStats,
+  NetworkStats,
+  AudioStats,
+  VideoStats,
+} from './settings/cards';
+export { useSettings } from './settings/hooks/useSettings';
+export {
+  DEFAULT_SETTINGS,
+  type SettingsState,
+} from './settings/types';
 export { Icon } from './svg';
 export { RoomHeader } from './room';
-export { MeetingRoom, RoomProvider, useRoomCtx } from './room';
-export { LiveKitAdapter } from './room/plugins/livekit';
-export type {
-  RoomAdapter,
-  RoomParticipant,
-  ConnectOptions,
-  RoomEventName,
-} from './room/types';
-export { RoomEvents } from './room/types';
+export { MeetingRoom } from './room';
+export { RoomCtxProvider } from './std/ctx';
+export { useRoomCtx } from './std/ctx/hooks';
+export type { RoomCtx } from './std/ctx/types';
 export { Prejoin } from './prejoin';
+export { Whiteboard } from './whiteboard';
+export type { WhiteboardCollabProps } from './whiteboard/types';
+export { WhiteboardTool, type WhiteboardToolProps } from './whiteboard/tool';
+export {
+  Tool,
+  PenType,
+  ShapeType,
+  Position,
+  Direction,
+  type WhiteboardShape,
+  type ToolValue,
+  type PenTypeValue,
+  type ShapeTypeValue,
+  type PositionType,
+  type DirectionType,
+} from './whiteboard/types';
 export { DEFAULT_COLORS } from './style/global';
+// 协作基座（纯 TS，无 React 组件）：Transport 注入接口 + envelope 编解码 + Yjs 桥
+export {
+  CollabMessageTypes,
+  CollabStatus,
+  createSeq,
+  createMemoryTransportPair,
+  createYjsBridge,
+  decodeEnvelope,
+  decodeEnvelopeJson,
+  encodeEnvelope,
+  encodeEnvelopeJson,
+  type CollabEnvelope,
+  type CollabMessageType,
+  type CollabPayload,
+  type CollabSendOptions,
+  type CollabStatusValue,
+  type CollabTransport,
+  type YjsBridge,
+  type YjsBridgeOptions,
+} from './collab';
+// 远程支持：RemoteSupport 组合模板 + MouseMapper 指针映射 + AnnotationLayer 标注层
+export {
+  ANNOTATIONS_KEY,
+  AnnotationLayer,
+  MouseMapper,
+  RemoteSupport,
+  createAnnotationId,
+  createMoveThrottle,
+  createRafScheduler,
+  decodePointerAction,
+  decodePointerMove,
+  encodePointerAction,
+  encodePointerMove,
+  normalizePoint,
+  type Annotation,
+  type AnnotationLayerProps,
+  type AnnotationPoint,
+  type AnnotationType,
+  type MouseMapperProps,
+  type PointerAction,
+  type PointerActionKind,
+  type PointerMoveFrame,
+  type RemoteSupportProps,
+} from './remote-support';

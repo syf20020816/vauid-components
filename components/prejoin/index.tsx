@@ -8,6 +8,8 @@ import {
   type DeviceVideoTriggerExports,
 } from "../controller/device";
 import { useEffect, useRef, useState } from "react";
+import { VideoPreview } from "./videoPreview";
+import { useVideoPreview } from "./hooks/useVideoPreview";
 
 export interface PrejoinProps {
   /** 房间名（受控），不传则组件内部维护 */
@@ -33,7 +35,8 @@ export const Prejoin = ({
   className,
 }: PrejoinProps) => {
   const { cls, vcls } = useCls("prejoin", className);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const { videoRef, showPlaceholder, play, pause, clear } = useVideoPreview();
+  const videoWrapRef = useRef<HTMLDivElement>(null);
   const videoTriggerRef = useRef<DeviceVideoTriggerExports>(null);
   const [footerWidth, setFooterWidth] = useState<number | undefined>();
   const [internalRoomName, setInternalRoomName] = useState(defaultRoomName);
@@ -42,14 +45,17 @@ export const Prejoin = ({
   const currentRoomName = roomNameProp ?? internalRoomName;
 
   useEffect(() => {
-    const el = videoRef.current;
+    const el = videoWrapRef.current;
     if (!el) return;
     const update = () => setFooterWidth(el.clientWidth);
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+    return () => {
+      ro.disconnect();
+      clear();
+    };
+  }, [clear, videoWrapRef]);
 
   const handleJoin = () => {
     onJoin?.(currentRoomName.trim());
@@ -70,7 +76,11 @@ export const Prejoin = ({
         ></Input>
       </header>
       <main className={vcls("main")}>
-        <video className={vcls("video")} ref={videoRef}></video>
+        <VideoPreview
+          playerRef={videoRef}
+          ref={videoWrapRef}
+          showPlaceholder={showPlaceholder}
+        />
       </main>
       <footer
         className={vcls("footer")}
@@ -82,16 +92,14 @@ export const Prejoin = ({
           <DeviceTrigger.Audio />
           <DeviceTrigger.Video
             ref={videoTriggerRef}
-            onClick={(_, open) => {
+            onClick={async (_, open) => {
               const el = videoRef.current;
               if (!el) return;
               // open = 点击后设备状态：true 表示摄像头已开启（流已就绪）
               if (open) {
-                el.srcObject = videoTriggerRef.current?.mediaSrc ?? null;
-                el.play();
+                await play(videoTriggerRef.current?.mediaSrc);
               } else {
-                // el.srcObject = null;
-                el.pause();
+                pause();
               }
             }}
           />

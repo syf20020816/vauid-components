@@ -49,6 +49,11 @@
     background-color: color("primary-hover");
   }
 
+  // 选中态：放在 :hover 之后，保证选中项 hover 时仍保持选中背景
+  &--active {
+    background-color: color("primary-active");
+  }
+
   &--disabled {
     color: color("text-tertiary");
     cursor: not-allowed;
@@ -61,6 +66,16 @@
     &:hover {
       background-color: color("error-hover");
     }
+  }
+
+  // 自定义后缀：推到菜单项尾部，弱化展示辅助信息（trigger/dropdown/select 共用）
+  &-suffix {
+    // inline-flex 自居中：避免继承 2rem 行高后内容按基线排列导致上下不居中
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin-left: auto;
+    color: color("text-tertiary");
   }
 }
 
