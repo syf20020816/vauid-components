@@ -25,7 +25,14 @@ export const useScreenShare = ({ element, option }: UseScreenShareProps) => {
   };
 
   const share = async () => {
-    const stream = await navigator.mediaDevices.getDisplayMedia(mediaOption);
+    // getDisplayMedia 失败（用户取消/拒绝/非安全上下文）不能静默成 unhandled rejection
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getDisplayMedia(mediaOption);
+    } catch (error) {
+      console.warn("[useScreenShare] 获取共享流失败:", error);
+      return;
+    }
 
     if (stream) {
       stream.getTracks().forEach((track) => {
@@ -41,6 +48,8 @@ export const useScreenShare = ({ element, option }: UseScreenShareProps) => {
       const videoEl = element?.current;
       if (videoEl) {
         Object.assign(videoEl, { srcObject: stream });
+        // srcObject 为后赋值时部分浏览器不会重新评估 autoplay，主动 play 兜底
+        if (videoEl.paused) videoEl.play().catch(() => {});
       }
       setSharing(true);
       streamRef.current = stream;

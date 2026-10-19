@@ -57,6 +57,10 @@ const SIDEBAR: Record<string, SidebarGroup[]> = {
         '/components/note-tile',
       ],
     },
+    {
+      title: '远程协作',
+      children: ['/components/remote-support'],
+    },
   ],
   '/layout/': [
     {

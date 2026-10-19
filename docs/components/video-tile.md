@@ -45,7 +45,43 @@ export default () => (
 );
 ```
 
+## 挂载媒体源（ref 直挂 MediaStream）
+
+`ref` 转发到内部 `<video>` 元素。拿到流后直接挂 `srcObject` 即可出画面（组件已带 `autoPlay` / `playsInline` / `muted`）。典型组合是配合 `DeviceTrigger.ScreenShare`——按钮负责采集共享流并挂到 ref 指向的元素：
+
+```tsx
+import { useRef } from 'react';
+import { VideoTile, DeviceTrigger } from 'vauid-components';
+
+export default () => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  return (
+    <div>
+      <div style={{ width: 320, height: 240, marginBottom: 12 }}>
+        <VideoTile ref={videoRef} style={{ width: '100%', height: '100%' }} />
+      </div>
+      {/* 点击后浏览器弹出选屏对话框，共享画面自动挂到上面的 Tile */}
+      <DeviceTrigger.ScreenShare element={videoRef} />
+    </div>
+  );
+};
+```
+
+也可以自行获取流后挂载（摄像头、合成流等任意 MediaStream）：
+
+```ts
+const videoRef = useRef<HTMLVideoElement>(null);
+
+const startCamera = async () => {
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  // 组件内部已处理自动播放兜底，这里只需挂源
+  videoRef.current!.srcObject = stream;
+};
+```
+
 ## 挂载媒体源（以 livekit 为例）
+
+RTC SDK 场景推荐 `bind`/`unbind`：元素挂载/卸载时收到同一元素回调，适合 `track.attach(el)` 这类有配套解绑的资源：
 
 ```ts
 const bind = useCallback((el: HTMLVideoElement) => {
@@ -60,6 +96,8 @@ const unbind = useCallback((el: HTMLVideoElement) => {
 ```
 
 > 元素卸载时 React 会先把 ref 置为 `null` 再执行 effect cleanup，因此 `VideoTile` 在挂载时捕获元素并在卸载前把**同一元素**传给 `unbind`，使用方无需自己维护 ref。
+
+> 两种方式对照：`ref` 直挂适合一次性挂流的场景（`srcObject`），由使用方管理生命周期；`bind`/`unbind` 适合资源有 attach/detach 配对语义的场景，挂载与释放时机由组件保证。
 
 ## 0 帧渲染（性能优化）
 

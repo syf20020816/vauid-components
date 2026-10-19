@@ -37,6 +37,8 @@ export interface WhiteboardToolProps extends HTMLAttributes<HTMLDivElement> {
   position?: PositionType;
   /** 工具栏方向：横向（默认）/ 纵向 */
   direction?: DirectionType;
+  /** 可见工具集合（能力裁剪口，默认全量）：不在集合内的工具按钮不渲染（如标注层隐藏文字） */
+  tools?: ToolValue[];
   iconSize?: number | string;
   /** 线条粗细（受控模式），不传则使用内部状态 */
   lineSize?: number;
@@ -106,6 +108,8 @@ export const WhiteboardTool = ({
   container,
   className,
   direction = Direction.Horizontal,
+  // 能力裁剪：默认全量（向后兼容）；不在集合内的工具按钮不渲染
+  tools: toolsProp,
   iconSize = 16,
   offset,
   position = Position.BottomCenter,
@@ -142,6 +146,9 @@ export const WhiteboardTool = ({
   const penType = penTypeProp ?? iPenType;
   const shapeType = shapeTypeProp ?? iShapeType;
   const lineSize = lineSizeProp ?? iLineSize;
+
+  // 可见工具集合：默认全量
+  const tools = toolsProp ?? [Tool.Pen, Tool.Shape, Tool.Eraser, Tool.Text];
 
   const flexDirection = direction === Direction.Vertical ? "column" : "row";
 
@@ -225,42 +232,50 @@ export const WhiteboardTool = ({
                 flexDirection,
               }}
             >
-              <Trigger
-                direction={direction}
-                prefix={<PenIcon size={iconSize} />}
-                options={penOptions}
-                value={penType}
-                showLabel={false}
-                onChange={(value) => {
-                  setIPenType(value as PenTypeValue);
-                  onPenTypeChange?.(value as PenTypeValue);
-                }}
-                onClick={() => switchTool(Tool.Pen)}
-                classNames={{ trigger: toolBtnCls(Tool.Pen) }}
-              />
-              <Trigger
-                direction={direction}
-                prefix={<ShapeIcon size={iconSize} />}
-                options={shapeOptions}
-                value={shapeType}
-                showLabel={false}
-                onChange={(value) => {
-                  setIShapeType(value as ShapeTypeValue);
-                  onShapeTypeChange?.(value as ShapeTypeValue);
-                }}
-                onClick={() => switchTool(Tool.Shape)}
-                classNames={{ trigger: toolBtnCls(Tool.Shape) }}
-              />
-              <Button
-                icon={<Eraser size={iconSize} />}
-                className={toolBtnCls(Tool.Eraser)}
-                onClick={() => switchTool(Tool.Eraser)}
-              />
-              <Button
-                icon={<Type size={iconSize} />}
-                className={toolBtnCls(Tool.Text)}
-                onClick={() => switchTool(Tool.Text)}
-              />
+              {tools.includes(Tool.Pen) && (
+                <Trigger
+                  direction={direction}
+                  prefix={<PenIcon size={iconSize} />}
+                  options={penOptions}
+                  value={penType}
+                  showLabel={false}
+                  onChange={(value) => {
+                    setIPenType(value as PenTypeValue);
+                    onPenTypeChange?.(value as PenTypeValue);
+                  }}
+                  onClick={() => switchTool(Tool.Pen)}
+                  classNames={{ trigger: toolBtnCls(Tool.Pen) }}
+                />
+              )}
+              {tools.includes(Tool.Shape) && (
+                <Trigger
+                  direction={direction}
+                  prefix={<ShapeIcon size={iconSize} />}
+                  options={shapeOptions}
+                  value={shapeType}
+                  showLabel={false}
+                  onChange={(value) => {
+                    setIShapeType(value as ShapeTypeValue);
+                    onShapeTypeChange?.(value as ShapeTypeValue);
+                  }}
+                  onClick={() => switchTool(Tool.Shape)}
+                  classNames={{ trigger: toolBtnCls(Tool.Shape) }}
+                />
+              )}
+              {tools.includes(Tool.Eraser) && (
+                <Button
+                  icon={<Eraser size={iconSize} />}
+                  className={toolBtnCls(Tool.Eraser)}
+                  onClick={() => switchTool(Tool.Eraser)}
+                />
+              )}
+              {tools.includes(Tool.Text) && (
+                <Button
+                  icon={<Type size={iconSize} />}
+                  className={toolBtnCls(Tool.Text)}
+                  onClick={() => switchTool(Tool.Text)}
+                />
+              )}
             </div>
             <Divider direction={anotherD(direction)} />
             <div className={vcls("main-size")} style={{ flexDirection }}>

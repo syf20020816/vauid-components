@@ -75,6 +75,8 @@ export default () => {
 | ---------------- | ------------------ | ------------- | --------------------------- |
 | `position`       | `PositionType`     | `"bottom-center"` | 工具栏位置              |
 | `direction`      | `DirectionType`    | `"horizontal"` | 工具栏方向                |
+| `tools`          | `ToolValue[]`      | 全部          | 可见工具集合（能力裁剪口）：不在集合内的工具按钮不渲染，如标注层传 `[Tool.Pen, Tool.Shape, Tool.Eraser]` 隐藏文字 |
+| `container`      | `Element` \| `DocumentFragment` | `document.body` | 渲染容器（body 时 fixed 定位；挂容器内建议配合 `vauid-whiteboard-tool-self` 类切 absolute） |
 | `iconSize`       | `number`\|`string` | `16`          | 图标尺寸                    |
 | `tool`           | `ToolValue`        | -             | 当前工具（受控），见 [Tool](#tool) |
 | `onToolChange`   | `(tool) => void`   | -             | 工具切换回调                  |

@@ -17,9 +17,9 @@
 
 | # | 任务 | 涉及文件 | 验收标准 | 优先级 |
 |---|------|----------|----------|--------|
-| 12.1 | `RemoteSupport` 远程支持 | `components/remote-support/`（新建） | ScreenShare + MouseMapper + AnnotationLayer 组合 | P1 |
-| 12.2 | `MouseMapper` 鼠标映射 | `components/remote-support/mouse.tsx` | PointerEvent 捕获、0-1 归一化坐标、unreliable 二进制帧（latest-wins 节流） | P1 |
-| 12.3 | `AnnotationLayer` 标注层 | `components/remote-support/annotation.tsx` | Canvas 叠加标注；多人分层；撤销/清除（reliable 事件） | P1 |
+| 12.1 ✅ | `RemoteSupport` 远程支持 | `components/remote-support/`（新建） | ScreenShare + MouseMapper + AnnotationLayer 组合 | P1 |
+| 12.2 ✅ | `MouseMapper` 鼠标映射 | `components/remote-support/mouse.tsx` | PointerEvent 捕获、0-1 归一化坐标、unreliable 二进制帧（latest-wins 节流）；**走 CollabTransport 的 Pointer envelope 直传，不经 Yjs**（控制流是瞬时动作非状态，需可丢帧低延迟） | P1 |
+| 12.3 ✅ | `AnnotationLayer` 标注层 | `components/remote-support/annotation.tsx` | **Yjs**：Y.Array\<Annotation\> + UndoManager（复用 collab 基座 yjs-update envelope）；多人分层按 awareness identity；光标展示走 awareness | P1 |
 | 12.4 | `EffectsLayer` 特效层 | `components/effects/`（新建） | 虚拟背景（MediaPipe/TensorFlow）、美颜、滤镜（WebGL） | P2（暂缓） |
 
 ## W14：工程质量

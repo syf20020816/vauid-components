@@ -24,6 +24,8 @@ export { NoteTile } from './tile/note';
 export { AudioLevel, type AudioLevelProps, type AudioLevelSource, type AudioLevelVariant } from './tile/audio';
 // export { IframeTile } from './tile/iframe'; // TODO: 实现
 export { Controller } from './controller';
+export { DeviceTrigger } from './controller/device';
+export type { DeviceTriggerComponent, DeviceScreenShareProps } from './controller/device';
 export { ParticipantItem } from './participant/item';
 export { ParticipantName } from './participant/name';
 export { ParticipantNum } from './participant/num';
@@ -119,3 +121,27 @@ export {
   type YjsBridge,
   type YjsBridgeOptions,
 } from './collab';
+// 远程支持：RemoteSupport 组合模板 + MouseMapper 指针映射 + AnnotationLayer 标注层
+export {
+  ANNOTATIONS_KEY,
+  AnnotationLayer,
+  MouseMapper,
+  RemoteSupport,
+  createAnnotationId,
+  createMoveThrottle,
+  createRafScheduler,
+  decodePointerAction,
+  decodePointerMove,
+  encodePointerAction,
+  encodePointerMove,
+  normalizePoint,
+  type Annotation,
+  type AnnotationLayerProps,
+  type AnnotationPoint,
+  type AnnotationType,
+  type MouseMapperProps,
+  type PointerAction,
+  type PointerActionKind,
+  type PointerMoveFrame,
+  type RemoteSupportProps,
+} from './remote-support';
